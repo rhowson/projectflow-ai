@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Modern AI-inspired primary colors
-  static const Color primary = Color(0xFF6366F1);
-  static const Color primaryLight = Color(0xFF818CF8);
-  static const Color primaryDark = Color(0xFF4F46E5);
-  static const Color primaryAccent = Color(0xFF8B5CF6);
+  // Modern UI Kit inspired primary colors - Beautiful teal/mint green
+  static const Color primary = Color.fromRGBO(86, 215, 188, 1); // #56D7BC
+  static const Color primaryLight = Color.fromRGBO(108, 228, 205, 1);
+  static const Color primaryDark = Color.fromRGBO(64, 180, 155, 1);
+  static const Color primaryAccent = Color.fromRGBO(86, 215, 188, 0.8);
   
   // AI Chat colors
   static const Color chatBubbleUser = Color(0xFF6366F1);

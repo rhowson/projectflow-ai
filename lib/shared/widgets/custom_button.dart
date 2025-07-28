@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 
 enum ButtonType { primary, secondary, outlined, text, gradient }
@@ -63,25 +65,25 @@ class _CustomButtonState extends State<CustomButton>
 
   EdgeInsetsGeometry _getPadding() {
     return switch (widget.size) {
-      ButtonSize.small => const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      ButtonSize.medium => const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      ButtonSize.large => const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      ButtonSize.small => EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      ButtonSize.medium => EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+      ButtonSize.large => EdgeInsets.symmetric(horizontal: 32.w, vertical: 16.h),
     };
   }
 
   double _getHeight() {
     return switch (widget.size) {
-      ButtonSize.small => 36,
-      ButtonSize.medium => 44,
-      ButtonSize.large => 52,
+      ButtonSize.small => 36.h,
+      ButtonSize.medium => 48.h,
+      ButtonSize.large => 56.h,
     };
   }
 
   double _getFontSize() {
     return switch (widget.size) {
-      ButtonSize.small => 14,
-      ButtonSize.medium => 16,
-      ButtonSize.large => 18,
+      ButtonSize.small => 14.sp,
+      ButtonSize.medium => 16.sp,
+      ButtonSize.large => 18.sp,
     };
   }
 
@@ -106,20 +108,20 @@ class _CustomButtonState extends State<CustomButton>
                   const SizedBox(width: 8),
                   Text(
                     widget.text,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: _getFontSize(),
                       fontWeight: FontWeight.w600,
-                      letterSpacing: -0.01,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
               )
             : Text(
                 widget.text,
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: _getFontSize(),
                   fontWeight: FontWeight.w600,
-                  letterSpacing: -0.01,
+                  letterSpacing: 0.5,
                 ),
               );
 
@@ -167,13 +169,13 @@ class _CustomButtonState extends State<CustomButton>
       height: _getHeight(),
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: widget.showShadow
             ? [
                 BoxShadow(
                   color: AppColors.primary.withOpacity(0.3),
-                  offset: const Offset(0, 4),
-                  blurRadius: 12,
+                  offset: Offset(0, 4.h),
+                  blurRadius: 12.r,
                   spreadRadius: 0,
                 ),
               ]
@@ -183,7 +185,7 @@ class _CustomButtonState extends State<CustomButton>
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.isLoading ? null : widget.onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
             padding: _getPadding(),
             child: Center(child: child),
@@ -214,7 +216,7 @@ class _CustomButtonState extends State<CustomButton>
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.isLoading ? null : widget.onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
             padding: _getPadding(),
             child: Center(child: child),
@@ -239,7 +241,7 @@ class _CustomButtonState extends State<CustomButton>
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.isLoading ? null : widget.onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
             padding: _getPadding(),
             child: Center(
@@ -265,7 +267,7 @@ class _CustomButtonState extends State<CustomButton>
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.isLoading ? null : widget.onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
             padding: _getPadding(),
             child: Center(
@@ -310,7 +312,7 @@ class _CustomButtonState extends State<CustomButton>
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.isLoading ? null : widget.onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
             padding: _getPadding(),
             child: Center(child: child),
