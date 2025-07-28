@@ -81,9 +81,9 @@ class _CustomButtonState extends State<CustomButton>
 
   double _getFontSize() {
     return switch (widget.size) {
-      ButtonSize.small => 14.sp,
-      ButtonSize.medium => 16.sp,
-      ButtonSize.large => 18.sp,
+      ButtonSize.small => 14.0, // Fixed size to match body text
+      ButtonSize.medium => 16.0,
+      ButtonSize.large => 18.0,
     };
   }
 
