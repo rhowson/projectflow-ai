@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
@@ -188,47 +189,54 @@ class DashboardScreen extends ConsumerWidget {
     final isLargeScreen = screenWidth > 768; // Show kanban board only on tablets and desktop
     
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ProjectOverviewCard(project: project),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           ProjectProgressChart(project: project),
-          const SizedBox(height: 16),
+          SizedBox(height: 20.h),
           // Show Kanban Board only on larger screens
           if (isLargeScreen) ...[
             SizedBox(
               height: 600, // Fixed height for the kanban board
               child: ResponsiveKanbanBoard(project: project),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
           ] else ...[
-            // Mobile-friendly info card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Drag & drop task board is available on larger screens. Manage tasks using the phases below.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                        ),
-                      ),
-                    ),
-                  ],
+            // Mobile-friendly info card - more compact
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 8.w),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 ),
               ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.touch_app,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 18.sp,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      'Tap on phases below to expand and manage tasks',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
           ],
           // Phases list - Always show, primary task view on mobile
           PhasesList(phases: project.phases, projectId: project.id),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/project_model.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../task_management/widgets/task_management_dialogs.dart';
@@ -45,70 +46,82 @@ class PhasesList extends ConsumerWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.layers,
-                  color: Theme.of(context).colorScheme.primary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          child: Row(
+            children: [
+              Icon(
+                Icons.layers,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20.sp,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'Project Phases',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Project Phases',
-                  style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
-                const Spacer(),
-                Text(
-                  '${phases.length} phases',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                child: Text(
+                  '${phases.length}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: phases.length,
-              separatorBuilder: (context, index) => const Divider(height: 24),
-              itemBuilder: (context, index) {
-                final phase = phases[index];
-                return _PhaseItem(
-                  phase: phase,
-                  phaseNumber: index + 1,
-                  projectId: projectId,
-                );
-              },
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
-      ),
+        
+        // Phases list
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 8.w),
+          itemCount: phases.length,
+          separatorBuilder: (context, index) => SizedBox(height: 12.h),
+          itemBuilder: (context, index) {
+            final phase = phases[index];
+            return _PhaseCard(
+              phase: phase,
+              phaseNumber: index + 1,
+              projectId: projectId,
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-class _PhaseItem extends ConsumerStatefulWidget {
+class _PhaseCard extends ConsumerStatefulWidget {
   final ProjectPhase phase;
   final int phaseNumber;
   final String projectId;
 
-  const _PhaseItem({
+  const _PhaseCard({
     required this.phase,
     required this.phaseNumber,
     required this.projectId,
   });
 
   @override
-  ConsumerState<_PhaseItem> createState() => _PhaseItemState();
+  ConsumerState<_PhaseCard> createState() => _PhaseCardState();
 }
 
-class _PhaseItemState extends ConsumerState<_PhaseItem> {
+class _PhaseCardState extends ConsumerState<_PhaseCard> {
   bool isExpanded = false;
 
   @override
@@ -120,135 +133,202 @@ class _PhaseItemState extends ConsumerState<_PhaseItem> {
     final progress = totalTasks > 0 ? completedTasks / totalTasks : 0.0;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InkWell(
-          onTap: () {
-            setState(() {
-              isExpanded = !isExpanded;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: widget.phase.status == PhaseStatus.completed 
-                            ? AppColors.statusCompleted
-                            : _getPhaseStatusColor(widget.phase.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: _getPhaseStatusColor(widget.phase.status).withOpacity(0.3),
-                        ),
+        Card(
+          margin: EdgeInsets.symmetric(horizontal: 8.w),
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                isExpanded = !isExpanded;
+              });
+            },
+            borderRadius: BorderRadius.circular(12.r),
+            child: Padding(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              // Phase header - reorganized for mobile
+              Row(
+                children: [
+                  Container(
+                    width: 40.w,
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: widget.phase.status == PhaseStatus.completed 
+                          ? AppColors.statusCompleted
+                          : _getPhaseStatusColor(widget.phase.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: _getPhaseStatusColor(widget.phase.status).withOpacity(0.3),
+                        width: 2,
                       ),
-                      child: Center(
-                        child: widget.phase.status == PhaseStatus.completed
-                            ? const Icon(
-                                Icons.check,
-                                size: 18,
-                                color: Colors.white,
-                              )
-                            : Text(
-                                widget.phaseNumber.toString(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _getPhaseStatusColor(widget.phase.status),
-                                ),
+                    ),
+                    child: Center(
+                      child: widget.phase.status == PhaseStatus.completed
+                          ? Icon(
+                              Icons.check,
+                              size: 20.sp,
+                              color: Colors.white,
+                            )
+                          : Text(
+                              widget.phaseNumber.toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16.sp,
+                                color: _getPhaseStatusColor(widget.phase.status),
                               ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.phase.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.phase.description,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                             ),
-                            maxLines: isExpanded ? null : 2,
-                            overflow: isExpanded ? null : TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _PhaseStatusChip(status: widget.phase.status),
-                        const SizedBox(height: 4),
                         Text(
-                          '$completedTasks/$totalTasks tasks',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          widget.phase.name,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Row(
+                          children: [
+                            _PhaseStatusChip(status: widget.phase.status),
+                            SizedBox(width: 8.w),
+                            Text(
+                              '$completedTasks/$totalTasks tasks',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.add, size: 20),
-                      onPressed: () => _showAddTaskDialog(),
-                      tooltip: 'Add Task',
-                      visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add, size: 20.sp),
+                    onPressed: () => _showAddTaskDialog(),
+                    tooltip: 'Add Task',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      foregroundColor: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: 12.h),
+              
+              // Description
+              Text(
+                widget.phase.description,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
+                maxLines: isExpanded ? null : 2,
+                overflow: isExpanded ? null : TextOverflow.ellipsis,
+              ),
+              
+              SizedBox(height: 12.h),
+              
+              // Progress bar with better spacing
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Progress',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '${(progress * 100).round()}%',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: _getPhaseStatusColor(widget.phase.status),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _getPhaseStatusColor(widget.phase.status),
+                    ),
+                    minHeight: 6.h,
+                  ),
+                ],
+              ),
+              
+                  // Expand/collapse indicator
+                  if (widget.phase.tasks.isNotEmpty) ...[
+                    SizedBox(height: 8.h),
+                    Center(
+                      child: Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        size: 20.sp,
+                      ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    _getPhaseStatusColor(widget.phase.status),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
         
-        if (isExpanded && widget.phase.tasks.isNotEmpty) ...[
-          const SizedBox(height: 12),
+        // Expanded tasks section
+        if (isExpanded && widget.phase.tasks.isNotEmpty)
           Container(
-            margin: const EdgeInsets.only(left: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tasks',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                  ),
+            margin: EdgeInsets.only(top: 8.h),
+            child: Card(
+              margin: EdgeInsets.symmetric(horizontal: 8.w),
+              child: Padding(
+                padding: EdgeInsets.all(12.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.task_alt,
+                          size: 16.sp,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Tasks (${widget.phase.tasks.length})',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12.h),
+                    ...widget.phase.tasks.map((task) => _TaskCard(
+                      task: task,
+                      projectId: widget.projectId,
+                      phaseId: widget.phase.id,
+                    )),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                ...widget.phase.tasks.map((task) => _TaskItem(
-                  task: task,
-                  projectId: widget.projectId,
-                  phaseId: widget.phase.id,
-                )),
-              ],
+              ),
             ),
           ),
-        ],
       ],
     );
   }
+
 
   void _showAddTaskDialog() {
     TaskManagementDialogs.showAddTaskDialog(
@@ -321,22 +401,22 @@ class _PhaseStatusChip extends StatelessWidget {
   }
 }
 
-class _TaskItem extends ConsumerStatefulWidget {
+class _TaskCard extends ConsumerStatefulWidget {
   final Task task;
   final String projectId;
   final String phaseId;
 
-  const _TaskItem({
+  const _TaskCard({
     required this.task,
     required this.projectId,
     required this.phaseId,
   });
 
   @override
-  ConsumerState<_TaskItem> createState() => _TaskItemState();
+  ConsumerState<_TaskCard> createState() => _TaskCardState();
 }
 
-class _TaskItemState extends ConsumerState<_TaskItem> 
+class _TaskCardState extends ConsumerState<_TaskCard> 
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -371,13 +451,13 @@ class _TaskItemState extends ConsumerState<_TaskItem>
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
+            margin: EdgeInsets.only(bottom: 8.h),
+            padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
               color: widget.task.status == TaskStatus.completed
                   ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
                   : Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: widget.task.status == TaskStatus.completed
                     ? AppColors.statusCompleted.withOpacity(0.3)
@@ -390,8 +470,8 @@ class _TaskItemState extends ConsumerState<_TaskItem>
           GestureDetector(
             onTap: () => _toggleTaskCompletion(),
             child: Container(
-              width: 24,
-              height: 24,
+              width: 24.w,
+              height: 24.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -405,25 +485,25 @@ class _TaskItemState extends ConsumerState<_TaskItem>
                     : Colors.transparent,
               ),
               child: widget.task.status == TaskStatus.completed
-                  ? const Icon(
+                  ? Icon(
                       Icons.check,
-                      size: 16,
+                      size: 16.sp,
                       color: Colors.white,
                     )
                   : null,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           // Status icon (smaller, supplementary)
           Container(
-            width: 8,
-            height: 8,
+            width: 8.w,
+            height: 8.h,
             decoration: BoxDecoration(
               color: _getTaskStatusColor(widget.task.status),
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Expanded(
             child: GestureDetector(
               onTap: () => _showEditTaskDialog(context),
