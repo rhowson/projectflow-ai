@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/loading_indicator.dart';
+import '../../../shared/widgets/custom_button.dart';
 import '../providers/project_provider.dart';
 
 class ProjectCreationScreen extends ConsumerStatefulWidget {
@@ -112,40 +113,25 @@ I have a design team but need help with the technical planning and development p
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: CustomButton(
+                        text: 'Cancel',
+                        type: ButtonType.outlined,
+                        size: ButtonSize.small,
                         onPressed: () {
                           context.pop();
                         },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       flex: 2,
-                      child: ElevatedButton(
+                      child: CustomButton(
+                        text: 'Analyze Project',
+                        type: ButtonType.primary,
+                        size: ButtonSize.small,
+                        icon: const Icon(Icons.psychology, size: 18, color: Colors.white),
+                        isLoading: projectState.isLoading,
                         onPressed: projectState.isLoading ? null : _createProject,
-                        child: projectState.isLoading 
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.psychology, size: 20),
-                                SizedBox(width: 8),
-                                Text('Analyze Project'),
-                              ],
-                            ),
                       ),
                     ),
                   ],
