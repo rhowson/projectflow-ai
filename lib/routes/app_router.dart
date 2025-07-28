@@ -3,35 +3,22 @@ import 'package:go_router/go_router.dart';
 import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
+import '../features/tasks/presentation/tasks_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../shared/widgets/main_navigation.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
     initialLocation: '/',
     routes: [
+      // Splash screen (no bottom nav)
       GoRoute(
         path: '/',
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/dashboard',
-        name: 'dashboard',
-        builder: (context, state) => const DashboardScreen(),
-      ),
-      GoRoute(
-        path: '/dashboard/:projectId',
-        name: 'project-dashboard',
-        builder: (context, state) {
-          final projectId = state.pathParameters['projectId'];
-          return DashboardScreen(projectId: projectId);
-        },
-      ),
-      GoRoute(
-        path: '/create-project',
-        name: 'create-project',
-        builder: (context, state) => const ProjectCreationScreen(),
-      ),
-      // Auth routes (to be implemented)
+      
+      // Auth routes (no bottom nav)
       GoRoute(
         path: '/login',
         name: 'login',
@@ -50,7 +37,76 @@ class AppRouter {
           ),
         ),
       ),
-      // Project context gathering (to be implemented)
+      
+      // Main app shell with bottom navigation
+      ShellRoute(
+        builder: (context, state, child) {
+          return MainNavigation(
+            currentPath: state.fullPath ?? '/dashboard',
+            child: child,
+          );
+        },
+        routes: [
+          // Dashboard routes
+          GoRoute(
+            path: '/dashboard',
+            name: 'dashboard',
+            builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/dashboard/:projectId',
+            name: 'project-dashboard',
+            builder: (context, state) {
+              final projectId = state.pathParameters['projectId'];
+              return DashboardScreen(projectId: projectId);
+            },
+          ),
+          
+          // Create project route
+          GoRoute(
+            path: '/create-project',
+            name: 'create-project',
+            builder: (context, state) => const ProjectCreationScreen(),
+          ),
+          
+          // Tasks routes
+          GoRoute(
+            path: '/tasks',
+            name: 'tasks',
+            builder: (context, state) => const TasksScreen(),
+          ),
+          GoRoute(
+            path: '/tasks/:projectId',
+            name: 'project-tasks',
+            builder: (context, state) {
+              final projectId = state.pathParameters['projectId'];
+              return Scaffold(
+                body: Center(
+                  child: Text('Task Management for Project: $projectId - To be implemented'),
+                ),
+              );
+            },
+          ),
+          
+          // Profile and Settings routes
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const Scaffold(
+              body: Center(
+                child: Text('Settings Screen - To be implemented'),
+              ),
+            ),
+          ),
+        ],
+      ),
+      
+      // Special routes (no bottom nav)
       GoRoute(
         path: '/project-context/:projectId',
         name: 'project-context',
@@ -63,20 +119,8 @@ class AppRouter {
           );
         },
       ),
-      // Task management routes (to be implemented)
-      GoRoute(
-        path: '/tasks/:projectId',
-        name: 'tasks',
-        builder: (context, state) {
-          final projectId = state.pathParameters['projectId'];
-          return Scaffold(
-            body: Center(
-              child: Text('Task Management for Project: $projectId - To be implemented'),
-            ),
-          );
-        },
-      ),
-      // Team management routes (to be implemented)
+      
+      // Team management routes (no bottom nav for specific project views)
       GoRoute(
         path: '/team/:projectId',
         name: 'team',
@@ -88,25 +132,6 @@ class AppRouter {
             ),
           );
         },
-      ),
-      // Settings routes (to be implemented)
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Settings Screen - To be implemented'),
-          ),
-        ),
-      ),
-      GoRoute(
-        path: '/profile',
-        name: 'profile',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Profile Screen - To be implemented'),
-          ),
-        ),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -132,8 +157,8 @@ class AppRouter {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => context.go('/'),
-              child: const Text('Go Home'),
+              onPressed: () => context.go('/dashboard'),
+              child: const Text('Go to Dashboard'),
             ),
           ],
         ),
