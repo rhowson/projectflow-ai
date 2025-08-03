@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import '../../../shared/theme/app_colors.dart';
+import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/animations/micro_interactions.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -125,9 +126,9 @@ class _SplashScreenState extends State<SplashScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primary.withOpacity(0.1 * _backgroundAnimation.value),
-                  AppColors.secondary.withOpacity(0.05 * _backgroundAnimation.value),
-                  Colors.white,
+                  CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1 * _backgroundAnimation.value),
+                  CustomNeumorphicTheme.baseColor,
+                  CustomNeumorphicTheme.cardColor,
                 ],
               ),
             ),
@@ -149,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                     },
                   ),
                   
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32.h),
                   
                   // Text Animation
                   AnimatedBuilder(
@@ -164,19 +165,19 @@ class _SplashScreenState extends State<SplashScreen>
                               Text(
                                 'ProjectFlow AI',
                                 style: TextStyle(
-                                  fontSize: 32,
+                                  fontSize: 32.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                                  color: CustomNeumorphicTheme.darkText,
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8.h),
                               Text(
                                 'AI-Powered Project Management',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                   fontWeight: FontWeight.w500,
-                                  color: AppColors.textSecondary,
+                                  color: CustomNeumorphicTheme.lightText,
                                   letterSpacing: 0.2,
                                 ),
                               ),
@@ -187,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen>
                     },
                   ),
                   
-                  const SizedBox(height: 64),
+                  SizedBox(height: 64.h),
                   
                   // Loading indicator
                   AnimatedBuilder(
@@ -196,7 +197,7 @@ class _SplashScreenState extends State<SplashScreen>
                       return Opacity(
                         opacity: _backgroundAnimation.value,
                         child: PulsingDot(
-                          color: AppColors.primary,
+                          color: CustomNeumorphicTheme.primaryPurple,
                           size: 8,
                         ),
                       );
@@ -212,96 +213,93 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildLogo() {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            AppColors.secondary,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+    return NeumorphicContainer(
+      width: 120.w,
+      height: 120.w,
+      borderRadius: BorderRadius.circular(24.r),
+      color: CustomNeumorphicTheme.primaryPurple,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              CustomNeumorphicTheme.primaryPurple,
+              CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.8),
+            ],
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Background pattern
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: CustomPaint(
-                painter: LogoPatternPainter(),
+          borderRadius: BorderRadius.circular(24.r),
+        ),
+        child: Stack(
+          children: [
+            // Background pattern
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24.r),
+                child: CustomPaint(
+                  painter: LogoPatternPainter(),
+                ),
               ),
             ),
-          ),
-          
-          // Main logo content
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // AI Brain icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.psychology_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                
-                // Project management icon
-                Container(
-                  width: 32,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 2,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(1),
-                      ),
+            
+            // Main logo content
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // AI Brain icon
+                  Container(
+                    width: 48.w,
+                    height: 48.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
-                    const SizedBox(width: 2),
-                    Container(
-                      width: 12,
-                      height: 2,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(1),
-                      ),
+                    child: Icon(
+                      Icons.psychology_rounded,
+                      color: Colors.white,
+                      size: 28.sp,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  SizedBox(height: 4.h),
+                  
+                  // Project management icon
+                  Container(
+                    width: 32.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 12.w,
+                        height: 2.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(1.r),
+                        ),
+                      ),
+                      SizedBox(width: 2.w),
+                      Container(
+                        width: 12.w,
+                        height: 2.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(1.r),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -312,7 +310,7 @@ class LogoPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     
