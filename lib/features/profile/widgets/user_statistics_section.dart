@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/user_service.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../user_management/providers/user_provider.dart';
 
 class UserStatisticsSection extends ConsumerWidget {
@@ -53,9 +54,8 @@ class UserStatisticsSection extends ConsumerWidget {
   }
 
   Widget _buildAccountOverviewCard(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
+    return NeumorphicEmbossedCard(
+      padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -136,14 +136,12 @@ class UserStatisticsSection extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 
   Widget _buildActivityStatsCard(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
+    return NeumorphicEmbossedCard(
+      padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -222,14 +220,12 @@ class UserStatisticsSection extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 
   Widget _buildUsageAnalyticsCard(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
+    return NeumorphicEmbossedCard(
+      padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -268,7 +264,6 @@ class UserStatisticsSection extends ConsumerWidget {
             _buildSecurityStatus(context),
           ],
         ),
-      ),
     );
   }
 
@@ -405,9 +400,8 @@ class UserStatisticsSection extends ConsumerWidget {
   }
 
   Widget _buildGlobalStatsCard(BuildContext context, UserStatistics stats) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
+    return NeumorphicEmbossedCard(
+      padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -502,7 +496,6 @@ class UserStatisticsSection extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

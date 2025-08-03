@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'shared/theme/app_theme.dart';
+import 'shared/theme/custom_neumorphic_theme.dart';
 import 'routes/app_router.dart';
 
 class ProjectFlowApp extends ConsumerWidget {
@@ -17,13 +17,7 @@ class ProjectFlowApp extends ConsumerWidget {
         return MaterialApp.router(
           title: 'ProjectFlow AI',
           debugShowCheckedModeBanner: false,
-          
-          // Theme configuration
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.system, // This would typically be managed by a provider
-          
-          // Router configuration
+          theme: CustomNeumorphicTheme.lightTheme,
           routerConfig: AppRouter.router,
       
           // Localization (to be implemented later)

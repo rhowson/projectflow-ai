@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/project_model.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../project_creation/providers/project_provider.dart';
 
 class ResponsiveKanbanBoard extends ConsumerStatefulWidget {
@@ -42,40 +44,69 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
       TaskStatus.completed: allTasks.where((task) => task.status == TaskStatus.completed).toList(),
     };
 
-    return Card(
-      margin: EdgeInsets.all(isMobile ? 8.0 : 16.0),
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        isMobile ? 8.0 : 16.0,  // left
+        0.0,                    // top - removed margin to eliminate gap
+        isMobile ? 8.0 : 16.0,  // right  
+        isMobile ? 8.0 : 16.0,  // bottom
+      ),
+      decoration: BoxDecoration(
+        color: CustomNeumorphicTheme.cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          // Single clean shadow for the main container
+          BoxShadow(
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.4),
+            offset: const Offset(2, 3),
+            blurRadius: 6,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
       child: Column(
         children: [
-          // Header
+          // Simplified Header - no extra neumorphic container
           Container(
-            padding: EdgeInsets.all(isMobile ? 12.0 : 16.0),
+            padding: EdgeInsets.all(isMobile ? 12.w : 16.w),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+              color: CustomNeumorphicTheme.baseColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.r),
+                topRight: Radius.circular(20.r),
               ),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.dashboard,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: isMobile ? 20 : 24,
+                // Simplified icon - just colored circle
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.dashboard,
+                    color: Colors.white,
+                    size: isMobile ? 16.sp : 20.sp,
+                  ),
                 ),
-                SizedBox(width: isMobile ? 6 : 8),
+                SizedBox(width: isMobile ? 8.w : 12.w),
                 Text(
                   'Task Board',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: isMobile ? 18 : 20,
+                  style: TextStyle(
+                    fontSize: isMobile ? 16.sp : 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: CustomNeumorphicTheme.darkText,
                   ),
                 ),
                 const Spacer(),
                 Text(
                   '${allTasks.length} tasks',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    fontSize: isMobile ? 12 : 14,
+                  style: TextStyle(
+                    fontSize: isMobile ? 12.sp : 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: CustomNeumorphicTheme.lightText,
                   ),
                 ),
               ],
@@ -85,19 +116,20 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
           // Mobile: Page indicator for swipeable columns
           if (isMobile) ...[
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              color: CustomNeumorphicTheme.baseColor,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(4, (index) {
                   return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    width: _currentPage == index ? 16 : 8,
-                    height: 8,
+                    margin: EdgeInsets.symmetric(horizontal: 2.w),
+                    width: _currentPage == index ? 16.w : 8.w,
+                    height: 8.h,
                     decoration: BoxDecoration(
                       color: _currentPage == index 
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(4),
+                          ? CustomNeumorphicTheme.primaryPurple
+                          : CustomNeumorphicTheme.lightText.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                   );
                 }),
@@ -126,8 +158,9 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
     ];
 
     return Container(
-      height: 40,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      height: 40.h,
+      margin: EdgeInsets.symmetric(horizontal: 8.w),
+      color: CustomNeumorphicTheme.baseColor,
       child: Row(
         children: statuses.asMap().entries.map((entry) {
           final index = entry.key;
@@ -143,26 +176,26 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
                   curve: Curves.easeInOut,
                 );
               },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: isActive 
-                      ? (statusData['color'] as Color).withOpacity(0.1)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: isActive 
-                      ? Border.all(color: statusData['color'] as Color, width: 2)
-                      : null,
+                  color: isActive ? statusData['color'] as Color : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: isActive ? Colors.transparent : (statusData['color'] as Color).withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
                 child: Center(
                   child: Text(
                     statusData['title'] as String,
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w600,
                       color: isActive 
-                          ? statusData['color'] as Color
-                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ? Colors.white
+                          : CustomNeumorphicTheme.darkText,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -194,47 +227,65 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
 
   Widget _buildMobileColumn(String title, List<Task> tasks, TaskStatus status, Color color) {
     return Container(
-      margin: const EdgeInsets.all(8),
+      margin: EdgeInsets.all(8.w),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: CustomNeumorphicTheme.cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.3),
+            offset: const Offset(2, 3),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+              color: CustomNeumorphicTheme.baseColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.r),
+                topRight: Radius.circular(20.r),
               ),
             ),
             child: Row(
               children: [
+                // Simplified indicator - just colored bar
+                Container(
+                  width: 4.w,
+                  height: 16.h,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(width: 12.w),
                 Text(
                   title,
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: CustomNeumorphicTheme.darkText,
+                    fontSize: 16.sp,
                   ),
                 ),
                 const Spacer(),
+                // Simplified task count - just colored background
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
+                    color: color,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${tasks.length}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
-                      color: color,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -425,53 +476,70 @@ class _ResponsiveKanbanColumnState extends State<ResponsiveKanbanColumn> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: widget.color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _isDraggedOver 
-              ? widget.color.withOpacity(0.5)
-              : widget.color.withOpacity(0.2),
-          width: _isDraggedOver ? 2 : 1,
-        ),
+        color: CustomNeumorphicTheme.cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        border: _isDraggedOver 
+            ? Border.all(color: widget.color, width: 2.w)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.3),
+            offset: const Offset(2, 3),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(widget.isTablet ? 10 : 12),
+            padding: EdgeInsets.all(widget.isTablet ? 10.w : 12.w),
             decoration: BoxDecoration(
-              color: widget.color.withOpacity(0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+              color: CustomNeumorphicTheme.baseColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.r),
+                topRight: Radius.circular(20.r),
               ),
             ),
             child: Row(
               children: [
+                // Simplified indicator - just colored bar
+                Container(
+                  width: 4.w,
+                  height: 16.h,
+                  decoration: BoxDecoration(
+                    color: widget.color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(width: 12.w),
                 Text(
                   widget.title,
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: widget.color,
-                    fontSize: widget.isTablet ? 14 : 16,
+                    fontWeight: FontWeight.w700,
+                    color: CustomNeumorphicTheme.darkText,
+                    fontSize: widget.isTablet ? 14.sp : 16.sp,
                   ),
                 ),
                 const Spacer(),
+                // Simplified task count - just colored background
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    color: widget.color,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${widget.tasks.length}',
                     style: TextStyle(
-                      fontSize: widget.isTablet ? 10 : 12,
+                      fontSize: widget.isTablet ? 10.sp : 12.sp,
                       fontWeight: FontWeight.w600,
-                      color: widget.color,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -544,8 +612,8 @@ class _ResponsiveKanbanColumnState extends State<ResponsiveKanbanColumn> {
             ),
           ),
         ],
-      ),
-    );
+      ), // Column
+    ); // AnimatedContainer
   }
 }
 
@@ -569,16 +637,13 @@ class ResponsiveTaskCard extends StatelessWidget {
       data: task,
       feedback: Material(
         elevation: 6,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20.r),
         child: Container(
           width: cardWidth,
-          padding: EdgeInsets.all(isTablet ? 10 : 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color, width: 2),
+          child: NeumorphicCard(
+            padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
+            child: _buildCardContent(context),
           ),
-          child: _buildCardContent(context),
         ),
       ),
       childWhenDragging: Opacity(
@@ -590,23 +655,8 @@ class ResponsiveTaskCard extends StatelessWidget {
   }
 
   Widget _buildTaskCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isTablet ? 10 : 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
+    return NeumorphicCard(
+      padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
       child: _buildCardContent(context),
     );
   }
@@ -623,15 +673,16 @@ class ResponsiveTaskCard extends StatelessWidget {
                 task.title,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: isTablet ? 12 : 14,
+                  fontSize: isTablet ? 12.sp : 14.sp,
+                  color: CustomNeumorphicTheme.darkText,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Container(
-              width: 4,
-              height: 16,
+              width: 4.w,
+              height: 16.h,
               decoration: BoxDecoration(
                 color: _getPriorityColor(task.priority),
                 borderRadius: BorderRadius.circular(2),
@@ -640,32 +691,32 @@ class ResponsiveTaskCard extends StatelessWidget {
           ],
         ),
         if (task.description.isNotEmpty) ...[
-          SizedBox(height: isTablet ? 6 : 8),
+          SizedBox(height: isTablet ? 6.h : 8.h),
           Text(
             task.description,
             style: TextStyle(
-              fontSize: isTablet ? 10 : 12,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              fontSize: isTablet ? 10.sp : 12.sp,
+              color: CustomNeumorphicTheme.lightText,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],
         if (task.estimatedHours > 0) ...[
-          SizedBox(height: isTablet ? 6 : 8),
+          SizedBox(height: isTablet ? 6.h : 8.h),
           Row(
             children: [
               Icon(
                 Icons.schedule,
-                size: isTablet ? 12 : 14,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                size: isTablet ? 12.sp : 14.sp,
+                color: CustomNeumorphicTheme.lightText,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: 4.w),
               Text(
                 '${task.estimatedHours.toInt()}h',
                 style: TextStyle(
-                  fontSize: isTablet ? 9 : 11,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  fontSize: isTablet ? 9.sp : 11.sp,
+                  color: CustomNeumorphicTheme.lightText,
                 ),
               ),
             ],
@@ -705,23 +756,8 @@ class MobileTaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: () => _showStatusChangeDialog(context),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
+      child: NeumorphicCard(
+        padding: EdgeInsets.all(12.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -730,9 +766,10 @@ class MobileTaskCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     task.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -741,14 +778,14 @@ class MobileTaskCard extends StatelessWidget {
                 GestureDetector(
                   onTap: () => _showStatusChangeDialog(context),
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(4.w),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.more_horiz,
-                      size: 16,
+                      size: 16.sp,
                       color: color,
                     ),
                   ),
@@ -756,41 +793,41 @@ class MobileTaskCard extends StatelessWidget {
               ],
             ),
             if (task.description.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Text(
                 task.description,
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  fontSize: 12.sp,
+                  color: CustomNeumorphicTheme.lightText,
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Row(
               children: [
                 Container(
-                  width: 4,
-                  height: 16,
+                  width: 4.w,
+                  height: 16.h,
                   decoration: BoxDecoration(
                     color: _getPriorityColor(task.priority),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 if (task.estimatedHours > 0) ...[
                   Icon(
                     Icons.schedule,
-                    size: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    size: 14.sp,
+                    color: CustomNeumorphicTheme.lightText,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4.w),
                   Text(
                     '${task.estimatedHours.toInt()}h',
                     style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      fontSize: 11.sp,
+                      color: CustomNeumorphicTheme.lightText,
                     ),
                   ),
                 ],
@@ -798,8 +835,8 @@ class MobileTaskCard extends StatelessWidget {
                 Text(
                   'Long press to move',
                   style: TextStyle(
-                    fontSize: 10,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    fontSize: 10.sp,
+                    color: CustomNeumorphicTheme.subtleText,
                   ),
                 ),
               ],

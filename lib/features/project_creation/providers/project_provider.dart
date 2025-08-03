@@ -92,7 +92,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
           estimatedHours: projectBreakdown.totalEstimatedDays * 8.0, // Convert days to hours
           customFields: {
             'assessment': assessment.toJson(),
-            'breakdown': projectBreakdown.toJson(),
+            'totalEstimatedDays': projectBreakdown.totalEstimatedDays,
             'recommendations': projectBreakdown.recommendations,
           },
         ),

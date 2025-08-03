@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/team_model.dart';
-import '../models/user_model.dart';
 import 'user_service.dart';
 
 /// Service for managing team operations in ProjectFlow AI

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../shared/widgets/custom_app_bar.dart';
-import '../../../shared/theme/app_colors.dart';
+import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../core/models/user_model.dart';
 import '../../user_management/providers/user_provider.dart';
 import '../widgets/profile_header.dart';
@@ -52,32 +51,56 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64.sp,
-                color: AppColors.error,
+              NeumorphicContainer(
+                padding: EdgeInsets.all(16.w),
+                borderRadius: BorderRadius.circular(25),
+                color: CustomNeumorphicTheme.errorRed,
+                child: Icon(
+                  Icons.error_outline,
+                  size: 32.sp,
+                  color: Colors.white,
+                ),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 24.h),
               Text(
                 'Error loading profile',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
               ),
               SizedBox(height: 8.h),
               Text(
                 error.toString(),
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 24.h),
-              ElevatedButton(
+              NeumorphicButton(
                 onPressed: () {
                   ref.invalidate(currentUserProvider);
                 },
-                child: const Text('Retry'),
+                isSelected: true,
+                selectedColor: CustomNeumorphicTheme.primaryPurple,
+                borderRadius: BorderRadius.circular(12),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                child: Text(
+                  'Retry',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -88,43 +111,84 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
 
   Widget _buildSignInPrompt() {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Profile',
+      backgroundColor: CustomNeumorphicTheme.baseColor,
+      appBar: NeumorphicAppBar(
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: CustomNeumorphicTheme.darkText,
+          ),
+        ),
         automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Padding(
           padding: EdgeInsets.all(32.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.person_outline,
-                size: 96.sp,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-              ),
-              SizedBox(height: 24.h),
-              Text(
-                'Sign In Required',
-                style: Theme.of(context).textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                'Please sign in to view and manage your profile',
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 32.h),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Navigate to sign in screen
-                  // This would be implemented with your auth flow
-                },
-                icon: const Icon(Icons.login),
-                label: const Text('Sign In'),
-              ),
-            ],
+          child: NeumorphicCard(
+            padding: EdgeInsets.all(32.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                NeumorphicContainer(
+                  padding: EdgeInsets.all(20.w),
+                  borderRadius: BorderRadius.circular(35),
+                  color: CustomNeumorphicTheme.primaryPurple,
+                  child: Icon(
+                    Icons.person_outline,
+                    size: 48.sp,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 32.h),
+                Text(
+                  'Sign In Required',
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w700,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Please sign in to view and manage your profile',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 32.h),
+                NeumorphicButton(
+                  onPressed: () {
+                    // Navigate to sign in screen
+                    // This would be implemented with your auth flow
+                  },
+                  isSelected: true,
+                  selectedColor: CustomNeumorphicTheme.primaryPurple,
+                  borderRadius: BorderRadius.circular(12),
+                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.login, size: 18.sp, color: Colors.white),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Sign In',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -133,51 +197,40 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
 
   Widget _buildProfileScreen(AppUser user) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Profile',
+      backgroundColor: CustomNeumorphicTheme.baseColor,
+      appBar: NeumorphicAppBar(
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: CustomNeumorphicTheme.darkText,
+          ),
+        ),
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
+          NeumorphicButton(
             onPressed: () => _showEditProfileDialog(user),
-            tooltip: 'Edit Profile',
+            borderRadius: BorderRadius.circular(25),
+            padding: EdgeInsets.all(8.w),
+            child: Icon(
+              Icons.edit,
+              color: CustomNeumorphicTheme.darkText,
+              size: 18.sp,
+            ),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (context) => [
-              const PopupMenuItem<String>(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings, size: 16),
-                    SizedBox(width: 8),
-                    Text('Settings'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'help',
-                child: Row(
-                  children: [
-                    Icon(Icons.help_outline, size: 16),
-                    SizedBox(width: 8),
-                    Text('Help & Support'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'signout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, size: 16),
-                    SizedBox(width: 8),
-                    Text('Sign Out'),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) => _handleMenuAction(value),
+          SizedBox(width: 8.w),
+          NeumorphicButton(
+            onPressed: () => _showMoreOptions(),
+            borderRadius: BorderRadius.circular(25),
+            padding: EdgeInsets.all(8.w),
+            child: Icon(
+              Icons.more_vert,
+              color: CustomNeumorphicTheme.darkText,
+              size: 18.sp,
+            ),
           ),
+          SizedBox(width: 16.w),
         ],
       ),
       body: Column(
@@ -190,34 +243,42 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
           // Tab bar
           Container(
             margin: EdgeInsets.symmetric(horizontal: 16.w),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(8.r),
+            child: NeumorphicContainer(
+              padding: EdgeInsets.all(4.w),
+              borderRadius: BorderRadius.circular(15),
+              color: CustomNeumorphicTheme.cardColor,
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  color: CustomNeumorphicTheme.primaryPurple,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CustomNeumorphicTheme.darkShadow.withOpacity(0.3),
+                      offset: const Offset(2, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                labelColor: Colors.white,
+                unselectedLabelColor: CustomNeumorphicTheme.lightText,
+                labelStyle: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+                tabs: const [
+                  Tab(text: 'Overview'),
+                  Tab(text: 'Teams'),
+                  Tab(text: 'Settings'),
+                  Tab(text: 'Stats'),
+                ],
               ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              labelColor: Colors.white,
-              unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
-              labelStyle: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-              ),
-              tabs: const [
-                Tab(text: 'Overview'),
-                Tab(text: 'Teams'),
-                Tab(text: 'Settings'),
-                Tab(text: 'Stats'),
-              ],
             ),
           ),
           
@@ -247,90 +308,95 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Quick actions
-          Card(
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Quick Actions',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+          NeumorphicCard(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Wrap(
+                  spacing: 12.w,
+                  runSpacing: 12.h,
+                  children: [
+                    _buildQuickActionChip(
+                      icon: Icons.edit,
+                      label: 'Edit Profile',
+                      onTap: () => _showEditProfileDialog(user),
                     ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Wrap(
-                    spacing: 12.w,
-                    runSpacing: 12.h,
-                    children: [
-                      _buildQuickActionChip(
-                        icon: Icons.edit,
-                        label: 'Edit Profile',
-                        onTap: () => _showEditProfileDialog(user),
-                      ),
-                      _buildQuickActionChip(
-                        icon: Icons.security,
-                        label: '2FA Settings',
-                        onTap: () => _showTwoFactorDialog(user),
-                      ),
-                      _buildQuickActionChip(
-                        icon: Icons.group_add,
-                        label: 'Join Team',
-                        onTap: () => _showJoinTeamDialog(),
-                      ),
-                      _buildQuickActionChip(
-                        icon: Icons.palette,
-                        label: 'Theme',
-                        onTap: () => _showThemeDialog(user),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    _buildQuickActionChip(
+                      icon: Icons.security,
+                      label: '2FA Settings',
+                      onTap: () => _showTwoFactorDialog(user),
+                    ),
+                    _buildQuickActionChip(
+                      icon: Icons.group_add,
+                      label: 'Join Team',
+                      onTap: () => _showJoinTeamDialog(),
+                    ),
+                    _buildQuickActionChip(
+                      icon: Icons.palette,
+                      label: 'Theme',
+                      onTap: () => _showThemeDialog(user),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
           
           // Profile information
-          Card(
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          NeumorphicCard(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Profile Information',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                _buildInfoRow('Email', user.email),
+                _buildInfoRow('Phone', user.phoneNumber ?? 'Not provided'),
+                _buildInfoRow('Job Title', user.jobTitle ?? 'Not provided'),
+                _buildInfoRow('Department', user.department ?? 'Not provided'),
+                _buildInfoRow('Company', user.company ?? 'Not provided'),
+                _buildInfoRow('Location', user.location ?? 'Not provided'),
+                _buildInfoRow('Timezone', user.timezone),
+                if (user.bio?.isNotEmpty == true) ...[
+                  SizedBox(height: 8.h),
                   Text(
-                    'Profile Information',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    'About',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: CustomNeumorphicTheme.lightText,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 16.h),
-                  _buildInfoRow('Email', user.email),
-                  _buildInfoRow('Phone', user.phoneNumber ?? 'Not provided'),
-                  _buildInfoRow('Job Title', user.jobTitle ?? 'Not provided'),
-                  _buildInfoRow('Department', user.department ?? 'Not provided'),
-                  _buildInfoRow('Company', user.company ?? 'Not provided'),
-                  _buildInfoRow('Location', user.location ?? 'Not provided'),
-                  _buildInfoRow('Timezone', user.timezone),
-                  if (user.bio?.isNotEmpty == true) ...[
-                    SizedBox(height: 8.h),
-                    Text(
-                      'About',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                        fontWeight: FontWeight.w500,
-                      ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    user.bio!,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                      fontWeight: FontWeight.w400,
                     ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      user.bio!,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
           
@@ -338,99 +404,133 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
           
           // Skills
           if (user.skills.isNotEmpty)
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(16.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Skills & Expertise',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+            NeumorphicCard(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Skills & Expertise',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: user.skills.map((skill) => NeumorphicContainer(
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      borderRadius: BorderRadius.circular(20),
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      child: Text(
+                        skill,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16.h),
-                    Wrap(
-                      spacing: 8.w,
-                      runSpacing: 8.h,
-                      children: user.skills.map((skill) => Chip(
-                        label: Text(
-                          skill,
-                          style: TextStyle(fontSize: 12.sp),
-                        ),
-                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                        ),
-                      )).toList(),
-                    ),
-                  ],
-                ),
+                    )).toList(),
+                  ),
+                ],
               ),
             ),
           
           SizedBox(height: 16.h),
           
           // Account status
-          Card(
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Account Status',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+          NeumorphicCard(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Account Status',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
                   ),
-                  SizedBox(height: 16.h),
-                  Row(
-                    children: [
-                      Icon(
-                        user.isEmailVerified ? Icons.verified : Icons.warning,
-                        size: 16.sp,
-                        color: user.isEmailVerified ? AppColors.success : AppColors.warning,
+                ),
+                SizedBox(height: 16.h),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        NeumorphicContainer(
+                        padding: EdgeInsets.all(6.w),
+                        borderRadius: BorderRadius.circular(12),
+                        color: user.isEmailVerified ? CustomNeumorphicTheme.successGreen : CustomNeumorphicTheme.secondaryPurple,
+                        child: Icon(
+                          user.isEmailVerified ? Icons.verified : Icons.warning,
+                          size: 12.sp,
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         user.isEmailVerified ? 'Email Verified' : 'Email Not Verified',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: CustomNeumorphicTheme.darkText,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 8.h),
                   Row(
                     children: [
-                      Icon(
-                        user.hasTwoFactorEnabled ? Icons.security : Icons.security_outlined,
-                        size: 16.sp,
-                        color: user.hasTwoFactorEnabled ? AppColors.success : AppColors.textSecondary,
+                      NeumorphicContainer(
+                        padding: EdgeInsets.all(6.w),
+                        borderRadius: BorderRadius.circular(12),
+                        color: user.hasTwoFactorEnabled ? CustomNeumorphicTheme.successGreen : CustomNeumorphicTheme.lightText,
+                        child: Icon(
+                          user.hasTwoFactorEnabled ? Icons.security : Icons.security_outlined,
+                          size: 12.sp,
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         user.hasTwoFactorEnabled ? '2FA Enabled' : '2FA Disabled',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: CustomNeumorphicTheme.darkText,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 8.h),
                   Row(
                     children: [
-                      Icon(
-                        user.isOnline ? Icons.circle : Icons.circle_outlined,
-                        size: 16.sp,
-                        color: user.isOnline ? AppColors.success : AppColors.textSecondary,
+                      NeumorphicContainer(
+                        padding: EdgeInsets.all(6.w),
+                        borderRadius: BorderRadius.circular(12),
+                        color: user.isOnline ? CustomNeumorphicTheme.successGreen : CustomNeumorphicTheme.lightText,
+                        child: Icon(
+                          user.isOnline ? Icons.circle : Icons.circle_outlined,
+                          size: 12.sp,
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         user.isOnline ? 'Online' : 'Offline',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: CustomNeumorphicTheme.darkText,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -467,16 +567,28 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
     required String label,
     required VoidCallback onTap,
   }) {
-    return ActionChip(
-      avatar: Icon(icon, size: 16.sp),
-      label: Text(
-        label,
-        style: TextStyle(fontSize: 12.sp),
-      ),
+    return NeumorphicButton(
       onPressed: onTap,
-      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+      borderRadius: BorderRadius.circular(20),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon, 
+            size: 14.sp,
+            color: CustomNeumorphicTheme.primaryPurple,
+          ),
+          SizedBox(width: 6.w),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: CustomNeumorphicTheme.darkText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -491,8 +603,9 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
             width: 100.w,
             child: Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: CustomNeumorphicTheme.lightText,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -500,10 +613,110 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
           Expanded(
             child: Text(
               value,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.darkText,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMoreOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CustomNeumorphicTheme.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.lightText,
+                borderRadius: BorderRadius.circular(2.h),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _tabController.animateTo(2); // Switch to settings tab
+              },
+              borderRadius: BorderRadius.circular(12),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              child: Row(
+                children: [
+                  Icon(Icons.settings, size: 20.sp, color: CustomNeumorphicTheme.darkText),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Settings',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to help screen
+              },
+              borderRadius: BorderRadius.circular(12),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              child: Row(
+                children: [
+                  Icon(Icons.help_outline, size: 20.sp, color: CustomNeumorphicTheme.darkText),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Help & Support',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _showSignOutDialog();
+              },
+              borderRadius: BorderRadius.circular(12),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              child: Row(
+                children: [
+                  Icon(Icons.logout, size: 20.sp, color: CustomNeumorphicTheme.errorRed),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: CustomNeumorphicTheme.errorRed,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20.h),
+          ],
+        ),
       ),
     );
   }
@@ -671,7 +884,7 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              backgroundColor: CustomNeumorphicTheme.errorRed,
               foregroundColor: Colors.white,
             ),
             child: const Text('Sign Out'),

@@ -4,7 +4,8 @@ import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
 import '../features/tasks/presentation/tasks_screen.dart';
-import '../features/profile/presentation/enhanced_profile_screen.dart';
+import '../features/profile/presentation/simple_profile_screen.dart';
+import '../features/team_management/presentation/team_screen.dart';
 import '../shared/widgets/main_navigation.dart';
 
 class AppRouter {
@@ -73,26 +74,34 @@ class AppRouter {
           GoRoute(
             path: '/tasks',
             name: 'tasks',
-            builder: (context, state) => const TasksScreen(),
+            builder: (context, state) {
+              final projectId = state.uri.queryParameters['project'];
+              final phaseId = state.uri.queryParameters['phase'];
+              return TasksScreen(projectId: projectId, phaseId: phaseId);
+            },
           ),
           GoRoute(
             path: '/tasks/:projectId',
             name: 'project-tasks',
             builder: (context, state) {
               final projectId = state.pathParameters['projectId'];
-              return Scaffold(
-                body: Center(
-                  child: Text('Task Management for Project: $projectId - To be implemented'),
-                ),
-              );
+              final phaseId = state.uri.queryParameters['phase'];
+              return TasksScreen(projectId: projectId, phaseId: phaseId);
             },
+          ),
+          
+          // Team management route
+          GoRoute(
+            path: '/team',
+            name: 'team',
+            builder: (context, state) => const TeamScreen(),
           ),
           
           // Profile and Settings routes
           GoRoute(
             path: '/profile',
             name: 'profile',
-            builder: (context, state) => const EnhancedProfileScreen(),
+            builder: (context, state) => const SimpleProfileScreen(),
           ),
           GoRoute(
             path: '/settings',
@@ -123,7 +132,7 @@ class AppRouter {
       // Team management routes (no bottom nav for specific project views)
       GoRoute(
         path: '/team/:projectId',
-        name: 'team',
+        name: 'project-team',
         builder: (context, state) {
           final projectId = state.pathParameters['projectId'];
           return Scaffold(

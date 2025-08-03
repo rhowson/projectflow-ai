@@ -852,3 +852,39 @@ extension TeamPlanExtension on TeamPlan {
     }
   }
 }
+
+/// Extension for TeamRole to provide display names
+extension TeamRoleExtension on TeamRole {
+  /// Display name for the role
+  String get displayName {
+    switch (this) {
+      case TeamRole.owner:
+        return 'Owner';
+      case TeamRole.admin:
+        return 'Administrator';
+      case TeamRole.manager:
+        return 'Manager';
+      case TeamRole.member:
+        return 'Member';
+      case TeamRole.viewer:
+        return 'Viewer';
+      case TeamRole.collaborator:
+        return 'Collaborator';
+    }
+  }
+}
+
+/// Extension for TeamStatus to provide display names
+extension TeamStatusExtension on TeamStatus {
+  /// Display name for the status
+  String get displayName {
+    switch (this) {
+      case TeamStatus.active:
+        return 'Active';
+      case TeamStatus.archived:
+        return 'Archived';
+      case TeamStatus.suspended:
+        return 'Suspended';
+    }
+  }
+}
