@@ -26,16 +26,20 @@ class MainNavigation extends StatelessWidget {
   Widget _buildBottomNavigationBar(BuildContext context) {
     final currentIndex = _getCurrentIndex(currentPath);
     
-    return SafeArea(
-      child: Container(
-        margin: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.h),
-        child: NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          color: CustomNeumorphicTheme.cardColor,
-          borderRadius: BorderRadius.circular(25.r),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16.w, 
+        right: 16.w, 
+        bottom: MediaQuery.of(context).padding.bottom + 8.h,
+        top: 8.h,
+      ),
+      child: NeumorphicContainer(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        color: CustomNeumorphicTheme.cardColor,
+        borderRadius: BorderRadius.circular(25.r),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
               _buildNavItem(
                 context: context,
                 icon: Icons.dashboard_outlined,
@@ -75,8 +79,7 @@ class MainNavigation extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildNavItem({

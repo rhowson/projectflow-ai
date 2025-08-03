@@ -14,13 +14,20 @@ import '../widgets/project_progress_chart.dart';
 import '../widgets/phases_list.dart';
 import '../../task_management/widgets/responsive_kanban_board.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   final String? projectId;
   
   const DashboardScreen({super.key, this.projectId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _showAllProjects = false;
+
+  @override
+  Widget build(BuildContext context) {
     final projectsState = ref.watch(projectNotifierProvider);
     
     return Scaffold(
@@ -66,9 +73,9 @@ class DashboardScreen extends ConsumerWidget {
             return _buildEmptyState(context);
           }
           
-          if (projectId != null) {
+          if (widget.projectId != null) {
             final project = projects.firstWhere(
-              (p) => p.id == projectId,
+              (p) => p.id == widget.projectId,
               orElse: () => projects.first,
             );
             return _buildProjectDashboard(context, project, ref);
@@ -181,6 +188,10 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildProjectsList(BuildContext context, List<Project> projects, WidgetRef ref) {
+    // Sort projects by most recent first
+    final sortedProjects = List<Project>.from(projects)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    
     // Calculate overall statistics
     final totalProjects = projects.length;
     final activeProjects = projects.where((p) => p.status == ProjectStatus.inProgress).length;
@@ -204,28 +215,104 @@ class DashboardScreen extends ConsumerWidget {
           SizedBox(height: 24.h),
           
           // Recent Projects Header
-          Text(
-            'Recent Projects',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Text(
+                'Recent Projects',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              if (sortedProjects.length > 1) ...[
+                const Spacer(),
+                Text(
+                  '${sortedProjects.length} total',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
+                ),
+              ],
+            ],
           ),
           SizedBox(height: 12.h),
           
-          // Projects List - Simplified
-          ...projects.take(5).map((project) => _buildProjectCard(context, project)),
+          // Most Recent Project (always shown)
+          if (sortedProjects.isNotEmpty) 
+            _buildProjectCard(context, sortedProjects.first),
           
-          if (projects.length > 5) ...[
-            SizedBox(height: 16.h),
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  // TODO: Navigate to full projects list
-                },
-                child: Text('View All Projects (${projects.length})'),
-              ),
-            ),
+          // Expandable Section for Additional Projects
+          if (sortedProjects.length > 1) ...[
+            SizedBox(height: 12.h),
+            _buildExpandableSection(context, sortedProjects.skip(1).toList()),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpandableSection(BuildContext context, List<Project> additionalProjects) {
+    return NeumorphicCard(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showAllProjects = !_showAllProjects;
+              });
+            },
+            child: Row(
+              children: [
+                Text(
+                  _showAllProjects ? 'See Less' : 'See More',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                AnimatedRotation(
+                  turns: _showAllProjects ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    size: 18.sp,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${additionalProjects.length} more project${additionalProjects.length == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Animated expandable content
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: _showAllProjects
+                ? Column(
+                    children: [
+                      SizedBox(height: 16.h),
+                      ...additionalProjects.map((project) => Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: _buildProjectCard(context, project),
+                      )),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
