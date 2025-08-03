@@ -16,14 +16,21 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    // Sign in anonymously to allow Firestore access
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser == null) {
-      await auth.signInAnonymously();
-      print('Signed in anonymously to Firebase');
+    print('Firebase initialized successfully');
+    
+    // Sign in anonymously to allow Firestore access (optional for web)
+    try {
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser == null) {
+        await auth.signInAnonymously();
+        print('Signed in anonymously to Firebase');
+      }
+    } catch (authError) {
+      print('Warning: Firebase Auth initialization failed: $authError');
+      print('Continuing without authentication - some features may be limited');
+      // Continue without auth - Firestore can still work with proper security rules
     }
     
-    print('Firebase initialized successfully');
   } catch (e) {
     print('Error initializing Firebase: $e');
     // Continue with app launch even if Firebase fails to initialize

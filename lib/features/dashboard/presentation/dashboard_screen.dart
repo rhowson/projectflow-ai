@@ -9,10 +9,6 @@ import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../project_creation/providers/project_provider.dart';
 import '../../user_management/providers/user_provider.dart';
-import '../widgets/project_overview_card.dart';
-import '../widgets/project_progress_chart.dart';
-import '../widgets/phases_list.dart';
-import '../../task_management/widgets/responsive_kanban_board.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final String? projectId;
@@ -35,11 +31,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       appBar: NeumorphicAppBar(
         title: Text(
           'ProjectFlow AI',
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
-          ),
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
         automaticallyImplyLeading: false,
         actions: [
@@ -217,36 +209,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           // Recent Projects Header
           Row(
             children: [
-              Text(
-                'Recent Projects',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: CustomNeumorphicTheme.darkText,
+              Expanded(
+                child: Text(
+                  'Recent Projects',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (sortedProjects.length > 1) ...[
-                const Spacer(),
-                Text(
-                  '${sortedProjects.length} total',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.swipe,
+                      size: 14.sp,
+                      color: CustomNeumorphicTheme.lightText,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      'Swipe for more',
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                        color: CustomNeumorphicTheme.lightText,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      '${sortedProjects.length} total',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
                 ),
               ],
             ],
           ),
           SizedBox(height: 12.h),
           
-          // Most Recent Project (always shown)
+          // Horizontal Project Slider
           if (sortedProjects.isNotEmpty) 
-            _buildProjectCard(context, sortedProjects.first),
+            _buildProjectSlider(context, sortedProjects),
           
-          // Expandable Section for Additional Projects
-          if (sortedProjects.length > 1) ...[
-            SizedBox(height: 12.h),
-            _buildExpandableSection(context, sortedProjects.skip(1).toList()),
-          ],
+          SizedBox(height: 24.h),
+          
+          // Team Conversation Summary
+          _buildTeamConversationSummary(context, ref),
         ],
       ),
     );
@@ -318,6 +323,220 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  Widget _buildProjectSlider(BuildContext context, List<Project> projects) {
+    return Container(
+      height: 260.h, // Increased height further to prevent clipping of project cards
+      padding: EdgeInsets.only(
+        top: 8.h, 
+        bottom: 20.h, // Increased bottom padding for better shadow clearance
+        left: 0,
+        right: 0,
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w), // Increased horizontal padding
+        itemCount: projects.length,
+        itemBuilder: (context, index) {
+          final project = projects[index];
+          return Container(
+            width: MediaQuery.of(context).size.width * 0.85, // Increased to 85% for wider cards
+            constraints: BoxConstraints(
+              maxWidth: 380.w, // Increased max width to better match standard card widths
+              minWidth: 300.w, // Increased min width for consistency
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h), // Added vertical margin
+            child: _buildHorizontalProjectCard(context, project, index == 0),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHorizontalProjectCard(BuildContext context, Project project, bool isMostRecent) {
+    final completedPhases = project.phases.where((phase) => phase.status == PhaseStatus.completed).length;
+    final totalPhases = project.phases.length;
+    final progress = totalPhases > 0 ? completedPhases / totalPhases : 0.0;
+    
+    return NeumorphicCard(
+      onTap: () => context.go('/tasks/${project.id}'),
+      padding: EdgeInsets.all(16.w),
+      child: IntrinsicHeight(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header with title and status
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (isMostRecent) ...[
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          decoration: BoxDecoration(
+                            color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Text(
+                            'Most Recent',
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w600,
+                              color: CustomNeumorphicTheme.primaryPurple,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                      ],
+                      Text(
+                        project.title,
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                          color: CustomNeumorphicTheme.darkText,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                _StatusChip(status: project.status),
+              ],
+            ),
+            
+            SizedBox(height: 8.h),
+            
+            // Description
+            Text(
+              project.description,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: CustomNeumorphicTheme.lightText,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            
+            SizedBox(height: 12.h),
+            
+            // Progress Section
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Progress',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w500,
+                          color: CustomNeumorphicTheme.lightText,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4.r),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: CustomNeumorphicTheme.lightText.withValues(alpha: 0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            _getProgressColor(progress),
+                          ),
+                          minHeight: 6.h,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: _getProgressColor(progress),
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 8.h),
+            
+            // Stats Row
+            Row(
+              children: [
+                _buildStatItem(
+                  icon: Icons.view_module_outlined,
+                  label: '${project.phases.length} phases',
+                  color: CustomNeumorphicTheme.primaryPurple,
+                ),
+                SizedBox(width: 16.w),
+                _buildStatItem(
+                  icon: Icons.schedule_outlined,
+                  label: _formatDate(project.createdAt),
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 14.sp,
+          color: color,
+        ),
+        SizedBox(width: 4.w),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.sp,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getProgressColor(double progress) {
+    if (progress >= 0.8) return CustomNeumorphicTheme.successGreen;
+    if (progress >= 0.5) return CustomNeumorphicTheme.primaryPurple;
+    if (progress >= 0.2) return Colors.orange;
+    return CustomNeumorphicTheme.errorRed;
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays < 1) {
+      return 'Today';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inDays < 30) {
+      return '${(difference.inDays / 7).floor()}w ago';
+    } else {
+      return '${(difference.inDays / 30).floor()}mo ago';
+    }
+  }
+
   Widget _buildProjectDashboard(BuildContext context, Project project, WidgetRef ref) {
     final projectTasks = project.phases.fold<int>(0, (sum, phase) => sum + phase.tasks.length);
     final completedTasks = project.phases.fold<int>(0, (sum, phase) => 
@@ -340,9 +559,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     Text(
                       project.title,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                     SizedBox(height: 4.h),
                     _StatusChip(status: project.status),
@@ -371,18 +590,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   isSelected: true,
                   selectedColor: CustomNeumorphicTheme.primaryPurple,
                   borderRadius: BorderRadius.circular(12),
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.task_alt, color: Colors.white, size: 18.sp),
-                      SizedBox(width: 8.w),
-                      Text(
-                        'View Tasks',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
+                      Icon(Icons.task_alt, color: Colors.white, size: 16.sp),
+                      SizedBox(width: 6.w),
+                      Flexible(
+                        child: Text(
+                          'View Tasks',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -394,18 +617,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: NeumorphicButton(
                   onPressed: () => context.push('/create-task?project=${project.id}'),
                   borderRadius: BorderRadius.circular(12),
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add, color: CustomNeumorphicTheme.primaryPurple, size: 18.sp),
-                      SizedBox(width: 8.w),
-                      Text(
-                        'Add Task',
-                        style: TextStyle(
-                          color: CustomNeumorphicTheme.primaryPurple,
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
+                      Icon(Icons.add, color: CustomNeumorphicTheme.primaryPurple, size: 16.sp),
+                      SizedBox(width: 6.w),
+                      Flexible(
+                        child: Text(
+                          'Add Task',
+                          style: TextStyle(
+                            color: CustomNeumorphicTheme.primaryPurple,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -419,9 +646,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           // Phases Overview
           Text(
             'Project Phases',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           SizedBox(height: 12.h),
           
@@ -438,7 +663,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final progress = phaseTasks > 0 ? (completedTasks / phaseTasks) : 0.0;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 20.h), // Increased bottom margin for shadow clearance
       child: NeumorphicCard(
         onTap: () => context.go('/tasks/$projectId?phase=${phase.id}'),
         padding: EdgeInsets.all(16.w),
@@ -564,11 +789,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             Text(
               '$greeting, $userName',
-              style: TextStyle(
-                fontSize: 28.sp,
-                fontWeight: FontWeight.w800,
-                color: CustomNeumorphicTheme.darkText,
-              ),
+              style: Theme.of(context).textTheme.displaySmall,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ],
         );
@@ -578,11 +801,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           Text(
             'Hello, Welcome back',
-            style: TextStyle(
-              fontSize: 28.sp,
-              fontWeight: FontWeight.w800,
-              color: CustomNeumorphicTheme.darkText,
-            ),
+            style: Theme.of(context).textTheme.displaySmall,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
           ),
         ],
       ),
@@ -591,11 +812,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           Text(
             'Hello, there',
-            style: TextStyle(
-              fontSize: 28.sp,
-              fontWeight: FontWeight.w800,
-              color: CustomNeumorphicTheme.darkText,
-            ),
+            style: Theme.of(context).textTheme.displaySmall,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),
@@ -651,21 +870,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 flex: 1,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.dashboard,
-                          size: 16.sp,
+                          size: 14.sp,
                           color: AppColors.primary,
                         ),
-                        SizedBox(width: 6.w),
-                        Text(
-                          'Projects',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: CustomNeumorphicTheme.lightText,
+                        SizedBox(width: 4.w),
+                        Flexible(
+                          child: Text(
+                            'Projects',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                              color: CustomNeumorphicTheme.lightText,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -703,24 +927,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: EdgeInsets.only(left: 16.w),
+                  padding: EdgeInsets.only(left: 12.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.task_alt,
-                            size: 16.sp,
+                            size: 14.sp,
                             color: AppColors.secondary,
                           ),
-                          SizedBox(width: 6.w),
-                          Text(
-                            'Tasks',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: CustomNeumorphicTheme.lightText,
+                          SizedBox(width: 4.w),
+                          Flexible(
+                            child: Text(
+                              'Tasks',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                                color: CustomNeumorphicTheme.lightText,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -775,21 +1004,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 flex: 1,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.check_circle,
-                          size: 16.sp,
+                          size: 14.sp,
                           color: AppColors.projectCompleted,
                         ),
-                        SizedBox(width: 6.w),
-                        Text(
-                          'Completed',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: CustomNeumorphicTheme.lightText,
+                        SizedBox(width: 4.w),
+                        Flexible(
+                          child: Text(
+                            'Completed',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                              color: CustomNeumorphicTheme.lightText,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -827,24 +1061,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: EdgeInsets.only(left: 16.w),
+                  padding: EdgeInsets.only(left: 12.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.refresh,
-                            size: 16.sp,
+                            size: 14.sp,
                             color: AppColors.projectInProgress,
                           ),
-                          SizedBox(width: 6.w),
-                          Text(
-                            'In Progress',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: CustomNeumorphicTheme.lightText,
+                          SizedBox(width: 4.w),
+                          Flexible(
+                            child: Text(
+                              'In Progress',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                                color: CustomNeumorphicTheme.lightText,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -939,7 +1178,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final progress = projectTasks > 0 ? (completedTasks / projectTasks) : 0.0;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
+      margin: EdgeInsets.only(bottom: 24.h), // Increased bottom margin for shadow clearance
       child: NeumorphicCard(
         onTap: () => context.go('/tasks/${project.id}'),
         padding: EdgeInsets.all(20.w),
@@ -1014,28 +1253,39 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ],
             ),
             SizedBox(height: 12.h),
-            Row(
+            Wrap(
+              spacing: 12.w,
+              runSpacing: 4.h,
               children: [
-                Icon(Icons.task, size: 14.sp, color: CustomNeumorphicTheme.lightText),
-                SizedBox(width: 6.w),
-                Text(
-                  '$completedTasks/$projectTasks tasks',
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                    fontWeight: FontWeight.w400,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.task, size: 12.sp, color: CustomNeumorphicTheme.lightText),
+                    SizedBox(width: 4.w),
+                    Text(
+                      '$completedTasks/$projectTasks tasks',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: CustomNeumorphicTheme.lightText,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 20.w),
-                Icon(Icons.timeline, size: 14.sp, color: CustomNeumorphicTheme.lightText),
-                SizedBox(width: 6.w),
-                Text(
-                  '${project.phases.length} phases',
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                    fontWeight: FontWeight.w400,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.timeline, size: 12.sp, color: CustomNeumorphicTheme.lightText),
+                    SizedBox(width: 4.w),
+                    Text(
+                      '${project.phases.length} phases',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: CustomNeumorphicTheme.lightText,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1045,10 +1295,212 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Color _getProgressColor(double progress) {
-    if (progress >= 0.8) return CustomNeumorphicTheme.successGreen;
-    if (progress >= 0.5) return CustomNeumorphicTheme.primaryPurple;
-    return CustomNeumorphicTheme.secondaryPurple;
+
+  Widget _buildTeamConversationSummary(BuildContext context, WidgetRef ref) {
+    // Mock conversation data - in real app this would come from a provider
+    final recentConversations = [
+      {
+        'user': 'Sarah Chen',
+        'avatar': 'SC',
+        'message': 'Updated the design mockups for the login flow. Ready for review!',
+        'time': '2 hours ago',
+        'project': 'Mobile App Redesign',
+        'type': 'update'
+      },
+      {
+        'user': 'Mike Johnson',
+        'avatar': 'MJ',
+        'message': 'Fixed the authentication bug in the backend API.',
+        'time': '4 hours ago',
+        'project': 'Backend Infrastructure',
+        'type': 'fix'
+      },
+      {
+        'user': 'Emma Wilson',
+        'avatar': 'EW',
+        'message': 'Can someone help review the new user onboarding flow?',
+        'time': '6 hours ago',
+        'project': 'User Experience',
+        'type': 'question'
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Recent Team Updates',
+                style: Theme.of(context).textTheme.headlineSmall,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            NeumorphicButton(
+              onPressed: () {
+                // Navigate to full conversation view
+                // context.push('/team-conversations');
+              },
+              borderRadius: BorderRadius.circular(12),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 14.sp,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'View All',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        
+        // Conversation Items
+        ...recentConversations.map((conversation) => 
+          _buildConversationItem(context, conversation)).toList(),
+      ],
+    );
+  }
+
+  Widget _buildConversationItem(BuildContext context, Map<String, String> conversation) {
+    Color getTypeColor(String type) {
+      switch (type) {
+        case 'update':
+          return CustomNeumorphicTheme.primaryPurple;
+        case 'fix':
+          return CustomNeumorphicTheme.successGreen;
+        case 'question':
+          return Colors.orange;
+        default:
+          return CustomNeumorphicTheme.lightText;
+      }
+    }
+
+    IconData getTypeIcon(String type) {
+      switch (type) {
+        case 'update':
+          return Icons.update;
+        case 'fix':
+          return Icons.build_circle;
+        case 'question':
+          return Icons.help_outline;
+        default:
+          return Icons.chat_bubble_outline;
+      }
+    }
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      child: NeumorphicCard(
+        padding: EdgeInsets.all(16.w),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Avatar
+            NeumorphicContainer(
+              width: 40.w,
+              height: 40.w,
+              borderRadius: BorderRadius.circular(20),
+              color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+              child: Center(
+                child: Text(
+                  conversation['avatar']!,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User name and time
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversation['user']!,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomNeumorphicTheme.darkText,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        conversation['time']!,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: CustomNeumorphicTheme.lightText,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4.h),
+                  
+                  // Message
+                  Text(
+                    conversation['message']!,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8.h),
+                  
+                  // Project tag and type icon
+                  Row(
+                    children: [
+                      Icon(
+                        getTypeIcon(conversation['type']!),
+                        size: 12.sp,
+                        color: getTypeColor(conversation['type']!),
+                      ),
+                      SizedBox(width: 4.w),
+                      Expanded(
+                        child: Text(
+                          conversation['project']!,
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: getTypeColor(conversation['type']!),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showProjectMenu(BuildContext context) {

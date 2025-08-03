@@ -29,29 +29,100 @@ class CustomNeumorphicTheme {
         surface: baseColor,
       ),
       textTheme: GoogleFonts.poppinsTextTheme().copyWith(
+        // Display styles - For major headers/titles
         displayLarge: GoogleFonts.poppins(
+          fontSize: 32,
+          color: darkText,
+          fontWeight: FontWeight.w800,
+          height: 1.2,
+        ),
+        displayMedium: GoogleFonts.poppins(
+          fontSize: 28,
           color: darkText,
           fontWeight: FontWeight.w700,
+          height: 1.2,
         ),
+        displaySmall: GoogleFonts.poppins(
+          fontSize: 24,
+          color: darkText,
+          fontWeight: FontWeight.w700,
+          height: 1.3,
+        ),
+        // Headline styles - For section headers
         headlineLarge: GoogleFonts.poppins(
+          fontSize: 22,
           color: darkText,
           fontWeight: FontWeight.w600,
+          height: 1.3,
         ),
-        titleLarge: GoogleFonts.poppins(
+        headlineMedium: GoogleFonts.poppins(
+          fontSize: 20,
           color: darkText,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
         ),
+        headlineSmall: GoogleFonts.poppins(
+          fontSize: 18,
+          color: darkText,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+        ),
+        // Title styles - For card headers and subsections
+        titleLarge: GoogleFonts.poppins(
+          fontSize: 16,
+          color: darkText,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+        titleMedium: GoogleFonts.poppins(
+          fontSize: 14,
+          color: darkText,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+        titleSmall: GoogleFonts.poppins(
+          fontSize: 12,
+          color: darkText,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+        // Body styles - For content text
         bodyLarge: GoogleFonts.poppins(
+          fontSize: 14,
           color: darkText,
           fontWeight: FontWeight.w400,
+          height: 1.5,
         ),
         bodyMedium: GoogleFonts.poppins(
+          fontSize: 12,
           color: lightText,
           fontWeight: FontWeight.w400,
+          height: 1.5,
         ),
         bodySmall: GoogleFonts.poppins(
+          fontSize: 11,
           color: subtleText,
-          fontWeight: FontWeight.w300,
+          fontWeight: FontWeight.w400,
+          height: 1.5,
+        ),
+        // Label styles - For buttons and small labels
+        labelLarge: GoogleFonts.poppins(
+          fontSize: 13,
+          color: darkText,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+        labelMedium: GoogleFonts.poppins(
+          fontSize: 11,
+          color: lightText,
+          fontWeight: FontWeight.w500,
+          height: 1.4,
+        ),
+        labelSmall: GoogleFonts.poppins(
+          fontSize: 10,
+          color: subtleText,
+          fontWeight: FontWeight.w500,
+          height: 1.4,
         ),
       ),
       scaffoldBackgroundColor: baseColor,
