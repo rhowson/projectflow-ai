@@ -151,9 +151,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                 SizedBox(height: 24.h),
                 Text(
                   'No Projects Yet',
-                  style: TextStyle(
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.w700,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
                     color: CustomNeumorphicTheme.darkText,
                   ),
                 ),

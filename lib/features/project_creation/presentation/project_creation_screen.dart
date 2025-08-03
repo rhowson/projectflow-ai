@@ -91,9 +91,8 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                               children: [
                                 Text(
                                   'Describe your project',
-                                  style: TextStyle(
-                                    fontSize: 20.sp,
-                                    fontWeight: FontWeight.w700,
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
                                     color: CustomNeumorphicTheme.darkText,
                                   ),
                                 ),

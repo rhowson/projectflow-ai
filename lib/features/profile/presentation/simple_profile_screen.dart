@@ -23,9 +23,9 @@ class SimpleProfileScreen extends ConsumerWidget {
       ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(32.w),
+          padding: EdgeInsets.all(16.w),
           child: NeumorphicCard(
-            padding: EdgeInsets.all(32.w),
+            padding: EdgeInsets.all(24.w),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
