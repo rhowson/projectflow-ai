@@ -28,12 +28,6 @@ class DashboardScreen extends ConsumerWidget {
         automaticallyImplyLeading: false, // No back button on dashboard (root page)
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              context.push('/create-project');
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () => _showProjectMenu(context),
           ),
@@ -89,12 +83,6 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/create-project');
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -140,33 +128,418 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildProjectsList(BuildContext context, List<Project> projects) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: projects.length,
-      itemBuilder: (context, index) {
-        final project = projects[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            title: Text(
-              project.title,
-              style: Theme.of(context).textTheme.titleLarge,
+    // Calculate overall statistics
+    final totalProjects = projects.length;
+    final activeProjects = projects.where((p) => p.status == ProjectStatus.inProgress).length;
+    final totalTasks = projects.fold<int>(0, (sum, project) => 
+      sum + project.phases.fold<int>(0, (phaseSum, phase) => phaseSum + phase.tasks.length));
+    final openTasks = projects.fold<int>(0, (sum, project) => 
+      sum + project.phases.fold<int>(0, (phaseSum, phase) => 
+        phaseSum + phase.tasks.where((task) => task.status != TaskStatus.completed).length));
+    
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quick Stats Cards
+          _buildQuickStats(context, totalProjects, activeProjects, totalTasks, openTasks),
+          SizedBox(height: 24.h),
+          
+          // Recent Projects Header
+          Text(
+            'Recent Projects',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-            subtitle: Column(
+          ),
+          SizedBox(height: 12.h),
+          
+          // Projects List - Simplified
+          ...projects.take(5).map((project) => _buildProjectCard(context, project)),
+          
+          if (projects.length > 5) ...[
+            SizedBox(height: 16.h),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  // TODO: Navigate to full projects list
+                },
+                child: Text('View All Projects (${projects.length})'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectDashboard(BuildContext context, Project project) {
+    final projectTasks = project.phases.fold<int>(0, (sum, phase) => sum + phase.tasks.length);
+    final completedTasks = project.phases.fold<int>(0, (sum, phase) => 
+      sum + phase.tasks.where((task) => task.status == TaskStatus.completed).length);
+    final inProgressTasks = project.phases.fold<int>(0, (sum, phase) => 
+      sum + phase.tasks.where((task) => task.status == TaskStatus.inProgress).length);
+    final openTasks = projectTasks - completedTasks;
+    
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Project Header
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      project.title,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    _StatusChip(status: project.status),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => context.go('/dashboard'),
+                icon: const Icon(Icons.list),
+                tooltip: 'Back to Projects',
+              ),
+            ],
+          ),
+          SizedBox(height: 20.h),
+          
+          // Quick Stats for this project
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Tasks',
+                  '$completedTasks/$projectTasks',
+                  'Completed',
+                  Icons.check_circle,
+                  AppColors.projectCompleted,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'In Progress',
+                  '$inProgressTasks',
+                  'Active Tasks',
+                  Icons.refresh,
+                  AppColors.projectInProgress,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 24.h),
+          
+          // Quick Actions
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/tasks?project=${project.id}'),
+                  icon: const Icon(Icons.task_alt),
+                  label: const Text('View Tasks'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/create-task?project=${project.id}'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Task'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 24.h),
+          
+          // Phases Overview
+          Text(
+            'Project Phases',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          
+          // Simplified phases list
+          ...project.phases.map((phase) => _buildPhaseCard(context, phase, project.id)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhaseCard(BuildContext context, ProjectPhase phase, String projectId) {
+    final phaseTasks = phase.tasks.length;
+    final completedTasks = phase.tasks.where((task) => task.status == TaskStatus.completed).length;
+    final progress = phaseTasks > 0 ? (completedTasks / phaseTasks) : 0.0;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      child: Card(
+        child: InkWell(
+          onTap: () => context.push('/tasks?project=$projectId&phase=${phase.id}'),
+          borderRadius: BorderRadius.circular(12.r),
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
-                Text(
-                  project.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
                 Row(
                   children: [
+                    Expanded(
+                      child: Text(
+                        phase.name,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16.sp,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+                if (phase.description.isNotEmpty) ...[
+                  SizedBox(height: 8.h),
+                  Text(
+                    phase.description,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                SizedBox(height: 12.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Progress',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.border,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _getProgressColor(progress),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 16.w),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${(progress * 100).round()}%',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: _getProgressColor(progress),
+                          ),
+                        ),
+                        Text(
+                          '$completedTasks/$phaseTasks tasks',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickStats(BuildContext context, int totalProjects, int activeProjects, int totalTasks, int openTasks) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            context,
+            'Projects',
+            '$activeProjects/$totalProjects',
+            'Active',
+            Icons.dashboard,
+            AppColors.primary,
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            'Open Tasks',
+            '$openTasks',
+            totalTasks > 0 ? '${((totalTasks - openTasks) / totalTasks * 100).round()}% Done' : 'No tasks',
+            Icons.task_alt,
+            AppColors.secondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, String title, String value, String subtitle, IconData icon, Color color) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20.sp),
+              SizedBox(width: 8.w),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectCard(BuildContext context, Project project) {
+    final projectTasks = project.phases.fold<int>(0, (sum, phase) => sum + phase.tasks.length);
+    final completedTasks = project.phases.fold<int>(0, (sum, phase) => 
+      sum + phase.tasks.where((task) => task.status == TaskStatus.completed).length);
+    final progress = projectTasks > 0 ? (completedTasks / projectTasks) : 0.0;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      child: Card(
+        child: InkWell(
+          onTap: () => context.push('/dashboard/${project.id}'),
+          borderRadius: BorderRadius.circular(12.r),
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        project.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     _StatusChip(status: project.status),
-                    const SizedBox(width: 8),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                if (project.description.isNotEmpty) ...[
+                  Text(
+                    project.description,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 12.h),
+                ],
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Progress',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.border,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _getProgressColor(progress),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 16.w),
+                    Text(
+                      '${(progress * 100).round()}%',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: _getProgressColor(progress),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(Icons.task, size: 14.sp, color: AppColors.textSecondary),
+                    SizedBox(width: 4.w),
+                    Text(
+                      '$completedTasks/$projectTasks tasks',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    SizedBox(width: 16.w),
+                    Icon(Icons.timeline, size: 14.sp, color: AppColors.textSecondary),
+                    SizedBox(width: 4.w),
                     Text(
                       '${project.phases.length} phases',
                       style: Theme.of(context).textTheme.bodySmall,
@@ -175,74 +548,16 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            onTap: () {
-              context.push('/dashboard/${project.id}');
-            },
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _buildProjectDashboard(BuildContext context, Project project) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isLargeScreen = screenWidth > 768; // Show kanban board only on tablets and desktop
-    
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProjectOverviewCard(project: project),
-          SizedBox(height: 16.h),
-          ProjectProgressChart(project: project),
-          SizedBox(height: 20.h),
-          // Show Kanban Board only on larger screens
-          if (isLargeScreen) ...[
-            SizedBox(
-              height: 600, // Fixed height for the kanban board
-              child: ResponsiveKanbanBoard(project: project),
-            ),
-            SizedBox(height: 16.h),
-          ] else ...[
-            // Mobile-friendly info card - more compact
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 8.w),
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.touch_app,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 18.sp,
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      'Tap on phases below to expand and manage tasks',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16.h),
-          ],
-          // Phases list - Always show, primary task view on mobile
-          PhasesList(phases: project.phases, projectId: project.id),
-        ],
-      ),
-    );
+  Color _getProgressColor(double progress) {
+    if (progress >= 0.8) return AppColors.projectCompleted;
+    if (progress >= 0.5) return AppColors.projectInProgress;
+    return AppColors.projectPlanning;
   }
 
   void _showProjectMenu(BuildContext context) {

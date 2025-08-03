@@ -37,9 +37,8 @@ class MainNavigation extends StatelessWidget {
         ],
       ),
       child: SafeArea(
-        child: Container(
-          height: 75.h,
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -104,7 +103,7 @@ class MainNavigation extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12.r),
-          child: Container(
+          child: Padding(
             padding: EdgeInsets.symmetric(vertical: 4.h),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -116,7 +115,7 @@ class MainNavigation extends StatelessWidget {
                     isActive ? activeIcon : icon,
                     key: ValueKey(isActive),
                     color: color,
-                    size: 22.sp,
+                    size: 20.sp,
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -125,7 +124,7 @@ class MainNavigation extends StatelessWidget {
                     label,
                     style: TextStyle(
                       color: color,
-                      fontSize: 11.sp,
+                      fontSize: 10.sp,
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                     ),
                     maxLines: 1,

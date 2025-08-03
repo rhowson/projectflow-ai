@@ -35,7 +35,7 @@ class AppTheme {
       ),
       
       // Card theme - Modern elevated cards with subtle shadows
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardBackground,
         shadowColor: AppColors.shadow,
         elevation: 0,
@@ -293,7 +293,7 @@ class AppTheme {
       ),
       
       // Card theme - Modern elevated cards with subtle shadows
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardBackgroundDark,
         shadowColor: AppColors.shadowDark,
         elevation: 0,

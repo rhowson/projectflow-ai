@@ -4,7 +4,7 @@ import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
 import '../features/tasks/presentation/tasks_screen.dart';
-import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/enhanced_profile_screen.dart';
 import '../shared/widgets/main_navigation.dart';
 
 class AppRouter {
@@ -92,7 +92,7 @@ class AppRouter {
           GoRoute(
             path: '/profile',
             name: 'profile',
-            builder: (context, state) => const ProfileScreen(),
+            builder: (context, state) => const EnhancedProfileScreen(),
           ),
           GoRoute(
             path: '/settings',
