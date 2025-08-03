@@ -559,73 +559,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         
         final userName = user?.displayName ?? (user?.email != null ? user!.email!.split('@').first : null) ?? 'there';
         
-        return Padding(
-          padding: EdgeInsets.only(left: 4.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$greeting,',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                userName,
-                style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.w800,
-                  color: CustomNeumorphicTheme.darkText,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      loading: () => Padding(
-          padding: EdgeInsets.only(left: 4.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hello,',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                'Welcome back',
-                style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.w800,
-                  color: CustomNeumorphicTheme.darkText,
-                ),
-              ),
-            ],
-          ),
-        ),
-      error: (error, stack) => Padding(
-        padding: EdgeInsets.only(left: 4.w),
-        child: Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hello,',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: CustomNeumorphicTheme.lightText,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              'there',
+              '$greeting, $userName',
               style: TextStyle(
                 fontSize: 28.sp,
                 fontWeight: FontWeight.w800,
@@ -633,7 +571,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
           ],
-        ),
+        );
+      },
+      loading: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hello, Welcome back',
+            style: TextStyle(
+              fontSize: 28.sp,
+              fontWeight: FontWeight.w800,
+              color: CustomNeumorphicTheme.darkText,
+            ),
+          ),
+        ],
+      ),
+      error: (error, stack) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hello, there',
+            style: TextStyle(
+              fontSize: 28.sp,
+              fontWeight: FontWeight.w800,
+              color: CustomNeumorphicTheme.darkText,
+            ),
+          ),
+        ],
       ),
     );
   }
