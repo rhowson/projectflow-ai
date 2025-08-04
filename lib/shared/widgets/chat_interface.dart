@@ -120,6 +120,10 @@ class _ModernChatInterfaceState extends State<ModernChatInterface> {
                       controller: _controller,
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
+                      onTapOutside: (event) {
+                        // Hide keyboard when tapping outside
+                        FocusScope.of(context).unfocus();
+                      },
                       decoration: InputDecoration(
                         hintText: widget.placeholder ?? 'Type a message...',
                         border: InputBorder.none,

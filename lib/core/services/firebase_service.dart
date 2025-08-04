@@ -601,4 +601,5 @@ class FirebaseService {
       rethrow;
     }
   }
+
 }

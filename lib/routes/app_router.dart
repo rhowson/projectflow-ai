@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
+import '../features/project_creation/presentation/project_context_screen.dart';
 import '../features/tasks/presentation/tasks_screen.dart';
 import '../features/profile/presentation/simple_profile_screen.dart';
 import '../features/team_management/presentation/team_screen.dart';
@@ -117,14 +118,16 @@ class AppRouter {
       
       // Special routes (no bottom nav)
       GoRoute(
-        path: '/project-context/:projectId',
+        path: '/project-context',
         name: 'project-context',
         builder: (context, state) {
-          final projectId = state.pathParameters['projectId'];
-          return Scaffold(
-            body: Center(
-              child: Text('Context Gathering for Project: $projectId - To be implemented'),
-            ),
+          final extra = state.extra as Map<String, dynamic>?;
+          final projectDescription = extra?['projectDescription'] as String? ?? '';
+          final documentContent = extra?['documentContent'] as String?;
+          
+          return ProjectContextScreen(
+            projectDescription: projectDescription,
+            documentContent: documentContent,
           );
         },
       ),

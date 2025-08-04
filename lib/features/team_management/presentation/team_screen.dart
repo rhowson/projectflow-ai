@@ -1182,6 +1182,10 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
         children: [
           TextField(
             controller: emailController,
+            onTapOutside: (event) {
+              // Hide keyboard when tapping outside
+              FocusScope.of(context).unfocus();
+            },
             decoration: InputDecoration(
               labelText: 'Email Address',
               hintText: 'Enter team member email',
@@ -1248,6 +1252,10 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
         children: [
           TextField(
             controller: nameController,
+            onTapOutside: (event) {
+              // Hide keyboard when tapping outside
+              FocusScope.of(context).unfocus();
+            },
             decoration: InputDecoration(
               labelText: 'Team Name',
               hintText: 'Enter team name',
@@ -1260,6 +1268,10 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           TextField(
             controller: descriptionController,
             maxLines: 3,
+            onTapOutside: (event) {
+              // Hide keyboard when tapping outside
+              FocusScope.of(context).unfocus();
+            },
             decoration: InputDecoration(
               labelText: 'Description',
               hintText: 'Describe your team...',

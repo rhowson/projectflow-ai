@@ -47,19 +47,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           ),
         ),
         automaticallyImplyLeading: false,
-        actions: [
-          NeumorphicButton(
-            onPressed: () => context.push('/profile'),
-            borderRadius: BorderRadius.circular(25),
-            padding: EdgeInsets.all(8.w),
-            child: Icon(
-              Icons.person,
-              color: CustomNeumorphicTheme.primaryPurple,
-              size: 20.sp,
-            ),
-          ),
-          SizedBox(width: 16.w),
-        ],
+        actions: _buildAppBarActions(),
       ),
       body: projectsAsync.when(
         data: (projects) {
@@ -512,5 +500,213 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      if (selectedProjectId != null) ...[
+        NeumorphicButton(
+          onPressed: () => _showDeleteProjectDialog(selectedProjectId!),
+          borderRadius: BorderRadius.circular(25),
+          padding: EdgeInsets.all(8.w),
+          child: Icon(
+            Icons.delete_outline,
+            color: CustomNeumorphicTheme.errorRed,
+            size: 20.sp,
+          ),
+        ),
+        SizedBox(width: 12.w),
+      ],
+      NeumorphicButton(
+        onPressed: () => context.push('/profile'),
+        borderRadius: BorderRadius.circular(25),
+        padding: EdgeInsets.all(8.w),
+        child: Icon(
+          Icons.person,
+          color: CustomNeumorphicTheme.primaryPurple,
+          size: 20.sp,
+        ),
+      ),
+      SizedBox(width: 16.w),
+    ];
+  }
+
+  void _showDeleteProjectDialog(String projectId) {
+    final projectsAsync = ref.read(projectNotifierProvider);
+    Project? project;
+    
+    projectsAsync.whenData((projects) {
+      project = projects.firstWhere((p) => p.id == projectId, orElse: () => projects.first);
+    });
+    
+    if (project == null) return;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: CustomNeumorphicTheme.baseColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: CustomNeumorphicTheme.errorRed,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'Delete Project',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete "${project!.title}"?',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: CustomNeumorphicTheme.errorRed.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: CustomNeumorphicTheme.errorRed.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'This action cannot be undone. This will permanently:',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: CustomNeumorphicTheme.errorRed,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      '• Delete the project\n• Delete all ${project!.phases.length} phases\n• Delete all tasks\n• Remove all project data',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: CustomNeumorphicTheme.errorRed,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            NeumorphicButton(
+              onPressed: () => Navigator.of(context).pop(),
+              borderRadius: BorderRadius.circular(8.r),
+              padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteProject(projectId);
+              },
+              isSelected: true,
+              selectedColor: CustomNeumorphicTheme.errorRed,
+              borderRadius: BorderRadius.circular(8.r),
+              padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+              child: Text(
+                'Delete Project',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteProject(String projectId) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20.w,
+                height: 20.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Text('Deleting project...'),
+            ],
+          ),
+          backgroundColor: CustomNeumorphicTheme.primaryPurple,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // Delete the project
+      await ref.read(projectNotifierProvider.notifier).deleteProject(projectId);
+      
+      if (mounted) {
+        // Hide loading snackbar
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Project deleted successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        
+        // Navigate back to dashboard
+        context.go('/dashboard');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete project: $e'),
+            backgroundColor: CustomNeumorphicTheme.errorRed,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }

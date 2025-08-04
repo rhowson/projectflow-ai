@@ -619,6 +619,10 @@ class TeamMembershipSection extends ConsumerWidget {
             SizedBox(height: 16.h),
             TextField(
               controller: inviteCodeController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: 'Invitation Code',
                 border: OutlineInputBorder(),
@@ -663,6 +667,10 @@ class TeamMembershipSection extends ConsumerWidget {
           children: [
             TextField(
               controller: nameController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: 'Team Name',
                 border: OutlineInputBorder(),
@@ -671,6 +679,10 @@ class TeamMembershipSection extends ConsumerWidget {
             SizedBox(height: 16.h),
             TextField(
               controller: descriptionController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: 'Description',
                 border: OutlineInputBorder(),

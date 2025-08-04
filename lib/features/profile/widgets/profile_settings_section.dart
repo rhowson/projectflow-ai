@@ -305,6 +305,10 @@ class ProfileSettingsSection extends ConsumerWidget {
           children: [
             TextField(
               controller: currentPasswordController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: 'Current Password',
                 border: OutlineInputBorder(),
@@ -314,6 +318,10 @@ class ProfileSettingsSection extends ConsumerWidget {
             SizedBox(height: 16.h),
             TextField(
               controller: newPasswordController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: 'New Password',
                 border: OutlineInputBorder(),
@@ -323,6 +331,10 @@ class ProfileSettingsSection extends ConsumerWidget {
             SizedBox(height: 16.h),
             TextField(
               controller: confirmPasswordController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: 'Confirm New Password',
                 border: OutlineInputBorder(),
@@ -498,6 +510,10 @@ class ProfileSettingsSection extends ConsumerWidget {
             SizedBox(height: 8.h),
             TextField(
               controller: confirmController,
+              onTapOutside: (event) {
+                // Hide keyboard when tapping outside
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'DELETE',

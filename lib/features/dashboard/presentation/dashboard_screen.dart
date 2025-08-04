@@ -194,64 +194,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         phaseSum + phase.tasks.where((task) => task.status != TaskStatus.completed).length));
     
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User Greeting (only on main dashboard)
-          _buildUserGreeting(context, ref),
-          SizedBox(height: 20.h),
+          // User Greeting Section - Enhanced spacing
+          _buildUserGreetingSection(context, ref),
+          SizedBox(height: 8.h), // Further reduced spacing between greeting and overview
           
-          // Quick Stats Cards
-          _buildQuickStats(context, totalProjects, activeProjects, totalTasks, openTasks),
-          SizedBox(height: 24.h),
+          // Quick Stats Section - Wrapped in container for better definition
+          _buildStatsSection(context, totalProjects, activeProjects, totalTasks, openTasks),
+          SizedBox(height: 40.h), // Generous spacing between major sections
           
-          // Recent Projects Header
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Recent Projects',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (sortedProjects.length > 1) ...[
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.swipe,
-                      size: 14.sp,
-                      color: CustomNeumorphicTheme.lightText,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'Swipe for more',
-                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                        color: CustomNeumorphicTheme.lightText,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      '${sortedProjects.length} total',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-          SizedBox(height: 12.h),
+          // Recent Projects Section - Better section definition
+          _buildRecentProjectsSection(context, sortedProjects),
+          SizedBox(height: 40.h), // Consistent major section spacing
           
-          // Horizontal Project Slider
-          if (sortedProjects.isNotEmpty) 
-            _buildProjectSlider(context, sortedProjects),
-          
-          SizedBox(height: 24.h),
-          
-          // Team Conversation Summary
-          _buildTeamConversationSummary(context, ref),
+          // Team Updates Section - Clear separation
+          _buildTeamUpdatesSection(context, ref),
+          SizedBox(height: 24.h), // Bottom padding
         ],
       ),
     );
@@ -324,27 +285,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildProjectSlider(BuildContext context, List<Project> projects) {
-    return Container(
-      height: 260.h, // Increased height further to prevent clipping of project cards
-      padding: EdgeInsets.only(
-        top: 8.h, 
-        bottom: 20.h, // Increased bottom padding for better shadow clearance
-        left: 0,
-        right: 0,
-      ),
+    return NeumorphicFlatContainer(
+      height: 260.h,
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      borderRadius: BorderRadius.circular(20.r),
+      color: CustomNeumorphicTheme.baseColor,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16.w), // Increased horizontal padding
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
         itemCount: projects.length,
         itemBuilder: (context, index) {
           final project = projects[index];
           return Container(
-            width: MediaQuery.of(context).size.width * 0.85, // Increased to 85% for wider cards
+            width: MediaQuery.of(context).size.width * 0.82,
             constraints: BoxConstraints(
-              maxWidth: 380.w, // Increased max width to better match standard card widths
-              minWidth: 300.w, // Increased min width for consistency
+              maxWidth: 360.w,
+              minWidth: 280.w,
             ),
-            margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h), // Added vertical margin
+            margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: _buildHorizontalProjectCard(context, project, index == 0),
           );
         },
@@ -765,6 +723,229 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  Widget _buildUserGreetingSection(BuildContext context, WidgetRef ref) {
+    return NeumorphicFlatContainer(
+      padding: EdgeInsets.only(left: 4.w, right: 24.w, top: 20.h, bottom: 20.h), // Align left padding with other headings
+      borderRadius: BorderRadius.circular(20.r),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: _buildUserGreeting(context, ref),
+      ),
+    );
+  }
+
+  Widget _buildStatsSection(BuildContext context, int totalProjects, int activeProjects, int totalTasks, int openTasks) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 4.w, bottom: 16.h),
+          child: Text(
+            'Overview',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+        ),
+        _buildQuickStats(context, totalProjects, activeProjects, totalTasks, openTasks),
+      ],
+    );
+  }
+
+  Widget _buildRecentProjectsSection(BuildContext context, List<Project> sortedProjects) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header with proper spacing
+        Padding(
+          padding: EdgeInsets.only(left: 4.w, bottom: 16.h),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Recent Projects',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (sortedProjects.isNotEmpty)
+                _buildEnhancedSwipeIndicator(sortedProjects.length),
+            ],
+          ),
+        ),
+        // Project Slider with enhanced container
+        if (sortedProjects.isNotEmpty) 
+          _buildProjectSlider(context, sortedProjects),
+      ],
+    );
+  }
+
+  Widget _buildSwipeIndicator(int projectCount) {
+    return NeumorphicContainer(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      borderRadius: BorderRadius.circular(20.r),
+      color: CustomNeumorphicTheme.baseColor,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.swipe,
+            size: 12.sp,
+            color: CustomNeumorphicTheme.lightText,
+          ),
+          SizedBox(width: 6.w),
+          Text(
+            'Swipe',
+            style: Theme.of(context).textTheme.labelSmall!.copyWith(
+              color: CustomNeumorphicTheme.lightText,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+            decoration: BoxDecoration(
+              color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Text(
+              '$projectCount',
+              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                color: CustomNeumorphicTheme.primaryPurple,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnhancedSwipeIndicator(int projectCount) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Animated swipe arrows
+        TweenAnimationBuilder(
+          duration: const Duration(seconds: 2),
+          tween: Tween<double>(begin: 0.3, end: 1.0),
+          builder: (context, double value, child) {
+            return AnimatedOpacity(
+              opacity: value,
+              duration: const Duration(milliseconds: 500),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.keyboard_arrow_left,
+                    size: 14.sp,
+                    color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: value * 0.6),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_right,
+                    size: 14.sp,
+                    color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: value * 0.6),
+                  ),
+                ],
+              ),
+            );
+          },
+          onEnd: () {
+            // Restart animation after a delay
+          },
+        ),
+        SizedBox(width: 8.w),
+        NeumorphicContainer(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+          borderRadius: BorderRadius.circular(16.r),
+          color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.swipe_outlined,
+                size: 13.sp,
+                color: CustomNeumorphicTheme.primaryPurple,
+              ),
+              SizedBox(width: 6.w),
+              Text(
+                projectCount > 1 ? 'Slide' : 'Slideable',
+                style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                  color: CustomNeumorphicTheme.primaryPurple,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (projectCount > 1) ...[
+                SizedBox(width: 6.w),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+                  decoration: BoxDecoration(
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    '$projectCount',
+                    style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 10.sp,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTeamUpdatesSection(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 4.w, bottom: 20.h),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Team Updates',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              NeumorphicButton(
+                onPressed: () {
+                  // Navigate to full conversation view
+                  // context.push('/team-conversations');
+                },
+                borderRadius: BorderRadius.circular(12.r),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.forum_outlined,
+                      size: 14.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'View All',
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        _buildTeamConversationList(context, ref),
+      ],
+    );
+  }
+
   Widget _buildUserGreeting(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
     
@@ -825,161 +1006,84 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final completedTasks = totalTasks - openTasks;
     final taskCompletionRate = totalTasks > 0 ? (completedTasks / totalTasks * 100).round() : 0;
     
-    return NeumorphicFlatContainer(
-      padding: EdgeInsets.all(20.w),
-      borderRadius: BorderRadius.circular(16.r),
-      color: CustomNeumorphicTheme.baseColor,
-      onTap: () {
-        // Navigate to detailed overview or stats
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with title
-          Row(
-            children: [
-              NeumorphicContainer(
-                padding: EdgeInsets.all(10.w),
-                borderRadius: BorderRadius.circular(12),
-                color: CustomNeumorphicTheme.primaryPurple,
-                child: Icon(
-                  Icons.analytics,
-                  color: Colors.white,
-                  size: 18.sp,
+    return Row(
+      children: [
+        // Projects section with neumorphic background
+        Expanded(
+          flex: 1,
+          child: NeumorphicCard(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.folder_outlined,
+                  size: 24.sp,
+                  color: CustomNeumorphicTheme.primaryPurple,
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Project Overview',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: CustomNeumorphicTheme.darkText,
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 20.h),
-          
-          // Unified stats in a clean layout
-          Row(
-            children: [
-              // Projects section
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.dashboard,
-                          size: 14.sp,
-                          color: AppColors.primary,
-                        ),
-                        SizedBox(width: 4.w),
-                        Flexible(
-                          child: Text(
-                            'Projects',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w600,
-                              color: CustomNeumorphicTheme.lightText,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      '$activeProjects/$totalProjects',
-                      style: TextStyle(
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w800,
-                        color: CustomNeumorphicTheme.darkText,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      'Active',
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Vertical divider
-              Container(
-                height: 60.h,
-                width: 1.w,
-                color: CustomNeumorphicTheme.lightText.withOpacity(0.3),
-              ),
-              
-              // Tasks section  
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 12.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.task_alt,
-                            size: 14.sp,
-                            color: AppColors.secondary,
-                          ),
-                          SizedBox(width: 4.w),
-                          Flexible(
-                            child: Text(
-                              'Tasks',
-                              style: TextStyle(
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w600,
-                                color: CustomNeumorphicTheme.lightText,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        '$openTasks',
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.w800,
-                          color: CustomNeumorphicTheme.darkText,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        '$taskCompletionRate% Done',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                SizedBox(height: 12.h),
+                Text(
+                  '$activeProjects',
+                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
-            ],
+                Text(
+                  'of $totalProjects',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Active Projects',
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+        
+        SizedBox(width: 16.w), // Better spacing between sections
+        
+        // Tasks section with neumorphic background
+        Expanded(
+          flex: 1,
+          child: NeumorphicCard(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.checklist_outlined,
+                  size: 24.sp,
+                  color: CustomNeumorphicTheme.successGreen,
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  '$taskCompletionRate%',
+                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                    color: CustomNeumorphicTheme.successGreen,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  'completed',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Task Progress',
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1296,7 +1400,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
 
-  Widget _buildTeamConversationSummary(BuildContext context, WidgetRef ref) {
+  Widget _buildTeamConversationList(BuildContext context, WidgetRef ref) {
     // Mock conversation data - in real app this would come from a provider
     final recentConversations = [
       {
@@ -1326,53 +1430,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Recent Team Updates',
-                style: Theme.of(context).textTheme.headlineSmall,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            NeumorphicButton(
-              onPressed: () {
-                // Navigate to full conversation view
-                // context.push('/team-conversations');
-              },
-              borderRadius: BorderRadius.circular(12),
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 14.sp,
-                    color: CustomNeumorphicTheme.primaryPurple,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'View All',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: CustomNeumorphicTheme.primaryPurple,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        
-        // Conversation Items
-        ...recentConversations.map((conversation) => 
-          _buildConversationItem(context, conversation)).toList(),
-      ],
+      children: recentConversations.map((conversation) => 
+        _buildConversationItem(context, conversation)).toList(),
     );
   }
 
@@ -1404,9 +1463,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 16.h),
       child: NeumorphicCard(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(20.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

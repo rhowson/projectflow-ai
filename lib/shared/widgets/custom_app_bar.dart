@@ -269,6 +269,10 @@ class _SearchAppBarState extends State<SearchAppBar>
                 child: TextField(
                   controller: _searchController,
                   onChanged: widget.onSearchChanged,
+                  onTapOutside: (event) {
+                    // Hide keyboard when tapping outside
+                    FocusScope.of(context).unfocus();
+                  },
                   decoration: InputDecoration(
                     hintText: widget.searchHint,
                     border: InputBorder.none,

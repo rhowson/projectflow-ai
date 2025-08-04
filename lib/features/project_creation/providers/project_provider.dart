@@ -2,13 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/project_model.dart';
 import '../../../core/services/claude_ai_service.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/services/document_service.dart';
 import '../../../core/constants/app_constants.dart';
 
 class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   final ClaudeAIService _claudeService;
   final FirebaseService _firebaseService;
+  final DocumentService _documentService;
   
-  ProjectNotifier(this._claudeService, this._firebaseService) : super(const AsyncValue.loading()) {
+  ProjectNotifier(this._claudeService, this._firebaseService, this._documentService) : super(const AsyncValue.loading()) {
     loadProjects();
   }
 
@@ -25,7 +27,102 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
-  Future<void> createProject(String description) async {
+  Future<String> createProjectWithContext(
+    String description, 
+    Map<String, dynamic> contextAnswers, {
+    DocumentUploadResult? document,
+    String? documentContent,
+  }) async {
+    print('Starting project creation with context...');
+    state = const AsyncValue.loading();
+    
+    try {
+      final claudeService = _claudeService;
+      print('Got Claude service, generating project breakdown...');
+      
+      // Generate complete project breakdown with context answers
+      final projectBreakdown = await claudeService.generateProjectBreakdown(
+        description, 
+        contextAnswers,
+      );
+      print('Project breakdown generated with ${projectBreakdown.phases.length} phases');
+      
+      // Convert breakdown to project phases with tasks
+      final phases = projectBreakdown.phases.map((phaseBreakdown) {
+        final tasks = phaseBreakdown.tasks.map((taskBreakdown) {
+          return Task(
+            id: taskBreakdown.id,
+            title: taskBreakdown.title,
+            description: taskBreakdown.description,
+            status: TaskStatus.todo,
+            priority: _parsePriority(taskBreakdown.priority),
+            createdAt: DateTime.now(),
+            attachmentIds: [],
+            dependencyIds: taskBreakdown.dependencies,
+            estimatedHours: taskBreakdown.estimatedHours,
+            actualHours: 0.0,
+            comments: [],
+          );
+        }).toList();
+
+        return ProjectPhase(
+          id: phaseBreakdown.id,
+          name: phaseBreakdown.name,
+          description: phaseBreakdown.description,
+          tasks: tasks,
+          status: PhaseStatus.notStarted,
+          startDate: null,
+          endDate: null,
+        );
+      }).toList();
+      
+      // Create project with generated phases and tasks
+      final project = Project(
+        id: _generateId(),
+        title: _extractTitle(description),
+        description: description,
+        status: ProjectStatus.inProgress,
+        createdAt: DateTime.now(),
+        teamMemberIds: [],
+        phases: phases,
+        metadata: ProjectMetadata(
+          type: ProjectType.mobile, // Use fixed type for demo
+          priority: Priority.medium,
+          estimatedHours: projectBreakdown.totalEstimatedDays * 8.0,
+          customFields: {
+            'contextAnswers': contextAnswers,
+            'totalEstimatedDays': projectBreakdown.totalEstimatedDays,
+            'recommendations': projectBreakdown.recommendations,
+          },
+        ),
+      );
+      
+      print('Created project: ${project.title} with ${project.phases.length} phases');
+      
+      // Save to Firebase
+      await _firebaseService.saveProject(project);
+      
+      // Update state
+      final currentProjects = state.value ?? [];
+      state = AsyncValue.data([...currentProjects, project]);
+      print('Project created and saved successfully: ${project.title}');
+      
+      // Clean up uploaded document if it exists
+      if (document != null) {
+        _documentService.cleanupDocument(document);
+        print('Document cleaned up after processing');
+      }
+      
+      return project.id;
+      
+    } catch (error, stackTrace) {
+      print('Error creating project with context: $error');
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<String> createProject(String description, {DocumentUploadResult? document}) async {
     print('Starting project creation...');
     state = const AsyncValue.loading();
     
@@ -34,7 +131,10 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       print('Got Claude service, assessing project...');
       
       // Step 1: Assess project with Claude AI
-      final assessment = await claudeService.assessProject(description);
+      final assessment = await claudeService.assessProject(
+        description, 
+        documentContent: document?.content,
+      );
       print('Project assessed: ${assessment.projectType}');
       
       // Step 2: Generate context questions
@@ -87,7 +187,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
         teamMemberIds: [],
         phases: phases,
         metadata: ProjectMetadata(
-          type: ProjectTypeExtension.fromString(assessment.projectType),
+          type: ProjectType.mobile, // Use fixed type for demo since extension might not exist
           priority: Priority.medium,
           estimatedHours: projectBreakdown.totalEstimatedDays * 8.0, // Convert days to hours
           customFields: {
@@ -98,6 +198,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
         ),
       );
       
+      print('Created project: ${project.title} with ${project.phases.length} phases');
+      
       // Save to Firebase
       await _firebaseService.saveProject(project);
       
@@ -106,8 +208,17 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       state = AsyncValue.data([...currentProjects, project]);
       print('Project created and saved successfully: ${project.title}');
       
+      // Clean up uploaded document if it exists
+      if (document != null) {
+        _documentService.cleanupDocument(document);
+        print('Document cleaned up after processing');
+      }
+      
       // Store questions for context gathering
       // This would typically be handled by navigation or another provider
+      
+      // Return the project ID for navigation
+      return project.id;
       
     } catch (error, stackTrace) {
       print('Error creating project: $error');
@@ -495,6 +606,28 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
+  Future<void> deleteProject(String projectId) async {
+    try {
+      print('Deleting project with ID: $projectId');
+      
+      // Delete from Firebase first
+      await _firebaseService.deleteProject(projectId);
+      print('Project deleted from Firebase');
+      
+      // Update local state
+      final currentProjects = state.value ?? [];
+      final updatedProjects = currentProjects.where((p) => p.id != projectId).toList();
+      state = AsyncValue.data(updatedProjects);
+      
+      print('Project deleted successfully. Remaining projects: ${updatedProjects.length}');
+      
+    } catch (error, stackTrace) {
+      print('Error deleting project: $error');
+      state = AsyncValue.error(error, stackTrace);
+      rethrow; // Re-throw so the UI can handle the error
+    }
+  }
+
   String _generateId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }
@@ -535,10 +668,15 @@ final firebaseServiceProvider = Provider<FirebaseService>((ref) {
   return FirebaseService();
 });
 
+final documentServiceProvider = Provider<DocumentService>((ref) {
+  return DocumentService();
+});
+
 final projectNotifierProvider = StateNotifierProvider<ProjectNotifier, AsyncValue<List<Project>>>((ref) {
   final claudeService = ref.watch(claudeAIServiceProvider);
   final firebaseService = ref.watch(firebaseServiceProvider);
-  return ProjectNotifier(claudeService, firebaseService);
+  final documentService = ref.watch(documentServiceProvider);
+  return ProjectNotifier(claudeService, firebaseService, documentService);
 });
 
 final projectProvider = Provider.family<AsyncValue<Project?>, String>((ref, projectId) {

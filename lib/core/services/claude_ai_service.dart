@@ -11,7 +11,7 @@ class ClaudeAIService {
   
   ClaudeAIService({required String apiKey}) : _dio = Dio() {
     _dio.options.baseUrl = AppConstants.claudeBaseUrl;
-    _dio.options.headers[ApiConstants.authorizationHeader] = 'Bearer $apiKey';
+    _dio.options.headers[ApiConstants.authorizationHeader] = apiKey;
     _dio.options.headers[ApiConstants.contentTypeHeader] = ApiConstants.jsonContentType;
     _dio.options.headers[ApiConstants.anthropicVersionHeader] = AppConstants.claudeVersion;
     _dio.options.connectTimeout = AppConstants.connectionTimeout;
@@ -19,17 +19,18 @@ class ClaudeAIService {
     _dio.options.sendTimeout = AppConstants.sendTimeout;
   }
 
-  Future<ProjectAssessment> assessProject(String projectDescription) async {
+  Future<ProjectAssessment> assessProject(String projectDescription, {String? documentContent}) async {
     // Demo mode - return mock data
     if (AppConstants.useDemoMode) {
       await Future.delayed(const Duration(seconds: 2)); // Simulate API delay
       return _createMockAssessment(projectDescription);
     }
     
-    const prompt = '''
+    final prompt = '''
     Analyze this project description and provide a structured assessment:
     
     Project: {description}
+    ${documentContent != null ? '\n\nAdditional Document Content:\n{documentContent}\n' : ''}
     
     Please provide:
     1. Project type and category
@@ -57,7 +58,9 @@ class ClaudeAIService {
           'messages': [
             {
               'role': 'user',
-              'content': prompt.replaceAll('{description}', projectDescription),
+              'content': prompt
+                  .replaceAll('{description}', projectDescription)
+                  .replaceAll('{documentContent}', documentContent ?? ''),
             }
           ],
         },
@@ -104,8 +107,8 @@ class ClaudeAIService {
       {
         "id": "unique_id",
         "question": "Question text",
-        "type": "text|multiple_choice|boolean",
-        "options": ["option1", "option2"] // only for multiple_choice
+        "type": "text|multipleChoice|boolean",
+        "options": ["option1", "option2"] // only for multipleChoice
       }
     ]
     ''';

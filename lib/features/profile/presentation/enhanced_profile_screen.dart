@@ -456,9 +456,7 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
                   ),
                 ),
                 SizedBox(height: 16.h),
-                Column(
-                  children: [
-                    Row(
+                Row(
                       children: [
                         NeumorphicContainer(
                         padding: EdgeInsets.all(6.w),
@@ -481,8 +479,8 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
-                  Row(
+                SizedBox(height: 8.h),
+                Row(
                     children: [
                       NeumorphicContainer(
                         padding: EdgeInsets.all(6.w),
@@ -527,11 +525,9 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+              ],
             ),
           ),
           

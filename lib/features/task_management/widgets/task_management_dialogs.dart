@@ -196,6 +196,10 @@ class _AddEditTaskDialogState extends ConsumerState<AddEditTaskDialog> {
                 // Title field
                 TextFormField(
                   controller: _titleController,
+                  onTapOutside: (event) {
+                    // Hide keyboard when tapping outside
+                    FocusScope.of(context).unfocus();
+                  },
                   decoration: const InputDecoration(
                     labelText: 'Task Title *',
                     border: OutlineInputBorder(),
@@ -212,6 +216,10 @@ class _AddEditTaskDialogState extends ConsumerState<AddEditTaskDialog> {
                 // Description field
                 TextFormField(
                   controller: _descriptionController,
+                  onTapOutside: (event) {
+                    // Hide keyboard when tapping outside
+                    FocusScope.of(context).unfocus();
+                  },
                   decoration: const InputDecoration(
                     labelText: 'Description',
                     border: OutlineInputBorder(),
@@ -223,6 +231,10 @@ class _AddEditTaskDialogState extends ConsumerState<AddEditTaskDialog> {
                 // Estimated hours field
                 TextFormField(
                   controller: _estimatedHoursController,
+                  onTapOutside: (event) {
+                    // Hide keyboard when tapping outside
+                    FocusScope.of(context).unfocus();
+                  },
                   decoration: const InputDecoration(
                     labelText: 'Estimated Hours',
                     border: OutlineInputBorder(),
