@@ -45,17 +45,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               size: 20.sp,
             ),
           ),
-          SizedBox(width: 8.w),
-          NeumorphicButton(
-            onPressed: () => _showProjectMenu(context),
-            borderRadius: BorderRadius.circular(25),
-            padding: EdgeInsets.all(8.w),
-            child: Icon(
-              Icons.more_vert,
-              color: CustomNeumorphicTheme.darkText,
-              size: 20.sp,
-            ),
-          ),
           SizedBox(width: 16.w),
         ],
       ),
@@ -292,17 +281,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       color: CustomNeumorphicTheme.baseColor,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        padding: EdgeInsets.only(left: 20.w, right: 20.w),
         itemCount: projects.length,
         itemBuilder: (context, index) {
           final project = projects[index];
           return Container(
-            width: MediaQuery.of(context).size.width * 0.82,
-            constraints: BoxConstraints(
-              maxWidth: 360.w,
-              minWidth: 280.w,
+            width: MediaQuery.of(context).size.width - 80.w, // Full width minus container padding
+            margin: EdgeInsets.only(
+              right: index < projects.length - 1 ? 16.w : 0, // Only right margin between cards
+              top: 8.h,
+              bottom: 8.h,
             ),
-            margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: _buildHorizontalProjectCard(context, project, index == 0),
           );
         },
@@ -902,7 +891,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 4.w, bottom: 20.h),
+          padding: EdgeInsets.only(left: 4.w, bottom: 12.h), // Reduced from 20.h to 12.h
           child: Row(
             children: [
               Expanded(
@@ -917,20 +906,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   // Navigate to full conversation view
                   // context.push('/team-conversations');
                 },
-                borderRadius: BorderRadius.circular(12.r),
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                borderRadius: BorderRadius.circular(10.r), // Slightly smaller radius
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h), // Reduced padding
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.forum_outlined,
-                      size: 14.sp,
+                      size: 12.sp, // Reduced from 14.sp
                       color: CustomNeumorphicTheme.primaryPurple,
                     ),
-                    SizedBox(width: 6.w),
+                    SizedBox(width: 4.w), // Reduced from 6.w
                     Text(
                       'View All',
-                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                      style: Theme.of(context).textTheme.labelSmall!.copyWith( // Changed to labelSmall
                         color: CustomNeumorphicTheme.primaryPurple,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1012,32 +1001,41 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         Expanded(
           flex: 1,
           child: NeumorphicCard(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.all(20.w), // Back to original padding
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.folder_outlined,
-                  size: 24.sp,
+                // Enhanced icon with container but smaller
+                NeumorphicContainer(
+                  padding: EdgeInsets.all(8.w), // Smaller container
+                  borderRadius: BorderRadius.circular(12.r), // Smaller radius
                   color: CustomNeumorphicTheme.primaryPurple,
+                  child: Icon(
+                    Icons.folder_outlined,
+                    size: 20.sp, // Back to smaller icon
+                    color: Colors.white,
+                  ),
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: 12.h), // Back to original spacing
                 Text(
                   '$activeProjects',
-                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                  style: Theme.of(context).textTheme.headlineMedium!.copyWith( // Back to original size
                     color: CustomNeumorphicTheme.primaryPurple,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
                   'of $totalProjects',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith( // Back to smaller text
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: 8.h), // Back to original spacing
                 Text(
                   'Active Projects',
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith( // Back to original size
                     fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
                   ),
                 ),
               ],
@@ -1051,32 +1049,41 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         Expanded(
           flex: 1,
           child: NeumorphicCard(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.all(20.w), // Back to original padding
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.checklist_outlined,
-                  size: 24.sp,
+                // Enhanced icon with container but smaller
+                NeumorphicContainer(
+                  padding: EdgeInsets.all(8.w), // Smaller container
+                  borderRadius: BorderRadius.circular(12.r), // Smaller radius
                   color: CustomNeumorphicTheme.successGreen,
+                  child: Icon(
+                    Icons.checklist_outlined,
+                    size: 20.sp, // Back to smaller icon
+                    color: Colors.white,
+                  ),
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: 12.h), // Back to original spacing
                 Text(
                   '$taskCompletionRate%',
-                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                  style: Theme.of(context).textTheme.headlineMedium!.copyWith( // Back to original size
                     color: CustomNeumorphicTheme.successGreen,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
                   'completed',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith( // Back to smaller text
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: 8.h), // Back to original spacing
                 Text(
                   'Task Progress',
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith( // Back to original size
                     fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
                   ),
                 ),
               ],
@@ -1463,44 +1470,52 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
+      margin: EdgeInsets.only(bottom: 12.h), // Reduced from 16.h
       child: NeumorphicCard(
-        padding: EdgeInsets.all(20.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h), // Reduced padding
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar
+            // Smaller, more compact avatar
             NeumorphicContainer(
-              width: 40.w,
-              height: 40.w,
-              borderRadius: BorderRadius.circular(20),
+              width: 32.w, // Reduced from 40.w
+              height: 32.w, // Reduced from 40.w
+              borderRadius: BorderRadius.circular(16.r), // Adjusted radius
               color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
               child: Center(
                 child: Text(
                   conversation['avatar']!,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: 12.sp, // Reduced from 14.sp
                     fontWeight: FontWeight.w700,
                     color: CustomNeumorphicTheme.primaryPurple,
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 10.w), // Reduced from 12.w
             
-            // Content
+            // Content - more compact layout
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, // Important for height reduction
                 children: [
-                  // User name and time
+                  // User name, time, and type icon in single row
                   Row(
                     children: [
+                      // Type icon first for better visual hierarchy
+                      Icon(
+                        getTypeIcon(conversation['type']!),
+                        size: 12.sp,
+                        color: getTypeColor(conversation['type']!),
+                      ),
+                      SizedBox(width: 6.w),
                       Expanded(
                         child: Text(
                           conversation['user']!,
                           style: TextStyle(
-                            fontSize: 14.sp,
+                            fontSize: 13.sp, // Slightly reduced from 14.sp
                             fontWeight: FontWeight.w600,
                             color: CustomNeumorphicTheme.darkText,
                           ),
@@ -1510,48 +1525,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       Text(
                         conversation['time']!,
                         style: TextStyle(
-                          fontSize: 11.sp,
+                          fontSize: 10.sp, // Reduced from 11.sp
                           color: CustomNeumorphicTheme.lightText,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 4.h), // Kept minimal spacing
                   
-                  // Message
+                  // Message - single line for compactness
                   Text(
                     conversation['message']!,
                     style: TextStyle(
-                      fontSize: 13.sp,
+                      fontSize: 12.sp, // Reduced from 13.sp
                       color: CustomNeumorphicTheme.darkText,
-                      height: 1.3,
+                      height: 1.2, // Reduced line height
                     ),
-                    maxLines: 2,
+                    maxLines: 1, // Changed from 2 to 1 for compactness
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: 4.h), // Reduced from 8.h
                   
-                  // Project tag and type icon
-                  Row(
-                    children: [
-                      Icon(
-                        getTypeIcon(conversation['type']!),
-                        size: 12.sp,
-                        color: getTypeColor(conversation['type']!),
-                      ),
-                      SizedBox(width: 4.w),
-                      Expanded(
-                        child: Text(
-                          conversation['project']!,
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: getTypeColor(conversation['type']!),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  // Project tag - compact display
+                  Text(
+                    conversation['project']!,
+                    style: TextStyle(
+                      fontSize: 10.sp, // Reduced from 11.sp
+                      color: getTypeColor(conversation['type']!),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -1562,40 +1565,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  void _showProjectMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Project Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to settings
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text('Manage Team'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to team management
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.analytics),
-            title: const Text('View Reports'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to reports
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _StatusChip extends StatelessWidget {

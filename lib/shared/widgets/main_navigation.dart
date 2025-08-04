@@ -60,9 +60,9 @@ class MainNavigation extends StatelessWidget {
               ),
               _buildNavItem(
                 context: context,
-                icon: Icons.task_outlined,
-                activeIcon: Icons.task,
-                label: 'Tasks',
+                icon: Icons.work_outline,
+                activeIcon: Icons.work,
+                label: 'Project',
                 index: 2,
                 currentIndex: currentIndex,
                 onTap: () => context.go('/tasks'),

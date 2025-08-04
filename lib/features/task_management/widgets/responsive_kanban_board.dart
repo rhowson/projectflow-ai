@@ -45,12 +45,6 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
     };
 
     return Container(
-      margin: EdgeInsets.fromLTRB(
-        isMobile ? 8.0 : 16.0,  // left
-        0.0,                    // top - removed margin to eliminate gap
-        isMobile ? 8.0 : 16.0,  // right  
-        isMobile ? 8.0 : 16.0,  // bottom
-      ),
       decoration: BoxDecoration(
         color: CustomNeumorphicTheme.cardColor,
         borderRadius: BorderRadius.circular(20.r),
@@ -66,58 +60,10 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
       ),
       child: Column(
         children: [
-          // Simplified Header - no extra neumorphic container
-          Container(
-            padding: EdgeInsets.all(isMobile ? 12.w : 16.w),
-            decoration: BoxDecoration(
-              color: CustomNeumorphicTheme.baseColor,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20.r),
-                topRight: Radius.circular(20.r),
-              ),
-            ),
-            child: Row(
-              children: [
-                // Simplified icon - just colored circle
-                Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: CustomNeumorphicTheme.primaryPurple,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.dashboard,
-                    color: Colors.white,
-                    size: isMobile ? 16.sp : 20.sp,
-                  ),
-                ),
-                SizedBox(width: isMobile ? 8.w : 12.w),
-                Text(
-                  'Task Board',
-                  style: TextStyle(
-                    fontSize: isMobile ? 16.sp : 18.sp,
-                    fontWeight: FontWeight.w700,
-                    color: CustomNeumorphicTheme.darkText,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${allTasks.length} tasks',
-                  style: TextStyle(
-                    fontSize: isMobile ? 12.sp : 14.sp,
-                    fontWeight: FontWeight.w500,
-                    color: CustomNeumorphicTheme.lightText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
           // Mobile: Page indicator for swipeable columns
           if (isMobile) ...[
             Container(
               padding: EdgeInsets.symmetric(vertical: 8.h),
-              color: CustomNeumorphicTheme.baseColor,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(4, (index) {
@@ -160,7 +106,6 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
     return Container(
       height: 40.h,
       margin: EdgeInsets.symmetric(horizontal: 8.w),
-      color: CustomNeumorphicTheme.baseColor,
       child: Row(
         children: statuses.asMap().entries.map((entry) {
           final index = entry.key;
@@ -329,8 +274,10 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: MobileTaskCard(
                           task: task,
+                          project: widget.project,
                           color: color,
                           onStatusChanged: (newStatus) => _moveTask(task, newStatus),
+                          onPhaseChanged: (newPhaseId) => _moveTaskToPhase(task, newPhaseId),
                         ),
                       );
                     },
@@ -353,9 +300,11 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
             child: ResponsiveKanbanColumn(
               title: 'To Do',
               tasks: taskGroups[TaskStatus.todo]!,
+              project: widget.project,
               status: TaskStatus.todo,
               color: AppColors.statusTodo,
               onTaskMoved: _moveTask,
+              onTaskPhaseChanged: _moveTaskToPhase,
               isTablet: isTablet,
             ),
           ),
@@ -364,9 +313,11 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
             child: ResponsiveKanbanColumn(
               title: 'In Progress',
               tasks: taskGroups[TaskStatus.inProgress]!,
+              project: widget.project,
               status: TaskStatus.inProgress,
               color: AppColors.statusInProgress,
               onTaskMoved: _moveTask,
+              onTaskPhaseChanged: _moveTaskToPhase,
               isTablet: isTablet,
             ),
           ),
@@ -375,9 +326,11 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
             child: ResponsiveKanbanColumn(
               title: 'Review',
               tasks: taskGroups[TaskStatus.review]!,
+              project: widget.project,
               status: TaskStatus.review,
               color: AppColors.statusReview,
               onTaskMoved: _moveTask,
+              onTaskPhaseChanged: _moveTaskToPhase,
               isTablet: isTablet,
             ),
           ),
@@ -386,9 +339,11 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
             child: ResponsiveKanbanColumn(
               title: 'Completed',
               tasks: taskGroups[TaskStatus.completed]!,
+              project: widget.project,
               status: TaskStatus.completed,
               color: AppColors.statusCompleted,
               onTaskMoved: _moveTask,
+              onTaskPhaseChanged: _moveTaskToPhase,
               isTablet: isTablet,
             ),
           ),
@@ -447,22 +402,77 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
     // Update the project in the provider
     ref.read(projectNotifierProvider.notifier).updateProject(updatedProject);
   }
+
+  void _moveTaskToPhase(Task task, String newPhaseId) {
+    // Find the task in its current phase and move it to the new phase
+    List<ProjectPhase> updatedPhases = [];
+    
+    for (final phase in widget.project.phases) {
+      if (phase.tasks.any((t) => t.id == task.id)) {
+        // Remove task from current phase
+        final updatedTasks = phase.tasks.where((t) => t.id != task.id).toList();
+        updatedPhases.add(ProjectPhase(
+          id: phase.id,
+          name: phase.name,
+          description: phase.description,
+          tasks: updatedTasks,
+          status: phase.status,
+          startDate: phase.startDate,
+          endDate: phase.endDate,
+        ));
+      } else if (phase.id == newPhaseId) {
+        // Add task to new phase
+        final updatedTasks = [...phase.tasks, task];
+        updatedPhases.add(ProjectPhase(
+          id: phase.id,
+          name: phase.name,
+          description: phase.description,
+          tasks: updatedTasks,
+          status: phase.status,
+          startDate: phase.startDate,
+          endDate: phase.endDate,
+        ));
+      } else {
+        // Keep phase unchanged
+        updatedPhases.add(phase);
+      }
+    }
+
+    final updatedProject = Project(
+      id: widget.project.id,
+      title: widget.project.title,
+      description: widget.project.description,
+      status: widget.project.status,
+      createdAt: widget.project.createdAt,
+      dueDate: widget.project.dueDate,
+      teamMemberIds: widget.project.teamMemberIds,
+      phases: updatedPhases,
+      metadata: widget.project.metadata,
+    );
+
+    // Update the project in the provider
+    ref.read(projectNotifierProvider.notifier).updateProject(updatedProject);
+  }
 }
 
 class ResponsiveKanbanColumn extends StatefulWidget {
   final String title;
   final List<Task> tasks;
+  final Project project;
   final TaskStatus status;
   final Color color;
   final Function(Task, TaskStatus) onTaskMoved;
+  final Function(Task, String) onTaskPhaseChanged;
   final bool isTablet;
 
   const ResponsiveKanbanColumn({
     required this.title,
     required this.tasks,
+    required this.project,
     required this.status,
     required this.color,
     required this.onTaskMoved,
+    required this.onTaskPhaseChanged,
     required this.isTablet,
     super.key,
   });
@@ -601,8 +611,10 @@ class _ResponsiveKanbanColumnState extends State<ResponsiveKanbanColumn> {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: ResponsiveTaskCard(
                                 task: task,
+                                project: widget.project,
                                 color: widget.color,
                                 isTablet: widget.isTablet,
+                                onPhaseChanged: (newPhaseId) => widget.onTaskPhaseChanged(task, newPhaseId),
                               ),
                             );
                           },
@@ -619,13 +631,17 @@ class _ResponsiveKanbanColumnState extends State<ResponsiveKanbanColumn> {
 
 class ResponsiveTaskCard extends StatelessWidget {
   final Task task;
+  final Project project;
   final Color color;
   final bool isTablet;
+  final Function(String) onPhaseChanged;
 
   const ResponsiveTaskCard({
     required this.task,
+    required this.project,
     required this.color,
     required this.isTablet,
+    required this.onPhaseChanged,
     super.key,
   });
 
@@ -655,9 +671,12 @@ class ResponsiveTaskCard extends StatelessWidget {
   }
 
   Widget _buildTaskCard(BuildContext context) {
-    return NeumorphicCard(
-      padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
-      child: _buildCardContent(context),
+    return GestureDetector(
+      onDoubleTap: () => _showTaskOptionsDialog(context),
+      child: NeumorphicCard(
+        padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
+        child: _buildCardContent(context),
+      ),
     );
   }
 
@@ -726,6 +745,91 @@ class ResponsiveTaskCard extends StatelessWidget {
     );
   }
 
+  void _showTaskOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Text(
+          'Move Task',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                task.title,
+                style: Theme.of(context).textTheme.titleMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Move to Phase:',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Constrain height and make scrollable
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: project.phases.map((phase) {
+                      // Check if task is currently in this phase
+                      final isCurrentPhase = phase.tasks.any((t) => t.id == task.id);
+                      
+                      return ListTile(
+                        leading: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: CustomNeumorphicTheme.primaryPurple.withOpacity(
+                              isCurrentPhase ? 1.0 : 0.3
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        title: Text(
+                          phase.name,
+                          style: TextStyle(
+                            fontWeight: isCurrentPhase ? FontWeight.w600 : FontWeight.normal,
+                            color: isCurrentPhase ? CustomNeumorphicTheme.primaryPurple : null,
+                          ),
+                        ),
+                        subtitle: Text('${phase.tasks.length} tasks'),
+                        trailing: isCurrentPhase ? const Icon(Icons.check) : null,
+                        onTap: isCurrentPhase ? null : () {
+                          onPhaseChanged(phase.id);
+                          Navigator.pop(context);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Color _getPriorityColor(Priority priority) {
     switch (priority) {
       case Priority.low:
@@ -742,13 +846,17 @@ class ResponsiveTaskCard extends StatelessWidget {
 
 class MobileTaskCard extends StatelessWidget {
   final Task task;
+  final Project project;
   final Color color;
   final Function(TaskStatus) onStatusChanged;
+  final Function(String) onPhaseChanged;
 
   const MobileTaskCard({
     required this.task,
+    required this.project,
     required this.color,
     required this.onStatusChanged,
+    required this.onPhaseChanged,
     super.key,
   });
 
@@ -850,32 +958,77 @@ class MobileTaskCard extends StatelessWidget {
   void _showStatusChangeDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Move Task',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              task.title,
-              style: Theme.of(context).textTheme.titleMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 16),
-            _buildStatusOption(context, 'To Do', TaskStatus.todo, AppColors.statusTodo),
-            _buildStatusOption(context, 'In Progress', TaskStatus.inProgress, AppColors.statusInProgress),
-            _buildStatusOption(context, 'Review', TaskStatus.review, AppColors.statusReview),
-            _buildStatusOption(context, 'Completed', TaskStatus.completed, AppColors.statusCompleted),
-          ],
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Move Task',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                task.title,
+                style: Theme.of(context).textTheme.titleMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Change Status:',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildStatusOption(context, 'To Do', TaskStatus.todo, AppColors.statusTodo),
+                      _buildStatusOption(context, 'In Progress', TaskStatus.inProgress, AppColors.statusInProgress),
+                      _buildStatusOption(context, 'Review', TaskStatus.review, AppColors.statusReview),
+                      _buildStatusOption(context, 'Completed', TaskStatus.completed, AppColors.statusCompleted),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Move to Phase:',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...project.phases.map((phase) => _buildPhaseOption(context, phase)),
+                      const SizedBox(height: 16), // Bottom padding
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -903,6 +1056,35 @@ class MobileTaskCard extends StatelessWidget {
       trailing: isCurrentStatus ? const Icon(Icons.check) : null,
       onTap: isCurrentStatus ? null : () {
         onStatusChanged(status);
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  Widget _buildPhaseOption(BuildContext context, ProjectPhase phase) {
+    // Check if task is currently in this phase
+    final isCurrentPhase = phase.tasks.any((t) => t.id == task.id);
+    
+    return ListTile(
+      leading: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: CustomNeumorphicTheme.primaryPurple.withOpacity(isCurrentPhase ? 1.0 : 0.3),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      title: Text(
+        phase.name,
+        style: TextStyle(
+          fontWeight: isCurrentPhase ? FontWeight.w600 : FontWeight.normal,
+          color: isCurrentPhase ? CustomNeumorphicTheme.primaryPurple : null,
+        ),
+      ),
+      subtitle: Text('${phase.tasks.length} tasks'),
+      trailing: isCurrentPhase ? const Icon(Icons.check) : null,
+      onTap: isCurrentPhase ? null : () {
+        onPhaseChanged(phase.id);
         Navigator.pop(context);
       },
     );

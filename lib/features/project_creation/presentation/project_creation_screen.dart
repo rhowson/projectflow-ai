@@ -68,8 +68,6 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen>
         ),
         automaticallyImplyLeading: true,
         actions: [
-          InlineKeyboardDismissButton(),
-          SizedBox(width: 8.w),
           NeumorphicButton(
             onPressed: () => context.push('/profile'),
             borderRadius: BorderRadius.circular(25),
@@ -96,10 +94,10 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen>
                 children: [
                   SizedBox(height: 16.h),
                 
-                // Header Section - Matching dashboard style
-                _buildHeaderSection(context),
+                // Header Section - Dashboard style
+                _buildCleanHeaderSection(context),
                 
-                SizedBox(height: 32.h),
+                SizedBox(height: 24.h),
                 
                 // Text Input Section - Matching dashboard style
                 _buildInputSection(context),
@@ -124,51 +122,60 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen>
     );
   }
 
-  Widget _buildHeaderSection(BuildContext context) {
-    return NeumorphicFlatContainer(
-      padding: EdgeInsets.only(left: 4.w, right: 24.w, top: 20.h, bottom: 20.h),
-      borderRadius: BorderRadius.circular(20.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _buildCleanHeaderSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Clean header matching dashboard style
+        Padding(
+          padding: EdgeInsets.only(left: 4.w, bottom: 16.h),
+          child: Row(
             children: [
-              NeumorphicContainer(
-                padding: EdgeInsets.all(12.w),
-                borderRadius: BorderRadius.circular(14.r),
-                color: CustomNeumorphicTheme.primaryPurple,
-                child: Icon(
-                  Icons.psychology_outlined,
-                  color: Colors.white,
-                  size: 20.sp,
+              Expanded(
+                child: Text(
+                  'Describe your project',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(width: 16.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              // AI indicator badge
+              NeumorphicContainer(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                borderRadius: BorderRadius.circular(16.r),
+                color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Describe your project',
-                      style: Theme.of(context).textTheme.headlineMedium,
+                    Icon(
+                      Icons.psychology_outlined,
+                      size: 13.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
                     ),
-                    SizedBox(height: 2.h),
+                    SizedBox(width: 6.w),
                     Text(
-                      'AI-powered project planning',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      'AI-Powered',
+                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
-          Text(
-            'Tell me about your project. What do you want to accomplish? You can type your description below or upload a document (PDF, Word, or text file). The more details you provide, the better I can help you plan it.',
-            style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        // Subtitle description
+        Padding(
+          padding: EdgeInsets.only(left: 4.w, bottom: 16.h),
+          child: Text(
+            'Tell me about your project. What do you want to accomplish? The more details you provide, the better I can help you plan it.',
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              color: CustomNeumorphicTheme.lightText,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -446,27 +453,15 @@ I have a design team but need help with the technical planning and development p
       child: NeumorphicButton(
         onPressed: onPressed,
         isSelected: isProminent,
-        selectedColor: isProminent ? CustomNeumorphicTheme.primaryPurple.withOpacity(0.1) : null,
+        selectedColor: isProminent ? CustomNeumorphicTheme.primaryPurple : null,
         borderRadius: BorderRadius.circular(isProminent ? 8.r : 6.r),
         padding: EdgeInsets.all(isProminent ? 8.w : 6.w),
-        child: Container(
-          decoration: isProminent ? BoxDecoration(
-            borderRadius: BorderRadius.circular(6.r),
-            boxShadow: [
-              BoxShadow(
-                color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.2),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ) : null,
-          child: Icon(
-            icon,
-            size: isProminent ? 18.sp : 14.sp,
-            color: isProminent 
-                ? CustomNeumorphicTheme.primaryPurple
-                : (color ?? CustomNeumorphicTheme.lightText),
-          ),
+        child: Icon(
+          icon,
+          size: isProminent ? 18.sp : 14.sp,
+          color: isProminent 
+              ? Colors.white
+              : (color ?? CustomNeumorphicTheme.lightText),
         ),
       ),
     );

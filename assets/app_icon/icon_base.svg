@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E5E7EB;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#bgGradient)"/>
+  
+  <!-- Main Icon - Project Flow Symbol -->
+  <g transform="translate(512, 512)">
+    <!-- Central hub -->
+    <circle cx="0" cy="0" r="45" fill="url(#iconGradient)" stroke="none"/>
+    
+    <!-- Connected nodes representing project phases -->
+    <!-- Top node -->
+    <circle cx="0" cy="-160" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="0" y1="-45" x2="0" y2="-130" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Top-right node -->
+    <circle cx="113" cy="-113" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="32" y1="-32" x2="83" y2="-83" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Right node -->
+    <circle cx="160" cy="0" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="45" y1="0" x2="130" y2="0" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Bottom-right node -->
+    <circle cx="113" cy="113" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="32" y1="32" x2="83" y2="83" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Bottom node -->
+    <circle cx="0" cy="160" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="0" y1="45" x2="0" y2="130" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Bottom-left node -->
+    <circle cx="-113" cy="113" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="-32" y1="32" x2="-83" y2="83" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Left node -->
+    <circle cx="-160" cy="0" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="-45" y1="0" x2="-130" y2="0" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Top-left node -->
+    <circle cx="-113" cy="-113" r="30" fill="url(#iconGradient)" stroke="none"/>
+    <line x1="-32" y1="-32" x2="-83" y2="-83" stroke="url(#iconGradient)" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- AI indicator - small sparkle/star in center -->
+    <g transform="scale(0.8)">
+      <path d="M0,-20 L6,-6 L20,0 L6,6 L0,20 L-6,6 L-20,0 L-6,-6 Z" fill="#6366F1" opacity="0.8"/>
+    </g>
+  </g>
+</svg>
