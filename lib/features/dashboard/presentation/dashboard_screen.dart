@@ -8,7 +8,7 @@ import '../../../core/widgets/database_status_widget.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../project_creation/providers/project_provider.dart';
-import '../../user_management/providers/user_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final String? projectId;
@@ -307,128 +307,154 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return NeumorphicCard(
       onTap: () => context.go('/tasks/${project.id}'),
       padding: EdgeInsets.all(16.w),
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 200.h, // Fixed height to prevent overflow
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // Header with title and status
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (isMostRecent) ...[
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                          decoration: BoxDecoration(
-                            color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: Text(
-                            'Most Recent',
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
-                              color: CustomNeumorphicTheme.primaryPurple,
+            // Header with title and status - Fixed height
+            SizedBox(
+              height: isMostRecent ? 50.h : 28.h, // Accommodate "Most Recent" badge
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isMostRecent) ...[
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h), // Reduced padding
+                            decoration: BoxDecoration(
+                              color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Text(
+                              'Most Recent',
+                              style: TextStyle(
+                                fontSize: 9.sp, // Slightly smaller
+                                fontWeight: FontWeight.w600,
+                                color: CustomNeumorphicTheme.primaryPurple,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 6.h),
-                      ],
-                      Text(
-                        project.title,
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: CustomNeumorphicTheme.darkText,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                _StatusChip(status: project.status),
-              ],
-            ),
-            
-            SizedBox(height: 8.h),
-            
-            // Description
-            Text(
-              project.description,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: CustomNeumorphicTheme.lightText,
-                height: 1.2,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            
-            SizedBox(height: 12.h),
-            
-            // Progress Section
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Progress',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w500,
-                          color: CustomNeumorphicTheme.lightText,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4.r),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          backgroundColor: CustomNeumorphicTheme.lightText.withValues(alpha: 0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            _getProgressColor(progress),
+                          SizedBox(height: 4.h), // Reduced spacing
+                        ],
+                        Expanded(
+                          child: Text(
+                            project.title,
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: CustomNeumorphicTheme.darkText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          minHeight: 6.h,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  _StatusChip(status: project.status),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 6.h), // Reduced spacing
+            
+            // Description - Fixed height
+            SizedBox(
+              height: 32.h, // Fixed height for 2 lines
+              child: Text(
+                project.description,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                  height: 1.2,
                 ),
-                SizedBox(width: 12.w),
-                Text(
-                  '${(progress * 100).toInt()}%',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: _getProgressColor(progress),
-                  ),
-                ),
-              ],
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             
             SizedBox(height: 8.h),
             
-            // Stats Row
-            Row(
-              children: [
-                _buildStatItem(
-                  icon: Icons.view_module_outlined,
-                  label: '${project.phases.length} phases',
-                  color: CustomNeumorphicTheme.primaryPurple,
-                ),
-                SizedBox(width: 16.w),
-                _buildStatItem(
-                  icon: Icons.schedule_outlined,
-                  label: _formatDate(project.createdAt),
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-              ],
+            // Progress Section - Flexible with constrained content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Progress Row - Simplified layout
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Progress',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w500,
+                                color: CustomNeumorphicTheme.lightText,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4.r),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: CustomNeumorphicTheme.lightText.withValues(alpha: 0.2),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _getProgressColor(progress),
+                                ),
+                                minHeight: 6.h,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Text(
+                        '${(progress * 100).toInt()}%',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: _getProgressColor(progress),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const Spacer(), // Push stats to bottom
+                  
+                  // Stats Row - Fixed at bottom with constrained height
+                  SizedBox(
+                    height: 20.h, // Fixed height for stats
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: _buildStatItem(
+                            icon: Icons.view_module_outlined,
+                            label: '${project.phases.length} phases',
+                            color: CustomNeumorphicTheme.primaryPurple,
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Flexible(
+                          child: _buildStatItem(
+                            icon: Icons.schedule_outlined,
+                            label: _formatDate(project.createdAt),
+                            color: CustomNeumorphicTheme.lightText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

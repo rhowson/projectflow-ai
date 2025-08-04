@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
+import 'features/auth/providers/auth_provider.dart';
 import 'app.dart';
 
 void main() async {
@@ -16,6 +18,9 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   
+  // Initialize SharedPreferences
+  final sharedPreferences = await SharedPreferences.getInstance();
+  
   // Initialize Firebase
   try {
     // Using FlutterFire CLI generated options for project flow
@@ -25,18 +30,7 @@ void main() async {
     
     print('Firebase initialized successfully');
     
-    // Sign in anonymously to allow Firestore access (optional for web)
-    try {
-      final auth = FirebaseAuth.instance;
-      if (auth.currentUser == null) {
-        await auth.signInAnonymously();
-        print('Signed in anonymously to Firebase');
-      }
-    } catch (authError) {
-      print('Warning: Firebase Auth initialization failed: $authError');
-      print('Continuing without authentication - some features may be limited');
-      // Continue without auth - Firestore can still work with proper security rules
-    }
+    // Don't sign in anonymously - let the auth system handle authentication
     
   } catch (e) {
     print('Error initializing Firebase: $e');
@@ -44,10 +38,13 @@ void main() async {
     // The app will handle Firebase unavailability gracefully
   }
   
-  // Run the app wrapped in ProviderScope for Riverpod
+  // Run the app wrapped in ProviderScope for Riverpod with SharedPreferences override
   runApp(
-    const ProviderScope(
-      child: ProjectFlowApp(),
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+      ],
+      child: const ProjectFlowApp(),
     ),
   );
 }

@@ -138,6 +138,44 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
     }
   }
 
+  Future<void> updateDocument(String documentId, String name, String? description, DocumentType type) async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    try {
+      state = const AsyncValue.loading();
+
+      final updatedDocuments = currentState.documents.map((doc) {
+        if (doc.id == documentId) {
+          return ProjectDocument(
+            id: doc.id,
+            name: name,
+            path: doc.path,
+            mimeType: doc.mimeType,
+            sizeInBytes: doc.sizeInBytes,
+            uploadedAt: doc.uploadedAt,
+            uploadedBy: doc.uploadedBy,
+            type: type,
+            description: description,
+          );
+        }
+        return doc;
+      }).toList();
+
+      final updatedContext = currentState.copyWith(
+        documents: updatedDocuments,
+        lastUpdated: DateTime.now(),
+      );
+
+      // Save to database
+      // await _saveProjectContext(updatedContext);
+
+      state = AsyncValue.data(updatedContext);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
   Future<void> updateContextAnswer(String questionId, String answer) async {
     final currentState = state.value;
     if (currentState == null) return;
@@ -190,6 +228,41 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
       );
 
       final updatedQuestions = [...currentState.contextQuestions, newQuestion];
+      final updatedContext = currentState.copyWith(
+        contextQuestions: updatedQuestions,
+        lastUpdated: DateTime.now(),
+      );
+
+      // Save to database
+      // await _saveProjectContext(updatedContext);
+
+      state = AsyncValue.data(updatedContext);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> updateQuestion(String questionId, String question, String answer, ContextQuestionType type, {bool isRequired = false}) async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    try {
+      state = const AsyncValue.loading();
+
+      final updatedQuestions = currentState.contextQuestions.map((q) {
+        if (q.id == questionId) {
+          return ContextQuestion(
+            id: q.id,
+            question: question,
+            answer: answer,
+            type: type,
+            answeredAt: DateTime.now(),
+            isRequired: isRequired,
+          );
+        }
+        return q;
+      }).toList();
+
       final updatedContext = currentState.copyWith(
         contextQuestions: updatedQuestions,
         lastUpdated: DateTime.now(),

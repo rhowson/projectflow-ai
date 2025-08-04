@@ -10,6 +10,7 @@ class Project {
   final ProjectStatus status;
   final DateTime createdAt;
   final DateTime? dueDate;
+  final String ownerId; // User ID of project owner
   final List<String> teamMemberIds;
   final List<ProjectPhase> phases;
   final ProjectMetadata metadata;
@@ -21,6 +22,7 @@ class Project {
     required this.status,
     required this.createdAt,
     this.dueDate,
+    required this.ownerId,
     required this.teamMemberIds,
     required this.phases,
     required this.metadata,
@@ -36,6 +38,7 @@ class Project {
     ProjectStatus? status,
     DateTime? createdAt,
     DateTime? dueDate,
+    String? ownerId,
     List<String>? teamMemberIds,
     List<ProjectPhase>? phases,
     ProjectMetadata? metadata,
@@ -47,6 +50,7 @@ class Project {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       dueDate: dueDate ?? this.dueDate,
+      ownerId: ownerId ?? this.ownerId,
       teamMemberIds: teamMemberIds ?? this.teamMemberIds,
       phases: phases ?? this.phases,
       metadata: metadata ?? this.metadata,

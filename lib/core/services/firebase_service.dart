@@ -432,6 +432,7 @@ class FirebaseService {
         status: ProjectStatus.inProgress,
         createdAt: DateTime.now().subtract(const Duration(days: 7)),
         dueDate: DateTime.now().add(const Duration(days: 30)),
+        ownerId: 'demo-user-id',
         teamMemberIds: ['user_1', 'user_2'],
         phases: [
           ProjectPhase(
@@ -540,6 +541,7 @@ class FirebaseService {
         status: ProjectStatus.planning,
         createdAt: DateTime.now().subtract(const Duration(days: 2)),
         dueDate: DateTime.now().add(const Duration(days: 45)),
+        ownerId: 'demo-user-id',
         teamMemberIds: ['user_3'],
         phases: [
           ProjectPhase(

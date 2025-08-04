@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
@@ -7,11 +8,37 @@ import '../features/project_creation/presentation/project_context_screen.dart';
 import '../features/tasks/presentation/tasks_screen.dart';
 import '../features/profile/presentation/simple_profile_screen.dart';
 import '../features/team_management/presentation/team_screen.dart';
+import '../features/auth/presentation/auth_screen.dart';
+import '../features/auth/providers/auth_provider.dart';
 import '../shared/widgets/main_navigation.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      final container = ProviderScope.containerOf(context);
+      final isAuthenticated = container.read(isAuthenticatedProvider);
+      final authState = container.read(authStateProvider);
+      
+      final isAuthRoute = state.fullPath == '/auth' || state.fullPath == '/';
+      
+      // Still loading auth state
+      if (authState.isLoading) {
+        return '/'; // Stay on splash
+      }
+      
+      // Not authenticated and not on auth route
+      if (!isAuthenticated && !isAuthRoute) {
+        return '/auth';
+      }
+      
+      // Authenticated and on auth route, redirect to dashboard
+      if (isAuthenticated && isAuthRoute && state.fullPath != '/') {
+        return '/dashboard';
+      }
+      
+      return null; // No redirect needed
+    },
     routes: [
       // Splash screen (no bottom nav)
       GoRoute(
@@ -22,22 +49,9 @@ class AppRouter {
       
       // Auth routes (no bottom nav)
       GoRoute(
-        path: '/login',
-        name: 'login',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Login Screen - To be implemented'),
-          ),
-        ),
-      ),
-      GoRoute(
-        path: '/register',
-        name: 'register', 
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Register Screen - To be implemented'),
-          ),
-        ),
+        path: '/auth',
+        name: 'auth',
+        builder: (context, state) => const AuthScreen(),
       ),
       
       // Main app shell with bottom navigation

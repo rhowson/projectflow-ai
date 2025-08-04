@@ -15,6 +15,7 @@ Project _$ProjectFromJson(Map<String, dynamic> json) => Project(
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.parse(json['dueDate'] as String),
+      ownerId: json['ownerId'] as String,
       teamMemberIds: (json['teamMemberIds'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -32,6 +33,7 @@ Map<String, dynamic> _$ProjectToJson(Project instance) => <String, dynamic>{
       'status': _$ProjectStatusEnumMap[instance.status]!,
       'createdAt': instance.createdAt.toIso8601String(),
       'dueDate': instance.dueDate?.toIso8601String(),
+      'ownerId': instance.ownerId,
       'teamMemberIds': instance.teamMemberIds,
       'phases': instance.phases,
       'metadata': instance.metadata,

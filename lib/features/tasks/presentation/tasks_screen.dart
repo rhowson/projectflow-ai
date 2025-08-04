@@ -1046,16 +1046,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         return phase;
       }).toList();
 
-      final updatedProject = Project(
-        id: project.id,
-        title: project.title,
-        description: project.description,
-        status: project.status,
-        createdAt: project.createdAt,
-        dueDate: project.dueDate,
-        teamMemberIds: project.teamMemberIds,
+      final updatedProject = project.copyWith(
         phases: updatedPhases,
-        metadata: project.metadata,
       );
 
       // Update the project in the provider (saves to database)
@@ -1372,16 +1364,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
     try {
       // Create updated project with new title
-      final updatedProject = Project(
-        id: project.id,
+      final updatedProject = project.copyWith(
         title: newName.trim(),
-        description: project.description,
-        status: project.status,
-        createdAt: project.createdAt,
-        dueDate: project.dueDate,
-        teamMemberIds: project.teamMemberIds,
-        phases: project.phases,
-        metadata: project.metadata,
       );
 
       // Update the project in the provider (which saves to database)

@@ -387,16 +387,8 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
       );
     }).toList();
 
-    final updatedProject = Project(
-      id: widget.project.id,
-      title: widget.project.title,
-      description: widget.project.description,
-      status: widget.project.status,
-      createdAt: widget.project.createdAt,
-      dueDate: widget.project.dueDate,
-      teamMemberIds: widget.project.teamMemberIds,
+    final updatedProject = widget.project.copyWith(
       phases: updatedPhases,
-      metadata: widget.project.metadata,
     );
 
     // Update the project in the provider
@@ -438,16 +430,8 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
       }
     }
 
-    final updatedProject = Project(
-      id: widget.project.id,
-      title: widget.project.title,
-      description: widget.project.description,
-      status: widget.project.status,
-      createdAt: widget.project.createdAt,
-      dueDate: widget.project.dueDate,
-      teamMemberIds: widget.project.teamMemberIds,
+    final updatedProject = widget.project.copyWith(
       phases: updatedPhases,
-      metadata: widget.project.metadata,
     );
 
     // Update the project in the provider

@@ -85,6 +85,9 @@ class AppUser {
   /// Flag indicating if the user has enabled two-factor authentication
   final bool hasTwoFactorEnabled;
   
+  /// Authentication provider used for sign-in
+  final String? authProvider;
+  
   const AppUser({
     required this.id,
     required this.email,
@@ -112,6 +115,7 @@ class AppUser {
     required this.hasCompletedOnboarding,
     required this.isEmailVerified,
     required this.hasTwoFactorEnabled,
+    this.authProvider,
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) => _$AppUserFromJson(json);
@@ -145,6 +149,7 @@ class AppUser {
     bool? hasCompletedOnboarding,
     bool? isEmailVerified,
     bool? hasTwoFactorEnabled,
+    String? authProvider,
   }) {
     return AppUser(
       id: id ?? this.id,
@@ -173,6 +178,7 @@ class AppUser {
       hasCompletedOnboarding: hasCompletedOnboarding ?? this.hasCompletedOnboarding,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       hasTwoFactorEnabled: hasTwoFactorEnabled ?? this.hasTwoFactorEnabled,
+      authProvider: authProvider ?? this.authProvider,
     );
   }
 
@@ -256,6 +262,7 @@ class AppUser {
       hasCompletedOnboarding: false,
       isEmailVerified: false,
       hasTwoFactorEnabled: false,
+      authProvider: null,
     );
   }
 }

@@ -42,6 +42,7 @@ AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
       hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool,
       isEmailVerified: json['isEmailVerified'] as bool,
       hasTwoFactorEnabled: json['hasTwoFactorEnabled'] as bool,
+      authProvider: json['authProvider'] as String?,
     );
 
 Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
@@ -71,6 +72,7 @@ Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
       'hasCompletedOnboarding': instance.hasCompletedOnboarding,
       'isEmailVerified': instance.isEmailVerified,
       'hasTwoFactorEnabled': instance.hasTwoFactorEnabled,
+      'authProvider': instance.authProvider,
     };
 
 const _$UserRoleEnumMap = {

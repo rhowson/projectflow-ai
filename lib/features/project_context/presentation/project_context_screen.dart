@@ -989,9 +989,257 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
   }
 
   void _editQuestion(ContextQuestion question) {
-    // Implementation for editing context questions
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Edit question: ${question.question}')),
+    final questionController = TextEditingController(text: question.question);
+    final answerController = TextEditingController(text: question.answer);
+    ContextQuestionType selectedType = question.type;
+    bool isRequired = question.isRequired;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: CustomNeumorphicTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.edit_outlined,
+                color: CustomNeumorphicTheme.primaryPurple,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Edit Context Question',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Question',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: questionController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your question...',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Answer',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: answerController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Provide a detailed answer...',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Category',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<ContextQuestionType>(
+                      value: selectedType,
+                      isExpanded: true,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: CustomNeumorphicTheme.darkText,
+                      ),
+                      dropdownColor: CustomNeumorphicTheme.cardColor,
+                      onChanged: (ContextQuestionType? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedType = newValue;
+                          });
+                        }
+                      },
+                      items: ContextQuestionType.values.map<DropdownMenuItem<ContextQuestionType>>((ContextQuestionType value) {
+                        return DropdownMenuItem<ContextQuestionType>(
+                          value: value,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12.w,
+                                height: 12.h,
+                                decoration: BoxDecoration(
+                                  color: _getQuestionTypeColor(value),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(value.displayName),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: isRequired,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isRequired = value ?? false;
+                        });
+                      },
+                      activeColor: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                    Text(
+                      'Mark as required',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: CustomNeumorphicTheme.darkText,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              borderRadius: BorderRadius.circular(10.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+            NeumorphicButton(
+              onPressed: () async {
+                if (questionController.text.trim().isNotEmpty &&
+                    answerController.text.trim().isNotEmpty) {
+                  Navigator.pop(dialogContext);
+                  
+                  try {
+                    await ref
+                        .read(projectContextNotifierProvider(widget.projectId).notifier)
+                        .updateQuestion(
+                          question.id,
+                          questionController.text.trim(),
+                          answerController.text.trim(),
+                          selectedType,
+                          isRequired: isRequired,
+                        );
+                    
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Question updated successfully'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error updating question: $e'),
+                          backgroundColor: CustomNeumorphicTheme.errorRed,
+                        ),
+                      );
+                    }
+                  }
+                } else {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(
+                      content: Text('Please fill in both question and answer'),
+                      backgroundColor: CustomNeumorphicTheme.errorRed,
+                    ),
+                  );
+                }
+              },
+              isSelected: true,
+              selectedColor: CustomNeumorphicTheme.primaryPurple,
+              borderRadius: BorderRadius.circular(10.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Text(
+                'Save Changes',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1010,20 +1258,12 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        ref
-            .read(projectContextNotifierProvider(widget.projectId).notifier)
-            .addDocument(file, DocumentType.other, null);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Document "${file.name}" uploaded successfully')),
-          );
-        }
+        _showDocumentUploadDialog(file);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading document: $e')),
+          SnackBar(content: Text('Error selecting document: $e')),
         );
       }
     } finally {
@@ -1033,6 +1273,237 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
         });
       }
     }
+  }
+
+  void _showDocumentUploadDialog(PlatformFile file) {
+    final descriptionController = TextEditingController();
+    DocumentType selectedType = DocumentType.other;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: CustomNeumorphicTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.upload_file,
+                color: Colors.green,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Upload Document',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // File info
+                Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: CustomNeumorphicTheme.baseColor,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.insert_drive_file,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        size: 20.sp,
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              file.name,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: CustomNeumorphicTheme.darkText,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${(file.size / 1024).toStringAsFixed(1)} KB',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: CustomNeumorphicTheme.lightText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Document Type',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<DocumentType>(
+                      value: selectedType,
+                      isExpanded: true,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: CustomNeumorphicTheme.darkText,
+                      ),
+                      dropdownColor: CustomNeumorphicTheme.cardColor,
+                      onChanged: (DocumentType? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedType = newValue;
+                          });
+                        }
+                      },
+                      items: DocumentType.values.map<DropdownMenuItem<DocumentType>>((DocumentType value) {
+                        return DropdownMenuItem<DocumentType>(
+                          value: value,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12.w,
+                                height: 12.h,
+                                decoration: BoxDecoration(
+                                  color: _getDocumentTypeColor(value),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(value.displayName),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Description (Optional)',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: descriptionController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Add a description for this document...',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              borderRadius: BorderRadius.circular(10.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+            NeumorphicButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                
+                try {
+                  await ref
+                      .read(projectContextNotifierProvider(widget.projectId).notifier)
+                      .addDocument(
+                        file, 
+                        selectedType, 
+                        descriptionController.text.trim().isEmpty ? null : descriptionController.text.trim(),
+                      );
+                  
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Document "${file.name}" uploaded successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error uploading document: $e'),
+                        backgroundColor: CustomNeumorphicTheme.errorRed,
+                      ),
+                    );
+                  }
+                }
+              },
+              isSelected: true,
+              selectedColor: Colors.green,
+              borderRadius: BorderRadius.circular(10.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Text(
+                'Upload',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showDocumentOptions(ProjectDocument document) {
@@ -1060,7 +1531,7 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
               title: Text('Open Document'),
               onTap: () {
                 Navigator.pop(context);
-                // Open document
+                _openDocument(document);
               },
             ),
             ListTile(
@@ -1068,7 +1539,15 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
               title: Text('Download'),
               onTap: () {
                 Navigator.pop(context);
-                // Download document
+                _downloadDocument(document);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.edit, color: Colors.orange),
+              title: Text('Edit Details'),
+              onTap: () {
+                Navigator.pop(context);
+                _editDocumentDetails(document);
               },
             ),
             ListTile(
@@ -1082,6 +1561,437 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
               },
             ),
             SizedBox(height: 20.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openDocument(ProjectDocument document) {
+    // For web implementation, we'll show document details
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              _getDocumentIcon(document.fileExtension),
+              color: _getDocumentTypeColor(document.type),
+              size: 24.sp,
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                document.name,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDocumentDetailRow('Type', document.type.displayName),
+              SizedBox(height: 12.h),
+              _buildDocumentDetailRow('Size', document.formattedSize),
+              SizedBox(height: 12.h),
+              _buildDocumentDetailRow('Uploaded', _formatDate(document.uploadedAt)),
+              SizedBox(height: 12.h),
+              _buildDocumentDetailRow('Uploaded by', document.uploadedBy),
+              if (document.description != null) ...[
+                SizedBox(height: 12.h),
+                _buildDocumentDetailRow('Description', document.description!),
+              ],
+              SizedBox(height: 16.h),
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: CustomNeumorphicTheme.baseColor,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        'This is a preview. In a production app, this would open the actual document.',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: CustomNeumorphicTheme.lightText,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          NeumorphicButton(
+            onPressed: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(10.r),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: Text(
+              'Close',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.primaryPurple,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80.w,
+          child: Text(
+            '$label:',
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w600,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: CustomNeumorphicTheme.darkText,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _downloadDocument(ProjectDocument document) {
+    // Show download simulation
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.download,
+              size: 48.sp,
+              color: Colors.green,
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'Downloading Document',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              document.name,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: CustomNeumorphicTheme.lightText,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16.h),
+            LinearProgressIndicator(
+              backgroundColor: CustomNeumorphicTheme.lightText.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.baseColor,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Text(
+                'In a production app, this would download the actual file to your device.',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // Simulate download progress
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Document "${document.name}" downloaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    });
+  }
+
+  void _editDocumentDetails(ProjectDocument document) {
+    final nameController = TextEditingController(text: document.name);
+    final descriptionController = TextEditingController(text: document.description ?? '');
+    DocumentType selectedType = document.type;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: CustomNeumorphicTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.edit_document,
+                color: Colors.orange,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Edit Document Details',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Document Name',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter document name...',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Description (Optional)',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: descriptionController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Add a description...',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Document Type',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<DocumentType>(
+                      value: selectedType,
+                      isExpanded: true,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: CustomNeumorphicTheme.darkText,
+                      ),
+                      dropdownColor: CustomNeumorphicTheme.cardColor,
+                      onChanged: (DocumentType? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedType = newValue;
+                          });
+                        }
+                      },
+                      items: DocumentType.values.map<DropdownMenuItem<DocumentType>>((DocumentType value) {
+                        return DropdownMenuItem<DocumentType>(
+                          value: value,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12.w,
+                                height: 12.h,
+                                decoration: BoxDecoration(
+                                  color: _getDocumentTypeColor(value),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(value.displayName),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            NeumorphicButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              borderRadius: BorderRadius.circular(10.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+            NeumorphicButton(
+              onPressed: () async {
+                if (nameController.text.trim().isNotEmpty) {
+                  Navigator.pop(dialogContext);
+                  
+                  try {
+                    await ref
+                        .read(projectContextNotifierProvider(widget.projectId).notifier)
+                        .updateDocument(
+                          document.id,
+                          nameController.text.trim(),
+                          descriptionController.text.trim().isEmpty ? null : descriptionController.text.trim(),
+                          selectedType,
+                        );
+                    
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Document updated successfully'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error updating document: $e'),
+                          backgroundColor: CustomNeumorphicTheme.errorRed,
+                        ),
+                      );
+                    }
+                  }
+                } else {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(
+                      content: Text('Please enter a document name'),
+                      backgroundColor: CustomNeumorphicTheme.errorRed,
+                    ),
+                  );
+                }
+              },
+              isSelected: true,
+              selectedColor: Colors.orange,
+              borderRadius: BorderRadius.circular(10.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Text(
+                'Save Changes',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -49,5 +49,16 @@
 	<string>This app needs access to your camera to allow you to take photos for your projects and tasks for better project documentation and collaboration.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs access to your microphone to record voice notes and audio updates for your projects and tasks.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string></string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.539417743939-lc2s6m6cv9e2tlccq506dqot2fm2a8kc</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

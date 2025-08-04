@@ -4,14 +4,25 @@ import '../../../core/services/claude_ai_service.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/document_service.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   final ClaudeAIService _claudeService;
   final FirebaseService _firebaseService;
   final DocumentService _documentService;
+  final Ref ref;
   
-  ProjectNotifier(this._claudeService, this._firebaseService, this._documentService) : super(const AsyncValue.loading()) {
+  ProjectNotifier(this._claudeService, this._firebaseService, this._documentService, this.ref) : super(const AsyncValue.loading()) {
     loadProjects();
+  }
+
+  String get _currentUserId {
+    final currentUser = ref.read(authStateProvider);
+    return currentUser.when(
+      data: (user) => user?.uid ?? '',
+      loading: () => '',
+      error: (_, __) => '',
+    );
   }
 
   Future<void> loadProjects() async {
@@ -83,6 +94,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
         description: description,
         status: ProjectStatus.inProgress,
         createdAt: DateTime.now(),
+        ownerId: _currentUserId,
         teamMemberIds: [],
         phases: phases,
         metadata: ProjectMetadata(
@@ -184,6 +196,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
         description: description,
         status: ProjectStatus.inProgress,
         createdAt: DateTime.now(),
+        ownerId: _currentUserId,
         teamMemberIds: [],
         phases: phases,
         metadata: ProjectMetadata(
@@ -342,16 +355,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
             endDate: phase.endDate,
           );
           
-          final updatedProject = Project(
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            status: project.status,
-            createdAt: project.createdAt,
-            dueDate: project.dueDate,
-            teamMemberIds: project.teamMemberIds,
+          final updatedProject = project.copyWith(
             phases: updatedPhases,
-            metadata: project.metadata,
           );
           
           // Save to Firebase
@@ -395,16 +400,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
             endDate: phase.endDate,
           );
           
-          final updatedProject = Project(
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            status: project.status,
-            createdAt: project.createdAt,
-            dueDate: project.dueDate,
-            teamMemberIds: project.teamMemberIds,
+          final updatedProject = project.copyWith(
             phases: updatedPhases,
-            metadata: project.metadata,
           );
           
           // Save to Firebase
@@ -441,16 +438,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
           endDate: phase.endDate,
         );
         
-        final updatedProject = Project(
-          id: project.id,
-          title: project.title,
-          description: project.description,
-          status: project.status,
-          createdAt: project.createdAt,
-          dueDate: project.dueDate,
-          teamMemberIds: project.teamMemberIds,
+        final updatedProject = project.copyWith(
           phases: updatedPhases,
-          metadata: project.metadata,
         );
         
         // Save to Firebase
@@ -519,16 +508,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
             endDate: newPhaseStatus == PhaseStatus.completed ? DateTime.now() : phase.endDate,
           );
           
-          final updatedProject = Project(
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            status: project.status,
-            createdAt: project.createdAt,
-            dueDate: project.dueDate,
-            teamMemberIds: project.teamMemberIds,
+          final updatedProject = project.copyWith(
             phases: updatedPhases,
-            metadata: project.metadata,
           );
           
           // Save to Firebase
@@ -584,16 +565,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
           endDate: toPhase.endDate,
         );
         
-        final updatedProject = Project(
-          id: project.id,
-          title: project.title,
-          description: project.description,
-          status: project.status,
-          createdAt: project.createdAt,
-          dueDate: project.dueDate,
-          teamMemberIds: project.teamMemberIds,
+        final updatedProject = project.copyWith(
           phases: updatedPhases,
-          metadata: project.metadata,
         );
         
         // Save to Firebase
@@ -676,7 +649,7 @@ final projectNotifierProvider = StateNotifierProvider<ProjectNotifier, AsyncValu
   final claudeService = ref.watch(claudeAIServiceProvider);
   final firebaseService = ref.watch(firebaseServiceProvider);
   final documentService = ref.watch(documentServiceProvider);
-  return ProjectNotifier(claudeService, firebaseService, documentService);
+  return ProjectNotifier(claudeService, firebaseService, documentService, ref);
 });
 
 final projectProvider = Provider.family<AsyncValue<Project?>, String>((ref, projectId) {

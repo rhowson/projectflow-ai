@@ -63,7 +63,7 @@ ProjectDocument _$ProjectDocumentFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       path: json['path'] as String,
       mimeType: json['mimeType'] as String,
-      sizeInBytes: json['sizeInBytes'] as int,
+      sizeInBytes: (json['sizeInBytes'] as num).toInt(),
       uploadedAt: DateTime.parse(json['uploadedAt'] as String),
       uploadedBy: json['uploadedBy'] as String,
       type: $enumDecode(_$DocumentTypeEnumMap, json['type']),
@@ -91,29 +91,3 @@ const _$DocumentTypeEnumMap = {
   DocumentType.asset: 'asset',
   DocumentType.other: 'other',
 };
-
-K $enumDecode<K, V>(
-  Map<K, V> enumValues,
-  Object? source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
