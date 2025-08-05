@@ -13,8 +13,21 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   final DocumentService _documentService;
   final Ref ref;
   
-  ProjectNotifier(this._claudeService, this._firebaseService, this._documentService, this.ref) : super(const AsyncValue.loading()) {
-    loadProjects();
+  ProjectNotifier(this._claudeService, this._firebaseService, this._documentService, this.ref) : super(const AsyncValue.data([])) {
+    // Initialize with empty list and load projects after a short delay to avoid immediate Firebase call
+    _initializeAsync();
+  }
+
+  void _initializeAsync() async {
+    try {
+      // Wait a bit to ensure Firebase is fully initialized
+      await Future.delayed(const Duration(milliseconds: 100));
+      await loadProjects();
+    } catch (e) {
+      print('Error during async initialization: $e');
+      // Set to empty list if initialization fails
+      state = const AsyncValue.data([]);
+    }
   }
 
   String get _currentUserId {
@@ -35,7 +48,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       print('Successfully loaded ${projects.length} projects');
     } catch (error, stackTrace) {
       print('Error loading projects: $error');
-      state = AsyncValue.error(error, stackTrace);
+      // Instead of showing error state, show empty list to allow app to function
+      state = const AsyncValue.data([]);
     }
   }
 
@@ -835,19 +849,44 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
+  /// Clear all data from Firestore - for development/testing purposes
+  Future<void> clearAllData() async {
+    try {
+      print('Clearing all Firestore data...');
+      await _firebaseService.clearAllData();
+      
+      // Reset local state to empty
+      state = const AsyncValue.data([]);
+      print('All data cleared successfully');
+    } catch (error, stackTrace) {
+      print('Error clearing data: $error');
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
+  }
+
   String _generateId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }
 
   String _extractTitle(String description) {
     // Extract first sentence or first 50 chars as title
+    if (description.isEmpty) {
+      return 'Untitled Project';
+    }
+    
     final sentences = description.split('.');
-    if (sentences.isNotEmpty && sentences.first.length <= 50) {
+    if (sentences.isNotEmpty && sentences.first.trim().isNotEmpty && sentences.first.length <= 50) {
       return sentences.first.trim();
     }
-    return description.length <= 50 
-        ? description 
-        : '${description.substring(0, 47)}...';
+    
+    // Safe substring with bounds checking
+    if (description.length <= 50) {
+      return description.trim();
+    } else {
+      final maxLength = description.length > 47 ? 47 : description.length;
+      return '${description.substring(0, maxLength)}...';
+    }
   }
 
   Priority _parsePriority(String priority) {

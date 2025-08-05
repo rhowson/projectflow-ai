@@ -740,4 +740,48 @@ class FirebaseService {
     );
   }
 
+  /// Clear all data from Firestore (for development/testing purposes)
+  Future<void> clearAllData() async {
+    try {
+      print('Starting Firestore cleanup...');
+      
+      // Delete all projects
+      final projectsSnapshot = await _firestore
+          .collection(_projectsCollection)
+          .get();
+      
+      print('Found ${projectsSnapshot.docs.length} projects to delete');
+      
+      final batch = _firestore.batch();
+      for (final doc in projectsSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      // Delete all project contexts
+      final contextsSnapshot = await _firestore
+          .collection(_projectContextCollection)
+          .get();
+      
+      print('Found ${contextsSnapshot.docs.length} project contexts to delete');
+      
+      for (final doc in contextsSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      // Commit the batch delete
+      await batch.commit();
+      
+      print('Successfully cleared all data from Firestore');
+      print('- Deleted ${projectsSnapshot.docs.length} projects');
+      print('- Deleted ${contextsSnapshot.docs.length} project contexts');
+      
+    } catch (e) {
+      print('Error clearing Firestore data: $e');
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        message: 'Failed to clear Firestore data: $e',
+      );
+    }
+  }
+
 }

@@ -645,7 +645,7 @@ class PreferencesSection extends ConsumerWidget {
                     ),
                   ),
                   child: Text(
-                    day.substring(0, 3), // Show first 3 letters
+                    day.length >= 3 ? day.substring(0, 3) : day, // Show first 3 letters
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

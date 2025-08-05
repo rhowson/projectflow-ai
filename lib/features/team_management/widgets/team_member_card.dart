@@ -118,10 +118,12 @@ class TeamMemberCard extends StatelessWidget {
     if (name.isEmpty) return '?';
     
     final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (name.trim().isNotEmpty) {
+      return name.trim().substring(0, 1).toUpperCase();
     } else {
-      return name.substring(0, 1).toUpperCase();
+      return '?';
     }
   }
 }

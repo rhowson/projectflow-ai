@@ -28,9 +28,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Scaffold(
       backgroundColor: CustomNeumorphicTheme.baseColor,
       appBar: NeumorphicAppBar(
-        title: Text(
-          'ProjectFlow AI',
-          style: Theme.of(context).textTheme.headlineSmall,
+        title: GestureDetector(
+          onLongPress: () => _showClearDatabaseDialog(context, ref),
+          child: Text(
+            'ProjectFlow AI',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
         ),
         automaticallyImplyLeading: false,
         actions: [
@@ -1584,6 +1587,81 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showClearDatabaseDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('🗑️ Clear Database'),
+          content: const Text(
+            'This will permanently delete ALL projects and data from the database.\n\n'
+            'This action cannot be undone!\n\n'
+            'Are you sure you want to continue?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  // Show loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const AlertDialog(
+                      content: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 16),
+                          Text('Clearing database...'),
+                        ],
+                      ),
+                    ),
+                  );
+                  
+                  // Clear the database
+                  await ref.read(projectNotifierProvider.notifier).clearAllData();
+                  
+                  // Close loading dialog
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Database cleared successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // Close loading dialog
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('❌ Error clearing database: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('DELETE ALL'),
+            ),
+          ],
+        );
+      },
     );
   }
 

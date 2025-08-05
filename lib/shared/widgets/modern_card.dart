@@ -326,7 +326,7 @@ class ProjectCard extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            member.substring(0, 1).toUpperCase(),
+                            member.isNotEmpty ? member.substring(0, 1).toUpperCase() : '?',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,

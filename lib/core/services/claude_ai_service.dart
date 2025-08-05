@@ -20,7 +20,7 @@ class ClaudeAIService {
     
     // Debug logging for troubleshooting
     print('Claude AI Service initialized:');
-    print('  API key: ${apiKey.substring(0, 10)}...');
+    print('  API key: ${apiKey.length >= 10 ? '${apiKey.substring(0, 10)}...' : 'API_KEY_TOO_SHORT'}');
     print('  Demo mode: ${AppConstants.useDemoMode}');
     print('  Has valid API key: ${AppConstants.hasValidApiKey}');
     print('  Environment: ${AppConstants.environment}');
@@ -77,6 +77,11 @@ class ClaudeAIService {
       final content = response.data['content'][0]['text'];
       final jsonStart = content.indexOf('{');
       final jsonEnd = content.lastIndexOf('}') + 1;
+      
+      if (jsonStart == -1 || jsonEnd <= jsonStart) {
+        throw Exception('Invalid JSON response from Claude API');
+      }
+      
       final jsonString = content.substring(jsonStart, jsonEnd);
       
       return ProjectAssessment.fromJson(Map<String, dynamic>.from(
@@ -241,6 +246,11 @@ class ClaudeAIService {
       final content = response.data['content'][0]['text'];
       final jsonStart = content.indexOf('{');
       final jsonEnd = content.lastIndexOf('}') + 1;
+      
+      if (jsonStart == -1 || jsonEnd <= jsonStart) {
+        throw Exception('Invalid JSON response from Claude API');
+      }
+      
       final jsonString = content.substring(jsonStart, jsonEnd);
       
       return ProjectBreakdown.fromJson(Map<String, dynamic>.from(

@@ -492,9 +492,33 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  'Task Board',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Task Board',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    if (selectedPhaseId != null) ...[
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Showing tasks for: ${selectedProject.phases.firstWhere((p) => p.id == selectedPhaseId).name}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: CustomNeumorphicTheme.primaryPurple,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ] else ...[
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Showing all tasks from all phases',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: CustomNeumorphicTheme.lightText,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               NeumorphicButton(
@@ -532,6 +556,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             height: 400.h,
             child: ResponsiveKanbanBoard(
               project: selectedProject,
+              filteredTasks: _getFilteredTasks(selectedProject),
             ),
           ),
         ),

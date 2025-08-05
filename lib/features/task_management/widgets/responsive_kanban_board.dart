@@ -9,8 +9,9 @@ import '../../project_creation/providers/project_provider.dart';
 
 class ResponsiveKanbanBoard extends ConsumerStatefulWidget {
   final Project project;
+  final List<Task>? filteredTasks;
   
-  const ResponsiveKanbanBoard({required this.project, super.key});
+  const ResponsiveKanbanBoard({required this.project, this.filteredTasks, super.key});
 
   @override
   ConsumerState<ResponsiveKanbanBoard> createState() => _ResponsiveKanbanBoardState();
@@ -32,8 +33,8 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
     final isTablet = screenWidth > 768;
     final isMobile = screenWidth < 600;
     
-    // Get all tasks from all phases
-    final allTasks = widget.project.phases
+    // Use filtered tasks if provided, otherwise get all tasks from all phases
+    final allTasks = widget.filteredTasks ?? widget.project.phases
         .expand((phase) => phase.tasks)
         .toList();
 
