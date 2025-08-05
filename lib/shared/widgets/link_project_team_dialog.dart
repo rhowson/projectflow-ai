@@ -246,6 +246,22 @@ class _LinkProjectTeamDialogState extends ConsumerState<LinkProjectTeamDialog> {
         ),
       ),
     );
+      },
+      loading: () => Dialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        child: Container(
+          padding: EdgeInsets.all(24.w),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => Dialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        child: Container(
+          padding: EdgeInsets.all(24.w),
+          child: Text('Error: $error'),
+        ),
+      ),
+    );
   }
 
   Widget _buildEmptyState() {
@@ -447,22 +463,6 @@ class _TeamOption extends StatelessWidget {
                 color: AppColors.primary,
               ),
           ],
-        ),
-      ),
-        );
-      },
-      loading: () => Dialog(
-        backgroundColor: CustomNeumorphicTheme.baseColor,
-        child: Container(
-          padding: EdgeInsets.all(24.w),
-          child: const Center(child: CircularProgressIndicator()),
-        ),
-      ),
-      error: (error, stack) => Dialog(
-        backgroundColor: CustomNeumorphicTheme.baseColor,
-        child: Container(
-          padding: EdgeInsets.all(24.w),
-          child: Text('Error: $error'),
         ),
       ),
     );

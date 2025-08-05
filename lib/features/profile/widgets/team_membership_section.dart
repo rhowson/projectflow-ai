@@ -494,8 +494,8 @@ class TeamMembershipSection extends ConsumerWidget {
 
   void _acceptInvitation(BuildContext context, WidgetRef ref, TeamInvitation invitation) async {
     try {
-      await ref.read(teamInvitationProvider.notifier)
-          .acceptTeamInvitation(invitation.id, userId);
+      await ref.read(teamNotifierProvider.notifier)
+          .acceptInvitation(invitation.id);
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -519,8 +519,8 @@ class TeamMembershipSection extends ConsumerWidget {
 
   void _declineInvitation(BuildContext context, WidgetRef ref, TeamInvitation invitation) async {
     try {
-      await ref.read(teamInvitationProvider.notifier)
-          .declineTeamInvitation(invitation.id);
+      await ref.read(teamNotifierProvider.notifier)
+          .declineInvitation(invitation.id);
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -571,7 +571,7 @@ class TeamMembershipSection extends ConsumerWidget {
             onPressed: () async {
               try {
                 await ref.read(teamManagementProvider.notifier)
-                    .removeMemberFromTeam(team.id, userId, team.ownerId);
+                    .removeMemberFromTeam(team.id, userId);
                 
                 if (context.mounted) {
                   Navigator.of(context).pop();
