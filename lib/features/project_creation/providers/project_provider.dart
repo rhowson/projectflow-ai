@@ -66,10 +66,11 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       final claudeService = _claudeService;
       print('Got Claude service, generating project breakdown...');
       
-      // Generate complete project breakdown with context answers
+      // Generate complete project breakdown with context answers and document content
       final projectBreakdown = await claudeService.generateProjectBreakdown(
         description, 
         contextAnswers,
+        documentContent: documentContent,
       );
       print('Project breakdown generated with ${projectBreakdown.phases.length} phases');
       

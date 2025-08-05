@@ -246,15 +246,15 @@ class _LinkProjectTeamDialogState extends ConsumerState<LinkProjectTeamDialog> {
         ),
       ),
     );
-      },
-      loading: () => Dialog(
+  },
+  loading: () => Dialog(
         backgroundColor: CustomNeumorphicTheme.baseColor,
         child: Container(
           padding: EdgeInsets.all(24.w),
           child: const Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (error, stack) => Dialog(
+  error: (error, stack) => Dialog(
         backgroundColor: CustomNeumorphicTheme.baseColor,
         child: Container(
           padding: EdgeInsets.all(24.w),
