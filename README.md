@@ -79,18 +79,47 @@ A modern, intelligent project management platform built with Flutter that levera
    flutter pub get
    ```
 
-3. **Configure Firebase**
+3. **Configure Environment Variables**
+   - Copy `.env.example` to `.env`
+   - Add your Claude API key (optional - demo mode available):
+     ```bash
+     CLAUDE_API_KEY=your_claude_api_key_here
+     USE_DEMO_MODE=false
+     ```
+   - To get a Claude API key:
+     - Visit [Anthropic Console](https://console.anthropic.com)
+     - Create an account and generate an API key
+     - Add it to your `.env` file
+
+4. **Configure Firebase**
    - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com)
    - Enable Firestore Database
    - Enable Authentication (Anonymous)
    - Download configuration files and place in appropriate directories
 
-4. **Run the app**
+5. **Run the app**
    ```bash
    flutter run -d chrome  # For web
    flutter run -d ios     # For iOS
    flutter run -d android # For Android
    ```
+
+### Production Deployment
+
+When deploying to production, pass environment variables at build time:
+
+```bash
+# Web deployment
+flutter build web --dart-define=CLAUDE_API_KEY=your_api_key --dart-define=USE_DEMO_MODE=false
+
+# iOS deployment  
+flutter build ios --dart-define=CLAUDE_API_KEY=your_api_key --dart-define=USE_DEMO_MODE=false
+
+# Android deployment
+flutter build apk --dart-define=CLAUDE_API_KEY=your_api_key --dart-define=USE_DEMO_MODE=false
+```
+
+For CI/CD pipelines, set these as secret environment variables in your deployment platform.
 
 ## 🏗️ Project Structure
 

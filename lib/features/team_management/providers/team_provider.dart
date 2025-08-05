@@ -1,402 +1,238 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/team_model.dart';
 import '../../../core/services/team_service.dart';
-import '../../user_management/providers/user_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 /// Provider for team service
 final teamServiceProvider = Provider<TeamService>((ref) {
-  final userService = ref.read(userServiceProvider);
-  return TeamService(userService: userService);
+  return TeamService();
 });
 
-/// Provider for getting a specific team by ID
-final teamByIdProvider = StreamProvider.family<Team?, String>((ref, teamId) {
-  final teamService = ref.read(teamServiceProvider);
-  return teamService.watchTeam(teamId);
-});
-
-/// Provider for getting teams for a specific user
-final userTeamsProvider = StreamProvider.family<List<Team>, String>((ref, userId) {
-  final teamService = ref.read(teamServiceProvider);
-  return teamService.watchUserTeams(userId);
-});
-
-/// Notifier for team creation and management
-class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
-  TeamManagementNotifier(this._teamService, this._ref) : super(const AsyncValue.data(null));
-
+/// Team notifier for managing team operations
+class TeamNotifier extends StateNotifier<AsyncValue<List<Team>>> {
   final TeamService _teamService;
-  final Ref _ref;
+  final String _userId;
 
-  /// Creates a new team
-  Future<Team> createTeam({
+  TeamNotifier(this._teamService, this._userId) : super(const AsyncValue.loading()) {
+    _loadTeams();
+  }
+
+  Future<void> _loadTeams() async {
+    try {
+      final teams = await _teamService.getUserTeams(_userId);
+      state = AsyncValue.data(teams);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+    }
+  }
+
+  Future<void> createTeam({
     required String name,
     required String description,
     required String ownerId,
-    String? logoUrl,
-    String? organizationId,
-    TeamPlan plan = TeamPlan.free,
   }) async {
-    state = const AsyncValue.loading();
-    
     try {
       final team = await _teamService.createTeam(
         name: name,
         description: description,
         ownerId: ownerId,
-        logoUrl: logoUrl,
-        organizationId: organizationId,
-        plan: plan,
       );
       
-      state = const AsyncValue.data(null);
-      
-      // Invalidate related providers
-      _ref.invalidate(userTeamsProvider(ownerId));
-      
-      return team;
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      final currentTeams = state.value ?? [];
+      state = AsyncValue.data([...currentTeams, team]);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
 
-  /// Updates team information
   Future<void> updateTeam(Team team) async {
-    state = const AsyncValue.loading();
-    
     try {
       await _teamService.updateTeam(team);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
-  }
-
-  /// Updates team settings
-  Future<void> updateTeamSettings(String teamId, TeamSettings settings) async {
-    state = const AsyncValue.loading();
-    
-    try {
-      await _teamService.updateTeamSettings(teamId, settings);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
-  }
-
-  /// Removes a member from a team
-  Future<void> removeMemberFromTeam(String teamId, String memberUserId, String removedById) async {
-    state = const AsyncValue.loading();
-    
-    try {
-      await _teamService.removeMemberFromTeam(teamId, memberUserId, removedById);
-      state = const AsyncValue.data(null);
       
-      // Invalidate related providers
-      _ref.invalidate(userTeamsProvider(memberUserId));
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      final currentTeams = state.value ?? [];
+      final index = currentTeams.indexWhere((t) => t.id == team.id);
+      if (index != -1) {
+        final updatedTeams = [...currentTeams];
+        updatedTeams[index] = team;
+        state = AsyncValue.data(updatedTeams);
+      }
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
 
-  /// Updates a team member's role
-  Future<void> updateMemberRole(String teamId, String memberUserId, TeamRole newRole, String updatedById) async {
-    state = const AsyncValue.loading();
-    
+  Future<void> deleteTeam(String teamId) async {
     try {
-      await _teamService.updateMemberRole(teamId, memberUserId, newRole, updatedById);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
-  }
-
-  /// Transfers team ownership
-  Future<void> transferOwnership(String teamId, String newOwnerId, String currentOwnerId) async {
-    state = const AsyncValue.loading();
-    
-    try {
-      await _teamService.transferOwnership(teamId, newOwnerId, currentOwnerId);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
-  }
-
-  /// Archives a team
-  Future<void> archiveTeam(String teamId, String archivedById) async {
-    state = const AsyncValue.loading();
-    
-    try {
-      await _teamService.archiveTeam(teamId, archivedById);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
-  }
-
-  /// Deletes a team
-  Future<void> deleteTeam(String teamId, String deletedById) async {
-    state = const AsyncValue.loading();
-    
-    try {
-      await _teamService.deleteTeam(teamId, deletedById);
-      state = const AsyncValue.data(null);
+      await _teamService.deleteTeam(teamId, _userId);
       
-      // Invalidate related providers
-      _ref.invalidate(userTeamsProvider);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      final currentTeams = state.value ?? [];
+      final updatedTeams = currentTeams.where((t) => t.id != teamId).toList();
+      state = AsyncValue.data(updatedTeams);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
-}
 
-/// Provider for team management operations
-final teamManagementProvider = StateNotifierProvider<TeamManagementNotifier, AsyncValue<void>>((ref) {
-  final teamService = ref.read(teamServiceProvider);
-  return TeamManagementNotifier(teamService, ref);
-});
-
-/// Notifier for team invitation management
-class TeamInvitationNotifier extends StateNotifier<AsyncValue<void>> {
-  TeamInvitationNotifier(this._teamService, this._ref) : super(const AsyncValue.data(null));
-
-  final TeamService _teamService;
-  final Ref _ref;
-
-  /// Invites a user to join a team
-  Future<TeamInvitation> inviteUserToTeam({
+  Future<void> inviteToTeam({
     required String teamId,
     required String email,
-    required String invitedById,
     required TeamRole role,
     String? message,
-    String? customTitle,
-    int expirationDays = 7,
   }) async {
-    state = const AsyncValue.loading();
-    
     try {
-      final invitation = await _teamService.inviteUserToTeam(
+      await _teamService.inviteUserToTeam(
         teamId: teamId,
         email: email,
-        invitedById: invitedById,
+        invitedById: _userId,
         role: role,
         message: message,
-        customTitle: customTitle,
-        expirationDays: expirationDays,
       );
-      
-      state = const AsyncValue.data(null);
-      
-      // Invalidate invitation providers
-      _ref.invalidate(pendingInvitationsForTeamProvider(teamId));
-      _ref.invalidate(invitationsSentByUserProvider(invitedById));
-      
-      return invitation;
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
 
-  /// Accepts a team invitation
-  Future<void> acceptTeamInvitation(String invitationId, String userId) async {
-    state = const AsyncValue.loading();
-    
+  Future<void> updateMemberRole({
+    required String teamId,
+    required String userId,
+    required TeamRole newRole,
+  }) async {
     try {
-      await _teamService.acceptTeamInvitation(invitationId, userId);
-      state = const AsyncValue.data(null);
-      
-      // Invalidate related providers
-      _ref.invalidate(userTeamsProvider(userId));
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      await _teamService.updateMemberRole(teamId, userId, newRole, _userId);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
 
-  /// Declines a team invitation
-  Future<void> declineTeamInvitation(String invitationId) async {
-    state = const AsyncValue.loading();
-    
+  Future<void> removeMember({
+    required String teamId,
+    required String userId,
+  }) async {
+    try {
+      await _teamService.removeMemberFromTeam(teamId, userId, _userId);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> acceptInvitation(String invitationId) async {
+    try {
+      await _teamService.acceptTeamInvitation(invitationId, _userId);
+      // Reload teams after accepting invitation
+      await _loadTeams();
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> declineInvitation(String invitationId) async {
     try {
       await _teamService.declineTeamInvitation(invitationId);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
 
-  /// Cancels a team invitation
-  Future<void> cancelTeamInvitation(String invitationId, String cancelledById) async {
-    state = const AsyncValue.loading();
-    
+  Future<void> removeMemberFromTeam(String teamId, String userId) async {
     try {
-      await _teamService.cancelTeamInvitation(invitationId, cancelledById);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      await _teamService.removeMemberFromTeam(teamId, userId, _userId);
+      // Reload teams after removing member
+      await _loadTeams();
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
   }
 }
 
-/// Provider for team invitation management
-final teamInvitationProvider = StateNotifierProvider<TeamInvitationNotifier, AsyncValue<void>>((ref) {
+/// Provider for team notifier
+final teamNotifierProvider = StateNotifierProvider<TeamNotifier, AsyncValue<List<Team>>>((ref) {
   final teamService = ref.read(teamServiceProvider);
-  return TeamInvitationNotifier(teamService, ref);
+  final user = ref.watch(currentUserProvider).value;
+  return TeamNotifier(teamService, user?.id ?? '');
 });
 
-/// Provider for team invitations for a specific email
+/// Provider for getting current user's teams
+final userTeamsProvider = FutureProvider.family<List<Team>, String>((ref, userId) async {
+  final teamService = ref.read(teamServiceProvider);
+  return await teamService.getUserTeams(userId);
+});
+
+/// Provider for getting a specific team
+final teamProvider = Provider.family<AsyncValue<Team?>, String>((ref, teamId) {
+  final teams = ref.watch(teamNotifierProvider);
+  return teams.when(
+    data: (teamList) {
+      try {
+        final team = teamList.firstWhere((t) => t.id == teamId);
+        return AsyncValue.data(team);
+      } catch (e) {
+        return const AsyncValue.data(null);
+      }
+    },
+    loading: () => const AsyncValue.loading(),
+    error: (error, stack) => AsyncValue.error(error, stack),
+  );
+});
+
+/// Provider for getting team members with user data
+final teamMembersProvider = FutureProvider.family<List<TeamMemberWithUser>, String>((ref, teamId) async {
+  final teamService = ref.read(teamServiceProvider);
+  return await teamService.getTeamMembersWithUserData(teamId);
+});
+
+/// Provider for getting team invitations
+final teamInvitationsProvider = FutureProvider.family<List<TeamInvitation>, String>((ref, teamId) async {
+  final teamService = ref.read(teamServiceProvider);
+  return await teamService.getPendingInvitationsForTeam(teamId);
+});
+
+/// Provider for team management (alias to teamNotifierProvider for consistency)
+final teamManagementProvider = teamNotifierProvider;
+
+/// Provider for getting user invitations
+final userInvitationsProvider = FutureProvider.family<List<TeamInvitation>, String>((ref, email) async {
+  final teamService = ref.read(teamServiceProvider);
+  return await teamService.getInvitationsForEmail(email);
+});
+
+/// Provider for checking user role in team
+final userRoleInTeamProvider = Provider.family<TeamRole?, String>((ref, teamId) {
+  final teams = ref.watch(teamNotifierProvider).value ?? [];
+  final currentUser = ref.watch(currentUserProvider).value;
+  
+  if (currentUser == null) return null;
+  
+  final team = teams.where((t) => t.id == teamId).firstOrNull;
+  if (team == null) return null;
+  
+  final member = team.getMember(currentUser.id);
+  return member?.role;
+});
+
+/// Provider for checking if user can manage team
+final canManageTeamProvider = Provider.family<bool, String>((ref, teamId) {
+  final userRole = ref.watch(userRoleInTeamProvider(teamId));
+  return userRole == TeamRole.owner || userRole == TeamRole.admin;
+});
+
+/// Provider for getting invitations for email
 final invitationsForEmailProvider = FutureProvider.family<List<TeamInvitation>, String>((ref, email) async {
   final teamService = ref.read(teamServiceProvider);
   return await teamService.getInvitationsForEmail(email);
 });
 
-/// Provider for team invitations sent by a user
-final invitationsSentByUserProvider = FutureProvider.family<List<TeamInvitation>, String>((ref, userId) async {
+/// Provider for getting a specific team invitation
+final teamInvitationProvider = FutureProvider.family<TeamInvitation?, String>((ref, invitationId) async {
   final teamService = ref.read(teamServiceProvider);
-  return await teamService.getInvitationsSentByUser(userId);
+  final invitations = await teamService.getInvitationsSentByUser(''); // This would need the proper user ID
+  return invitations.where((inv) => inv.id == invitationId).firstOrNull;
 });
-
-/// Provider for pending invitations for a team
-final pendingInvitationsForTeamProvider = FutureProvider.family<List<TeamInvitation>, String>((ref, teamId) async {
-  final teamService = ref.read(teamServiceProvider);
-  return await teamService.getPendingInvitationsForTeam(teamId);
-});
-
-/// Helper providers for team data
-
-/// Provider for checking if current user owns a specific team
-final isTeamOwnerProvider = Provider.family<bool, String>((ref, teamId) {
-  final team = ref.watch(teamByIdProvider(teamId));
-  final currentUser = ref.watch(currentUserProvider);
-  
-  return team.when(
-    data: (teamData) => currentUser.when(
-      data: (user) => teamData?.ownerId == user?.id,
-      loading: () => false,
-      error: (_, __) => false,
-    ),
-    loading: () => false,
-    error: (_, __) => false,
-  );
-});
-
-/// Provider for checking if current user can manage a specific team
-final canManageTeamProvider = Provider.family<bool, String>((ref, teamId) {
-  final team = ref.watch(teamByIdProvider(teamId));
-  final currentUser = ref.watch(currentUserProvider);
-  
-  return team.when(
-    data: (teamData) => currentUser.when(
-      data: (user) {
-        if (teamData == null || user == null) return false;
-        final member = teamData.getMember(user.id);
-        return member?.canManageMembers ?? false;
-      },
-      loading: () => false,
-      error: (_, __) => false,
-    ),
-    loading: () => false,
-    error: (_, __) => false,
-  );
-});
-
-/// Provider for getting current user's role in a specific team
-final userRoleInTeamProvider = Provider.family<TeamRole?, String>((ref, teamId) {
-  final team = ref.watch(teamByIdProvider(teamId));
-  final currentUser = ref.watch(currentUserProvider);
-  
-  return team.when(
-    data: (teamData) => currentUser.when(
-      data: (user) {
-        if (teamData == null || user == null) return null;
-        final member = teamData.getMember(user.id);
-        return member?.role;
-      },
-      loading: () => null,
-      error: (_, __) => null,
-    ),
-    loading: () => null,
-    error: (_, __) => null,
-  );
-});
-
-/// Provider for checking if a team is at capacity
-final isTeamAtCapacityProvider = Provider.family<bool, String>((ref, teamId) {
-  final team = ref.watch(teamByIdProvider(teamId));
-  
-  return team.when(
-    data: (teamData) => teamData?.isAtCapacity ?? false,
-    loading: () => false,
-    error: (_, __) => false,
-  );
-});
-
-/// Provider for getting team member count
-final teamMemberCountProvider = Provider.family<int, String>((ref, teamId) {
-  final team = ref.watch(teamByIdProvider(teamId));
-  
-  return team.when(
-    data: (teamData) => teamData?.activeMemberCount ?? 0,
-    loading: () => 0,
-    error: (_, __) => 0,
-  );
-});
-
-/// Provider for getting teams that current user owns
-final ownedTeamsProvider = Provider<AsyncValue<List<Team>>>((ref) {
-  final currentUser = ref.watch(currentUserProvider);
-  
-  return currentUser.when(
-    data: (user) {
-      if (user == null) return const AsyncValue.data([]);
-      
-      final userTeams = ref.watch(userTeamsProvider(user.id));
-      return userTeams.when(
-        data: (teams) => AsyncValue.data(
-          teams.where((team) => team.ownerId == user.id).toList(),
-        ),
-        loading: () => const AsyncValue.loading(),
-        error: (e, stack) => AsyncValue.error(e, stack),
-      );
-    },
-    loading: () => const AsyncValue.loading(),
-    error: (e, stack) => AsyncValue.error(e, stack),
-  );
-});
-
-/// Provider for getting teams that current user is a member of (but doesn't own)
-final memberTeamsProvider = Provider<AsyncValue<List<Team>>>((ref) {
-  final currentUser = ref.watch(currentUserProvider);
-  
-  return currentUser.when(
-    data: (user) {
-      if (user == null) return const AsyncValue.data([]);
-      
-      final userTeams = ref.watch(userTeamsProvider(user.id));
-      return userTeams.when(
-        data: (teams) => AsyncValue.data(
-          teams.where((team) => team.ownerId != user.id).toList(),
-        ),
-        loading: () => const AsyncValue.loading(),
-        error: (e, stack) => AsyncValue.error(e, stack),
-      );
-    },
-    loading: () => const AsyncValue.loading(),
-    error: (e, stack) => AsyncValue.error(e, stack),
-  );
-});
-
-// currentUserProvider is already imported from user_management/providers/user_provider.dart

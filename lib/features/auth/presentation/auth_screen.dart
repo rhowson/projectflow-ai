@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
+import '../../../shared/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
 
@@ -137,33 +138,682 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
 
   Widget _buildAuthContent() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 48.h),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // App Logo and Title
-          _buildHeader(),
-          SizedBox(height: 48.h),
-
-          // Biometric option (if available and enabled)
-          _buildBiometricOption(),
-
-          // Social Sign-In Options
-          if (!_showEmailForm) ...[
-            _buildSocialSignInButtons(),
-            SizedBox(height: 32.h),
-            _buildDivider(),
-            SizedBox(height: 32.h),
-            _buildEmailSignInButton(),
-          ],
-
-          // Email Sign-In Form
-          if (_showEmailForm) ...[
-            _buildEmailForm(),
-            SizedBox(height: 24.h),
-            _buildBackToSocialButton(),
-          ],
+          // Clean header
+          _buildCleanHeader(),
+          SizedBox(height: 56.h),
+          
+          // Main authentication content (flat design)
+          _buildFlatAuthContent(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFlatAuthContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!_showEmailForm) ...[
+          // Social sign-in options (flat)
+          _buildFlatSocialButtons(),
+          SizedBox(height: 32.h),
+          
+          // Divider
+          _buildCleanDivider(),
+          SizedBox(height: 32.h),
+          
+          // Email sign-in button (flat)
+          _buildFlatEmailButton(),
+        ] else ...[
+          // Email form (flat)
+          _buildFlatEmailForm(),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCleanHeader() {
+    return Column(
+      children: [
+        // App logo matching splash screen
+        NeumorphicContainer(
+          width: 80.w,
+          height: 80.w,
+          borderRadius: BorderRadius.circular(20.r),
+          color: CustomNeumorphicTheme.primaryPurple,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  CustomNeumorphicTheme.primaryPurple,
+                  CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.8),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Stack(
+              children: [
+                // Background pattern
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.r),
+                    child: CustomPaint(
+                      painter: _LogoPatternPainter(),
+                    ),
+                  ),
+                ),
+                
+                // Main logo content
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // AI Brain icon
+                      Container(
+                        width: 32.w,
+                        height: 32.w,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Icon(
+                          Icons.psychology_rounded,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
+                      ),
+                      SizedBox(height: 3.h),
+                      
+                      // Project management lines
+                      Container(
+                        width: 20.w,
+                        height: 2.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(1.r),
+                        ),
+                      ),
+                      SizedBox(height: 1.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 8.w,
+                            height: 1.h,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(0.5.r),
+                            ),
+                          ),
+                          SizedBox(width: 1.w),
+                          Container(
+                            width: 8.w,
+                            height: 1.h,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(0.5.r),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: 24.h),
+        
+        // App title
+        Text(
+          'ProjectFlow AI',
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+            color: CustomNeumorphicTheme.darkText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(height: 8.h),
+        
+        // Subtitle
+        Text(
+          'Smart project management with AI',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: CustomNeumorphicTheme.lightText,
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildFlatSocialButtons() {
+    return Column(
+      children: [
+        // Google Sign-In (flat)
+        _buildFlatSignInButton(
+          onPressed: _signInWithGoogle,
+          icon: Icons.g_mobiledata,
+          text: 'Continue with Google',
+          backgroundColor: Colors.white,
+          textColor: CustomNeumorphicTheme.darkText,
+          borderColor: AppColors.border,
+        ),
+        
+        // Apple Sign-In (iOS only, not available on web) - temporarily disabled
+        if (false && !kIsWeb && Platform.isIOS) ...[
+          SizedBox(height: 16.h),
+          _buildFlatSignInButton(
+            onPressed: _signInWithApple,
+            icon: Icons.apple,
+            text: 'Continue with Apple',
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildFlatSignInButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String text,
+    required Color backgroundColor,
+    required Color textColor,
+    Color? borderColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16.r),
+        border: borderColor != null ? Border.all(color: borderColor, width: 1) : null,
+        boxShadow: [
+          BoxShadow(
+            color: CustomNeumorphicTheme.darkShadow.withOpacity(0.1),
+            offset: Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: textColor,
+                  size: 20.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  text,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlatEmailButton() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: CustomNeumorphicTheme.baseColor,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.3), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: CustomNeumorphicTheme.darkShadow.withOpacity(0.1),
+            offset: Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _showEmailForm = true),
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.email_outlined,
+                  color: CustomNeumorphicTheme.primaryPurple,
+                  size: 20.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Continue with Email',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlatEmailForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Back button
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            onPressed: () => setState(() => _showEmailForm = false),
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: CustomNeumorphicTheme.lightText,
+              size: 20.sp,
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        
+        // Form title
+        Text(
+          _isSignUp ? 'Create Account' : 'Sign In',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: CustomNeumorphicTheme.darkText,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 32.h),
+        
+        // Form fields
+        if (_isSignUp) ...[
+          _buildFlatTextField(
+            controller: _firstNameController,
+            label: 'First Name',
+            icon: Icons.person_outline,
+          ),
+          SizedBox(height: 16.h),
+          _buildFlatTextField(
+            controller: _lastNameController,
+            label: 'Last Name',
+            icon: Icons.person_outline,
+          ),
+          SizedBox(height: 16.h),
+        ],
+        
+        _buildFlatTextField(
+          controller: _emailController,
+          label: 'Email',
+          icon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        SizedBox(height: 16.h),
+        
+        _buildFlatTextField(
+          controller: _passwordController,
+          label: 'Password',
+          icon: Icons.lock_outline,
+          isPassword: true,
+        ),
+        SizedBox(height: 32.h),
+        
+        // Submit button (flat)
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: CustomNeumorphicTheme.primaryPurple,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.3),
+                offset: Offset(0, 4),
+                blurRadius: 8,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _submitEmailForm,
+              borderRadius: BorderRadius.circular(16.r),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: Text(
+                  _isSignUp ? 'Create Account' : 'Sign In',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 24.h),
+        
+        // Toggle sign up/sign in
+        TextButton(
+          onPressed: () => setState(() => _isSignUp = !_isSignUp),
+          child: Text(
+            _isSignUp 
+              ? 'Already have an account? Sign In'
+              : 'Don\'t have an account? Sign Up',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: CustomNeumorphicTheme.primaryPurple,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlatTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool isPassword = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomNeumorphicTheme.baseColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: isPassword,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: CustomNeumorphicTheme.darkText,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          labelText: label,
+          labelStyle: TextStyle(
+            color: CustomNeumorphicTheme.lightText,
+            fontSize: 14.sp,
+          ),
+          prefixIcon: Icon(
+            icon,
+            color: CustomNeumorphicTheme.lightText,
+            size: 20.sp,
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCleanSocialButtons() {
+    return Column(
+      children: [
+        // Google Sign-In
+        _buildCleanSignInButton(
+          onPressed: _signInWithGoogle,
+          icon: Icons.g_mobiledata,
+          text: 'Continue with Google',
+          backgroundColor: Colors.white,
+          textColor: CustomNeumorphicTheme.darkText,
+          borderColor: AppColors.border,
+        ),
+        
+        // Apple Sign-In (iOS only, not available on web) - temporarily disabled until Firebase configured
+        if (false && !kIsWeb && Platform.isIOS) ...[
+          SizedBox(height: 16.h),
+          _buildCleanSignInButton(
+            onPressed: _signInWithApple,
+            icon: Icons.apple,
+            text: 'Continue with Apple',
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCleanSignInButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String text,
+    required Color backgroundColor,
+    required Color textColor,
+    Color? borderColor,
+  }) {
+    return NeumorphicButton(
+      onPressed: onPressed,
+      borderRadius: BorderRadius.circular(16.r),
+      padding: EdgeInsets.symmetric(vertical: 16.h),
+      color: backgroundColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: textColor,
+            size: 20.sp,
+          ),
+          SizedBox(width: 12.w),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCleanDivider() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 1,
+            color: AppColors.border,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Text(
+            'or',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: CustomNeumorphicTheme.lightText,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            height: 1,
+            color: AppColors.border,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCleanEmailButton() {
+    return NeumorphicButton(
+      onPressed: () => setState(() => _showEmailForm = true),
+      borderRadius: BorderRadius.circular(16.r),
+      padding: EdgeInsets.symmetric(vertical: 16.h),
+      color: CustomNeumorphicTheme.baseColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.email_outlined,
+            color: CustomNeumorphicTheme.primaryPurple,
+            size: 20.sp,
+          ),
+          SizedBox(width: 12.w),
+          Text(
+            'Continue with Email',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: CustomNeumorphicTheme.primaryPurple,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCleanEmailForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Back button
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            onPressed: () => setState(() => _showEmailForm = false),
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: CustomNeumorphicTheme.lightText,
+              size: 20.sp,
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        
+        // Form title
+        Text(
+          _isSignUp ? 'Create Account' : 'Sign In',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: CustomNeumorphicTheme.darkText,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 32.h),
+        
+        // Form fields
+        if (_isSignUp) ...[
+          _buildCleanTextField(
+            controller: _firstNameController,
+            label: 'First Name',
+            icon: Icons.person_outline,
+          ),
+          SizedBox(height: 16.h),
+          _buildCleanTextField(
+            controller: _lastNameController,
+            label: 'Last Name',
+            icon: Icons.person_outline,
+          ),
+          SizedBox(height: 16.h),
+        ],
+        
+        _buildCleanTextField(
+          controller: _emailController,
+          label: 'Email',
+          icon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        SizedBox(height: 16.h),
+        
+        _buildCleanTextField(
+          controller: _passwordController,
+          label: 'Password',
+          icon: Icons.lock_outline,
+          isPassword: true,
+        ),
+        SizedBox(height: 32.h),
+        
+        // Submit button
+        NeumorphicButton(
+          onPressed: _submitEmailForm,
+          borderRadius: BorderRadius.circular(16.r),
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          color: CustomNeumorphicTheme.primaryPurple,
+          child: Text(
+            _isSignUp ? 'Create Account' : 'Sign In',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        SizedBox(height: 24.h),
+        
+        // Toggle sign up/sign in
+        TextButton(
+          onPressed: () => setState(() => _isSignUp = !_isSignUp),
+          child: Text(
+            _isSignUp 
+              ? 'Already have an account? Sign In'
+              : 'Don\'t have an account? Sign Up',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: CustomNeumorphicTheme.primaryPurple,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCleanTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool isPassword = false,
+  }) {
+    return NeumorphicContainer(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      borderRadius: BorderRadius.circular(12.r),
+      color: CustomNeumorphicTheme.baseColor,
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: isPassword,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: CustomNeumorphicTheme.darkText,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          labelText: label,
+          labelStyle: TextStyle(
+            color: CustomNeumorphicTheme.lightText,
+            fontSize: 14.sp,
+          ),
+          prefixIcon: Icon(
+            icon,
+            color: CustomNeumorphicTheme.lightText,
+            size: 20.sp,
+          ),
+        ),
       ),
     );
   }
@@ -283,8 +933,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
         ),
         SizedBox(height: 16.h),
 
-        // Apple Sign-In (iOS only, not available on web)
-        if (!kIsWeb && Platform.isIOS) ...[
+        // Apple Sign-In (iOS only, not available on web) - temporarily disabled until Firebase configured
+        if (false && !kIsWeb && Platform.isIOS) ...[
           NeumorphicButton(
             onPressed: _signInWithApple,
             borderRadius: BorderRadius.circular(16.r),
@@ -680,28 +1330,125 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
   }
 
   Future<void> _submitEmailForm() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_showEmailForm && !_validateEmailForm()) return;
 
     try {
       if (_isSignUp) {
-        await ref.read(authNotifierProvider.notifier).createUserWithEmailAndPassword(
-              _emailController.text.trim(),
-              _passwordController.text,
-              _firstNameController.text.trim(),
-              _lastNameController.text.trim(),
-            );
-      } else {
-        await ref.read(authNotifierProvider.notifier).signInWithEmailAndPassword(
-              _emailController.text.trim(),
-              _passwordController.text,
-            );
-      }
+        // Create new account
+        final userCredential = await ref.read(authNotifierProvider.notifier).createUserWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+          _firstNameController.text.trim(),
+          _lastNameController.text.trim(),
+        );
 
-      if (mounted) {
-        context.go('/dashboard');
+        if (userCredential != null && mounted) {
+          // Show success message for account creation
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Account created successfully! Please check your email for verification.'),
+              backgroundColor: CustomNeumorphicTheme.successGreen,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          context.go('/dashboard');
+        }
+      } else {
+        // Sign in existing user
+        final userCredential = await ref.read(authNotifierProvider.notifier).signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+
+        if (userCredential != null && mounted) {
+          context.go('/dashboard');
+        }
       }
     } catch (e) {
-      // Error is handled by the listener
+      // Enhanced error handling with specific messages
+      if (mounted) {
+        String errorMessage = _getErrorMessage(e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: CustomNeumorphicTheme.errorRed,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  bool _validateEmailForm() {
+    // Basic validation
+    if (_emailController.text.trim().isEmpty) {
+      _showError('Email is required');
+      return false;
+    }
+    
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text.trim())) {
+      _showError('Please enter a valid email address');
+      return false;
+    }
+    
+    if (_passwordController.text.isEmpty) {
+      _showError('Password is required');
+      return false;
+    }
+    
+    if (_isSignUp) {
+      if (_firstNameController.text.trim().isEmpty) {
+        _showError('First name is required');
+        return false;
+      }
+      
+      if (_lastNameController.text.trim().isEmpty) {
+        _showError('Last name is required');
+        return false;
+      }
+      
+      if (_passwordController.text.length < 6) {
+        _showError('Password must be at least 6 characters long');
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: CustomNeumorphicTheme.errorRed,
+        ),
+      );
+    }
+  }
+
+  String _getErrorMessage(String error) {
+    // Firebase Auth error codes mapping
+    if (error.contains('email-already-in-use')) {
+      return 'An account already exists with this email address.';
+    } else if (error.contains('invalid-email')) {
+      return 'Please enter a valid email address.';
+    } else if (error.contains('weak-password')) {
+      return 'Password is too weak. Please choose a stronger password.';
+    } else if (error.contains('user-not-found')) {
+      return 'No account found with this email address.';
+    } else if (error.contains('wrong-password')) {
+      return 'Incorrect password. Please try again.';
+    } else if (error.contains('user-disabled')) {
+      return 'This account has been disabled. Please contact support.';
+    } else if (error.contains('too-many-requests')) {
+      return 'Too many failed attempts. Please try again later.';
+    } else if (error.contains('network-request-failed')) {
+      return 'Network error. Please check your internet connection.';
+    } else if (error.contains('internal-error')) {
+      return 'An internal error occurred. Please try again.';
+    } else {
+      return 'Authentication failed. Please try again.';
     }
   }
 
@@ -817,4 +1564,45 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
       ),
     );
   }
+}
+
+// Custom painter for the logo background pattern (matching splash screen)
+class _LogoPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    
+    // Draw interconnected nodes pattern
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        final x = (size.width / 4) * (i + 1);
+        final y = (size.height / 4) * (j + 1);
+        
+        // Draw node
+        canvas.drawCircle(Offset(x, y), 1.5, paint);
+        
+        // Draw connections
+        if (i < 2) {
+          canvas.drawLine(
+            Offset(x, y),
+            Offset(x + size.width / 4, y),
+            paint,
+          );
+        }
+        if (j < 2) {
+          canvas.drawLine(
+            Offset(x, y),
+            Offset(x, y + size.height / 4),
+            paint,
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

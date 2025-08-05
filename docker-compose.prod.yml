@@ -1,0 +1,73 @@
+# ProjectFlow AI - Production Docker Compose
+version: '3.8'
+
+services:
+  projectflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+        USE_DEMO_MODE: ${USE_DEMO_MODE:-false}
+        ENVIRONMENT: ${ENVIRONMENT:-production}
+        DEBUG_MODE: ${DEBUG_MODE:-false}
+        ENABLE_ANALYTICS: ${ENABLE_ANALYTICS:-true}
+        ENABLE_CRASHLYTICS: ${ENABLE_CRASHLYTICS:-true}
+    
+    container_name: projectflow-prod
+    
+    ports:
+      - "80:8080"
+      - "443:8080"  # If using HTTPS termination
+    
+    environment:
+      - NODE_ENV=production
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.projectflow.rule=Host(`projectflow.yourdomain.com`)"
+      - "traefik.http.routers.projectflow.tls=true"
+      - "traefik.http.routers.projectflow.tls.certresolver=letsencrypt"
+    
+    networks:
+      - projectflow-network
+
+  # Optional: Add a reverse proxy (Traefik)
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@yourdomain.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - projectflow-network
+    restart: unless-stopped
+
+networks:
+  projectflow-network:
+    driver: bridge
+
+volumes:
+  letsencrypt:

@@ -164,10 +164,16 @@ class AuthService {
     String lastName,
   ) async {
     try {
+      print('DEBUG: Starting email account creation for: $email');
+      
       final UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
       
+      print('DEBUG: Firebase account created successfully');
+      
       if (userCredential.user != null) {
+        print('DEBUG: Creating user profile in Firestore');
+        
         // Create user profile
         await _createOrUpdateUserProfile(
           userCredential.user!, 
@@ -176,14 +182,21 @@ class AuthService {
           lastName: lastName,
         );
         
+        print('DEBUG: User profile created, sending email verification');
+        
         // Send email verification
         await userCredential.user!.sendEmailVerification();
         
+        print('DEBUG: Email verification sent');
+        
         await _setHasLoggedInOnce(true);
+        
+        print('DEBUG: Account creation completed successfully');
       }
 
       return userCredential;
     } catch (e) {
+      print('DEBUG: Account creation failed at: $e');
       throw AuthException('Account creation failed: $e');
     }
   }
@@ -327,15 +340,20 @@ class AuthService {
     String? lastName,
   }) async {
     try {
+      print('DEBUG: Checking if user profile exists for: ${firebaseUser.uid}');
+      
       // Check if user profile already exists
       final existingUser = await _userService.getUserById(firebaseUser.uid);
       
       if (existingUser != null) {
+        print('DEBUG: User exists, updating last login');
         // Update existing user's last login
         await _userService.updateLastLogin(firebaseUser.uid);
         return;
       }
 
+      print('DEBUG: Creating new user profile');
+      
       // Extract names from different providers
       String userFirstName = firstName ?? '';
       String userLastName = lastName ?? '';
@@ -352,6 +370,8 @@ class AuthService {
         displayName = firebaseUser.displayName!;
       }
 
+      print('DEBUG: User details - firstName: $userFirstName, lastName: $userLastName, email: ${firebaseUser.email}');
+
       // Create new user profile
       final newUser = AppUser.createNew(
         id: firebaseUser.uid,
@@ -366,8 +386,11 @@ class AuthService {
         authProvider: provider.name,
       );
 
+      print('DEBUG: Attempting to save user to Firestore');
       await _userService.createUser(newUser);
+      print('DEBUG: User profile saved successfully');
     } catch (e) {
+      print('DEBUG: Failed to create user profile: $e');
       throw AuthException('Failed to create user profile: $e');
     }
   }

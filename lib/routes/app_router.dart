@@ -5,6 +5,8 @@ import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
 import '../features/project_creation/presentation/project_context_screen.dart';
+import '../features/project_context/presentation/project_context_screen.dart' as project_context;
+import '../features/team_management/presentation/team_details_screen.dart';
 import '../features/tasks/presentation/tasks_screen.dart';
 import '../features/profile/presentation/simple_profile_screen.dart';
 import '../features/team_management/presentation/team_screen.dart';
@@ -138,25 +140,38 @@ class AppRouter {
           final extra = state.extra as Map<String, dynamic>?;
           final projectDescription = extra?['projectDescription'] as String? ?? '';
           final documentContent = extra?['documentContent'] as String?;
+          final documentUploadResult = extra?['documentUploadResult'];
           
           return ProjectContextScreen(
             projectDescription: projectDescription,
             documentContent: documentContent,
+            documentUploadResult: documentUploadResult,
           );
         },
       ),
       
-      // Team management routes (no bottom nav for specific project views)
+      // Project context viewing route
       GoRoute(
-        path: '/team/:projectId',
-        name: 'project-team',
+        path: '/project-context/:projectId',
+        name: 'view-project-context',
         builder: (context, state) {
-          final projectId = state.pathParameters['projectId'];
-          return Scaffold(
-            body: Center(
-              child: Text('Team Management for Project: $projectId - To be implemented'),
-            ),
+          final projectId = state.pathParameters['projectId']!;
+          final projectTitle = state.uri.queryParameters['title'] ?? 'Project Context';
+          
+          return project_context.ProjectContextScreen(
+            projectId: projectId,
+            projectTitle: projectTitle,
           );
+        },
+      ),
+      
+      // Team management routes (no bottom nav for specific views)
+      GoRoute(
+        path: '/team-details/:teamId',
+        name: 'team-details',
+        builder: (context, state) {
+          final teamId = state.pathParameters['teamId']!;
+          return TeamDetailsScreen(teamId: teamId);
         },
       ),
     ],

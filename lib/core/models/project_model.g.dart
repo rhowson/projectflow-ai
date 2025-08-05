@@ -86,6 +86,7 @@ ProjectMetadata _$ProjectMetadataFromJson(Map<String, dynamic> json) =>
       type: $enumDecode(_$ProjectTypeEnumMap, json['type']),
       priority: $enumDecode(_$PriorityEnumMap, json['priority']),
       estimatedHours: (json['estimatedHours'] as num).toDouble(),
+      teamId: json['teamId'] as String?,
       customFields: json['customFields'] as Map<String, dynamic>,
     );
 
@@ -94,6 +95,7 @@ Map<String, dynamic> _$ProjectMetadataToJson(ProjectMetadata instance) =>
       'type': _$ProjectTypeEnumMap[instance.type]!,
       'priority': _$PriorityEnumMap[instance.priority]!,
       'estimatedHours': instance.estimatedHours,
+      'teamId': instance.teamId,
       'customFields': instance.customFields,
     };
 

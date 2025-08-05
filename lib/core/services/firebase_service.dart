@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../models/project_model.dart';
+import '../models/project_context_model.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -10,6 +11,7 @@ class FirebaseService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _projectsCollection = 'projects';
+  static const String _projectContextCollection = 'project_contexts';
 
   /// Initialize Firebase
   static Future<void> initialize() async {
@@ -602,6 +604,140 @@ class FirebaseService {
       print('Error creating sample data: $e');
       rethrow;
     }
+  }
+
+  /// Save project context to Firestore
+  Future<void> saveProjectContext(ProjectContext projectContext) async {
+    try {
+      final contextData = projectContext.toJson();
+      
+      // Convert DateTime objects to Firestore Timestamps
+      contextData['lastUpdated'] = Timestamp.fromDate(projectContext.lastUpdated);
+      
+      // Convert context questions
+      final List<Map<String, dynamic>> questionsData = [];
+      for (final question in projectContext.contextQuestions) {
+        final questionData = question.toJson();
+        questionData['answeredAt'] = Timestamp.fromDate(question.answeredAt);
+        questionsData.add(questionData);
+      }
+      contextData['contextQuestions'] = questionsData;
+      
+      // Convert documents
+      final List<Map<String, dynamic>> documentsData = [];
+      for (final document in projectContext.documents) {
+        final documentData = document.toJson();
+        documentData['uploadedAt'] = Timestamp.fromDate(document.uploadedAt);
+        documentsData.add(documentData);
+      }
+      contextData['documents'] = documentsData;
+
+      await _firestore
+          .collection(_projectContextCollection)
+          .doc(projectContext.projectId)
+          .set(contextData);
+      
+      print('Project context saved successfully to Firestore: ${projectContext.projectId}');
+    } catch (e) {
+      print('Error saving project context to Firestore: $e');
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        message: 'Failed to save project context: $e',
+      );
+    }
+  }
+
+  /// Load project context from Firestore
+  Future<ProjectContext?> loadProjectContext(String projectId) async {
+    try {
+      final doc = await _firestore
+          .collection(_projectContextCollection)
+          .doc(projectId)
+          .get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      return _parseProjectContextFromFirestore(doc.data()!);
+    } catch (e) {
+      print('Error loading project context from Firestore: $e');
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        message: 'Failed to load project context: $e',
+      );
+    }
+  }
+
+  /// Update project context in Firestore
+  Future<void> updateProjectContext(ProjectContext projectContext) async {
+    await saveProjectContext(projectContext); // Same as save for simplicity
+  }
+
+  /// Delete project context from Firestore
+  Future<void> deleteProjectContext(String projectId) async {
+    try {
+      await _firestore
+          .collection(_projectContextCollection)
+          .doc(projectId)
+          .delete();
+      
+      print('Project context deleted successfully: $projectId');
+    } catch (e) {
+      print('Error deleting project context: $e');
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        message: 'Failed to delete project context: $e',
+      );
+    }
+  }
+
+  /// Parse project context from Firestore document
+  ProjectContext _parseProjectContextFromFirestore(Map<String, dynamic> data) {
+    // Parse context questions
+    final List<ContextQuestion> contextQuestions = [];
+    if (data['contextQuestions'] != null) {
+      final questionsData = data['contextQuestions'] as List;
+      for (final questionData in questionsData) {
+        final questionMap = questionData as Map<String, dynamic>;
+        
+        // Convert Firestore Timestamp to DateTime
+        if (questionMap['answeredAt'] is Timestamp) {
+          questionMap['answeredAt'] = (questionMap['answeredAt'] as Timestamp).toDate().toIso8601String();
+        }
+        
+        contextQuestions.add(ContextQuestion.fromJson(questionMap));
+      }
+    }
+
+    // Parse documents
+    final List<ProjectDocument> documents = [];
+    if (data['documents'] != null) {
+      final documentsData = data['documents'] as List;
+      for (final documentData in documentsData) {
+        final documentMap = documentData as Map<String, dynamic>;
+        
+        // Convert Firestore Timestamp to DateTime
+        if (documentMap['uploadedAt'] is Timestamp) {
+          documentMap['uploadedAt'] = (documentMap['uploadedAt'] as Timestamp).toDate().toIso8601String();
+        }
+        
+        documents.add(ProjectDocument.fromJson(documentMap));
+      }
+    }
+
+    // Convert lastUpdated
+    final lastUpdated = data['lastUpdated'] is Timestamp
+        ? (data['lastUpdated'] as Timestamp).toDate()
+        : DateTime.parse(data['lastUpdated'] as String);
+
+    return ProjectContext(
+      projectId: data['projectId'] as String,
+      contextQuestions: contextQuestions,
+      documents: documents,
+      lastUpdated: lastUpdated,
+      summary: data['summary'] as String?,
+    );
   }
 
 }

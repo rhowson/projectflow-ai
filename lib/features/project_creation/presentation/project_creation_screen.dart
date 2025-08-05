@@ -644,7 +644,7 @@ I have a design team but need help with the technical planning and development p
       const SnackBar(
         content: Text('Form cleared'),
         backgroundColor: Colors.grey,
-        duration: Duration(seconds: 1),
+        duration: Duration(milliseconds: 700),
       ),
     );
     
@@ -660,10 +660,11 @@ I have a design team but need help with the technical planning and development p
     if (_formKey.currentState!.validate()) {
       print('Form is valid, proceeding to context gathering...');
       
-      // Navigate to context screen with project description and document content
+      // Navigate to context screen with project description, document content, and document result
       context.push('/project-context', extra: {
         'projectDescription': _descriptionController.text.trim(),
         'documentContent': _uploadedDocument?.content,
+        'documentUploadResult': _uploadedDocument, // Pass the full document result
       });
     } else {
       print('Form validation failed');

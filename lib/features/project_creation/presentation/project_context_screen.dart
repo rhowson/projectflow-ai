@@ -7,17 +7,20 @@ import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/keyboard_dismissible_wrapper.dart';
 import '../../../shared/widgets/keyboard_dismiss_button.dart';
 import '../../../core/services/claude_ai_service.dart';
+import '../../../core/services/document_service.dart';
 import '../providers/project_provider.dart';
 import '../providers/context_provider.dart';
 
 class ProjectContextScreen extends ConsumerStatefulWidget {
   final String projectDescription;
   final String? documentContent;
+  final DocumentUploadResult? documentUploadResult;
   
   const ProjectContextScreen({
     super.key,
     required this.projectDescription,
     this.documentContent,
+    this.documentUploadResult,
   });
 
   @override
@@ -481,9 +484,29 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
     });
 
     try {
+      // Get the current context data to access the questions
+      final contextData = ref.read(contextQuestionsProvider).value;
+      final questions = contextData?.questions ?? [];
+      
+      // Create a properly structured answers map with question text as keys
+      final structuredAnswers = <String, dynamic>{};
+      for (final entry in _answers.entries) {
+        final questionId = entry.key;
+        final answer = entry.value;
+        
+        // Find the question text by ID
+        final question = questions.firstWhere(
+          (q) => q.id == questionId,
+          orElse: () => throw Exception('Question with ID $questionId not found'),
+        );
+        
+        structuredAnswers[question.question] = answer;
+      }
+      
       final projectId = await ref.read(projectNotifierProvider.notifier).createProjectWithContext(
         widget.projectDescription,
-        _answers,
+        structuredAnswers,
+        document: widget.documentUploadResult, // Pass the document upload result
         documentContent: widget.documentContent,
       );
 
@@ -493,7 +516,7 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
           SnackBar(
             content: Text('Project created successfully! Loading tasks...'),
             backgroundColor: CustomNeumorphicTheme.primaryPurple,
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 1),
           ),
         );
         

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'user_model.dart';
 
 part 'team_model.g.dart';
 
@@ -105,6 +106,15 @@ class Team {
 
   /// Gets the total number of active members
   int get activeMemberCount => members.where((m) => m.status == TeamMemberStatus.active).length;
+  
+  /// Gets the total number of members (alias for consistency)
+  int get totalMembers => activeMemberCount;
+  
+  /// Gets the total number of member IDs (for backwards compatibility)
+  List<String> get memberIds => members.map((m) => m.userId).toList();
+  
+  /// Gets the count of pending invitations (placeholder - would need invitation data)
+  int get pendingInvitationsCount => 0;
   
   /// Gets the team owner member object
   TeamMember? get owner => members.firstWhere((m) => m.userId == ownerId);
@@ -313,6 +323,12 @@ class TeamSettings {
   /// Default project permissions for new members
   final List<String> defaultProjectPermissions;
   
+  /// Require approval for task creation/modification
+  final bool requireApprovalForTasks;
+  
+  /// Enable notifications for team activities
+  final bool enableNotifications;
+  
   /// Time zone for team scheduling
   final String timeZone;
   
@@ -330,6 +346,8 @@ class TeamSettings {
     required this.allowExternalCollaborators,
     required this.requireTwoFactor,
     required this.defaultProjectPermissions,
+    required this.requireApprovalForTasks,
+    required this.enableNotifications,
     required this.timeZone,
     required this.workingHours,
     required this.fileStorageSettings,
@@ -347,6 +365,8 @@ class TeamSettings {
       allowExternalCollaborators: false,
       requireTwoFactor: false,
       defaultProjectPermissions: ['view_projects', 'comment_on_tasks'],
+      requireApprovalForTasks: false,
+      enableNotifications: true,
       timeZone: 'UTC',
       workingHours: WorkingHours.defaultHours(),
       fileStorageSettings: FileStorageSettings.defaultSettings(),
@@ -361,6 +381,8 @@ class TeamSettings {
     bool? allowExternalCollaborators,
     bool? requireTwoFactor,
     List<String>? defaultProjectPermissions,
+    bool? requireApprovalForTasks,
+    bool? enableNotifications,
     String? timeZone,
     WorkingHours? workingHours,
     FileStorageSettings? fileStorageSettings,
@@ -373,6 +395,8 @@ class TeamSettings {
       allowExternalCollaborators: allowExternalCollaborators ?? this.allowExternalCollaborators,
       requireTwoFactor: requireTwoFactor ?? this.requireTwoFactor,
       defaultProjectPermissions: defaultProjectPermissions ?? this.defaultProjectPermissions,
+      requireApprovalForTasks: requireApprovalForTasks ?? this.requireApprovalForTasks,
+      enableNotifications: enableNotifications ?? this.enableNotifications,
       timeZone: timeZone ?? this.timeZone,
       workingHours: workingHours ?? this.workingHours,
       fileStorageSettings: fileStorageSettings ?? this.fileStorageSettings,
@@ -887,4 +911,15 @@ extension TeamStatusExtension on TeamStatus {
         return 'Suspended';
     }
   }
+}
+
+/// Combined model for team member with their user data
+class TeamMemberWithUser {
+  final TeamMember member;
+  final AppUser user;
+  
+  const TeamMemberWithUser({
+    required this.member,
+    required this.user,
+  });
 }

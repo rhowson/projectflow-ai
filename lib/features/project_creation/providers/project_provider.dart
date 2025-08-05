@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/project_model.dart';
-import '../../../core/services/claude_ai_service.dart';
+import '../../../core/models/project_context_model.dart';
+import '../../../core/services/claude_ai_service.dart' as claude_service;
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/document_service.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
-  final ClaudeAIService _claudeService;
+  final claude_service.ClaudeAIService _claudeService;
   final FirebaseService _firebaseService;
   final DocumentService _documentService;
   final Ref ref;
@@ -88,8 +89,9 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       }).toList();
       
       // Create project with generated phases and tasks
+      final projectId = _generateId();
       final project = Project(
-        id: _generateId(),
+        id: projectId,
         title: _extractTitle(description),
         description: description,
         status: ProjectStatus.inProgress,
@@ -101,6 +103,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
           type: ProjectType.mobile, // Use fixed type for demo
           priority: Priority.medium,
           estimatedHours: projectBreakdown.totalEstimatedDays * 8.0,
+          teamId: null, // Can be set later when linking to a team
           customFields: {
             'contextAnswers': contextAnswers,
             'totalEstimatedDays': projectBreakdown.totalEstimatedDays,
@@ -113,6 +116,50 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       
       // Save to Firebase
       await _firebaseService.saveProject(project);
+      
+      // Handle document upload to Firebase Storage if document exists
+      List<ProjectDocument> uploadedDocuments = [];
+      if (document != null) {
+        print('Uploading document to Firebase Storage...');
+        try {
+          final projectDocument = await _documentService.uploadDocumentToFirebase(
+            document: document,
+            projectId: projectId,
+            uploadedBy: _currentUserId,
+            type: DocumentType.requirement,
+            description: 'Context document uploaded during project creation',
+          );
+          uploadedDocuments = [projectDocument];
+          print('Document uploaded successfully: ${projectDocument.name}');
+        } catch (e) {
+          print('Warning: Failed to upload document to Firebase Storage: $e');
+        }
+      }
+      
+      // Save context answers as project context (always save if we have context answers or documents)
+      if (contextAnswers.isNotEmpty || uploadedDocuments.isNotEmpty) {
+        final contextQuestions = contextAnswers.entries.map((entry) {
+          return ContextQuestion(
+            id: _generateId(),
+            question: entry.key,
+            answer: entry.value.toString(),
+            type: ContextQuestionType.other,
+            answeredAt: DateTime.now(),
+            isRequired: false,
+          );
+        }).toList();
+        
+        final projectContext = ProjectContext(
+          projectId: projectId,
+          contextQuestions: contextQuestions,
+          documents: uploadedDocuments,
+          lastUpdated: DateTime.now(),
+          summary: null,
+        );
+        
+        await _firebaseService.saveProjectContext(projectContext);
+        print('Project context saved with ${contextQuestions.length} questions and ${uploadedDocuments.length} documents');
+      }
       
       // Update state
       final currentProjects = state.value ?? [];
@@ -150,8 +197,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       print('Project assessed: ${assessment.projectType}');
       
       // Step 2: Generate context questions
-      await claudeService.generateContextQuestions(assessment);
-      print('Context questions generated');
+      final contextQuestions = await claudeService.generateContextQuestions(assessment);
+      print('Context questions generated: ${contextQuestions.length} questions');
       
       // Step 3: Generate complete project breakdown with tasks
       final projectBreakdown = await claudeService.generateProjectBreakdown(
@@ -190,8 +237,9 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       }).toList();
       
       // Step 5: Create project with generated phases and tasks
+      final projectId = _generateId();
       final project = Project(
-        id: _generateId(),
+        id: projectId,
         title: _extractTitle(description),
         description: description,
         status: ProjectStatus.inProgress,
@@ -203,6 +251,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
           type: ProjectType.mobile, // Use fixed type for demo since extension might not exist
           priority: Priority.medium,
           estimatedHours: projectBreakdown.totalEstimatedDays * 8.0, // Convert days to hours
+          teamId: null, // Can be set later when linking to a team
           customFields: {
             'assessment': assessment.toJson(),
             'totalEstimatedDays': projectBreakdown.totalEstimatedDays,
@@ -216,6 +265,65 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       // Save to Firebase
       await _firebaseService.saveProject(project);
       
+      // Step 6: Handle document upload to Firebase Storage if document exists
+      List<ProjectDocument> uploadedDocuments = [];
+      if (document != null) {
+        print('Uploading document to Firebase Storage...');
+        try {
+          final projectDocument = await _documentService.uploadDocumentToFirebase(
+            document: document,
+            projectId: projectId,
+            uploadedBy: _currentUserId,
+            type: DocumentType.requirement, // Default to requirement for project creation docs
+            description: 'Project requirement document uploaded during project creation',
+          );
+          uploadedDocuments = [projectDocument];
+          print('Document uploaded successfully: ${projectDocument.name}');
+        } catch (e) {
+          print('Warning: Failed to upload document to Firebase Storage: $e');
+          // Continue with project creation even if document upload fails
+        }
+      }
+      
+      // Step 7: Create initial project context with generated questions and uploaded documents
+      if (contextQuestions.isNotEmpty || uploadedDocuments.isNotEmpty) {
+        final convertedQuestions = contextQuestions.map((cq) {
+          // Convert claude_service.ContextQuestion to project_context_model.ContextQuestion
+          ContextQuestionType contextType;
+          switch (cq.type) {
+            case claude_service.QuestionType.text:
+              contextType = ContextQuestionType.other;
+              break;
+            case claude_service.QuestionType.multipleChoice:
+              contextType = ContextQuestionType.projectScope;
+              break;
+            case claude_service.QuestionType.boolean:
+              contextType = ContextQuestionType.constraints;
+              break;
+          }
+          
+          return ContextQuestion(
+            id: cq.id,
+            question: cq.question,
+            answer: '', // Empty answer initially
+            type: contextType,
+            answeredAt: DateTime.now(), // Will be updated when answered
+            isRequired: true, // Default to required for generated questions
+          );
+        }).toList();
+        
+        final initialContext = ProjectContext(
+          projectId: project.id,
+          contextQuestions: convertedQuestions,
+          documents: uploadedDocuments,
+          lastUpdated: DateTime.now(),
+          summary: null,
+        );
+        
+        await _firebaseService.saveProjectContext(initialContext);
+        print('Initial project context saved with ${contextQuestions.length} questions and ${uploadedDocuments.length} documents');
+      }
+      
       // Update state
       final currentProjects = state.value ?? [];
       state = AsyncValue.data([...currentProjects, project]);
@@ -226,9 +334,6 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
         _documentService.cleanupDocument(document);
         print('Document cleaned up after processing');
       }
-      
-      // Store questions for context gathering
-      // This would typically be handled by navigation or another provider
       
       // Return the project ID for navigation
       return project.id;
@@ -601,6 +706,135 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
+  /// Assign task to a team member
+  Future<void> assignTaskToMember(String projectId, String phaseId, String taskId, String? assignedToId) async {
+    final currentProjects = state.value ?? [];
+    final projectIndex = currentProjects.indexWhere((p) => p.id == projectId);
+    
+    if (projectIndex != -1) {
+      final project = currentProjects[projectIndex];
+      final phaseIndex = project.phases.indexWhere((p) => p.id == phaseId);
+      
+      if (phaseIndex != -1) {
+        final updatedPhases = [...project.phases];
+        final phase = updatedPhases[phaseIndex];
+        final taskIndex = phase.tasks.indexWhere((t) => t.id == taskId);
+        
+        if (taskIndex != -1) {
+          final task = phase.tasks[taskIndex];
+          final updatedTasks = [...phase.tasks];
+          
+          // Update task with new assignment
+          updatedTasks[taskIndex] = task.copyWith(assignedToId: assignedToId);
+          
+          updatedPhases[phaseIndex] = ProjectPhase(
+            id: phase.id,
+            name: phase.name,
+            description: phase.description,
+            tasks: updatedTasks,
+            status: phase.status,
+            startDate: phase.startDate,
+            endDate: phase.endDate,
+          );
+          
+          final updatedProject = project.copyWith(
+            phases: updatedPhases,
+          );
+          
+          // Save to Firebase
+          await _firebaseService.updateProject(updatedProject);
+          
+          final updatedProjects = [...currentProjects];
+          updatedProjects[projectIndex] = updatedProject;
+          state = AsyncValue.data(updatedProjects);
+        }
+      }
+    }
+  }
+
+  /// Link project to a team
+  Future<void> linkProjectToTeam(String projectId, String? teamId) async {
+    final currentProjects = state.value ?? [];
+    final projectIndex = currentProjects.indexWhere((p) => p.id == projectId);
+    
+    if (projectIndex != -1) {
+      final project = currentProjects[projectIndex];
+      // Handle empty string as null
+      final finalTeamId = (teamId == null || teamId.isEmpty) ? null : teamId;
+      final updatedMetadata = project.metadata.copyWith(teamId: finalTeamId);
+      final updatedProject = project.copyWith(metadata: updatedMetadata);
+      
+      // Save to Firebase
+      await _firebaseService.updateProject(updatedProject);
+      
+      final updatedProjects = [...currentProjects];
+      updatedProjects[projectIndex] = updatedProject;
+      state = AsyncValue.data(updatedProjects);
+    }
+  }
+
+  /// Add team member to project
+  Future<void> addTeamMemberToProject(String projectId, String memberId) async {
+    final currentProjects = state.value ?? [];
+    final projectIndex = currentProjects.indexWhere((p) => p.id == projectId);
+    
+    if (projectIndex != -1) {
+      final project = currentProjects[projectIndex];
+      if (!project.teamMemberIds.contains(memberId)) {
+        final updatedMemberIds = [...project.teamMemberIds, memberId];
+        final updatedProject = project.copyWith(teamMemberIds: updatedMemberIds);
+        
+        // Save to Firebase
+        await _firebaseService.updateProject(updatedProject);
+        
+        final updatedProjects = [...currentProjects];
+        updatedProjects[projectIndex] = updatedProject;
+        state = AsyncValue.data(updatedProjects);
+      }
+    }
+  }
+
+  /// Remove team member from project
+  Future<void> removeTeamMemberFromProject(String projectId, String memberId) async {
+    final currentProjects = state.value ?? [];
+    final projectIndex = currentProjects.indexWhere((p) => p.id == projectId);
+    
+    if (projectIndex != -1) {
+      final project = currentProjects[projectIndex];
+      final updatedMemberIds = project.teamMemberIds.where((id) => id != memberId).toList();
+      final updatedProject = project.copyWith(teamMemberIds: updatedMemberIds);
+      
+      // Also unassign any tasks from this member
+      final updatedPhases = project.phases.map((phase) {
+        final updatedTasks = phase.tasks.map((task) {
+          if (task.assignedToId == memberId) {
+            return task.copyWith(assignedToId: null);
+          }
+          return task;
+        }).toList();
+        
+        return ProjectPhase(
+          id: phase.id,
+          name: phase.name,
+          description: phase.description,
+          tasks: updatedTasks,
+          status: phase.status,
+          startDate: phase.startDate,
+          endDate: phase.endDate,
+        );
+      }).toList();
+      
+      final finalProject = updatedProject.copyWith(phases: updatedPhases);
+      
+      // Save to Firebase
+      await _firebaseService.updateProject(finalProject);
+      
+      final updatedProjects = [...currentProjects];
+      updatedProjects[projectIndex] = finalProject;
+      state = AsyncValue.data(updatedProjects);
+    }
+  }
+
   String _generateId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }
@@ -633,8 +867,8 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
 }
 
 // Providers
-final claudeAIServiceProvider = Provider<ClaudeAIService>((ref) {
-  return ClaudeAIService(apiKey: AppConstants.claudeApiKey);
+final claudeAIServiceProvider = Provider<claude_service.ClaudeAIService>((ref) {
+  return claude_service.ClaudeAIService(apiKey: AppConstants.claudeApiKey);
 });
 
 final firebaseServiceProvider = Provider<FirebaseService>((ref) {

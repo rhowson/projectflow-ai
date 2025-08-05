@@ -430,11 +430,14 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen>
             ),
             SizedBox(height: 8.h),
             Text(
-              question.answer,
+              question.answer.isEmpty ? 'No answer provided' : question.answer,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: CustomNeumorphicTheme.darkText,
+                color: question.answer.isEmpty 
+                    ? CustomNeumorphicTheme.lightText 
+                    : CustomNeumorphicTheme.darkText,
                 height: 1.4,
+                fontStyle: question.answer.isEmpty ? FontStyle.italic : FontStyle.normal,
               ),
             ),
             SizedBox(height: 12.h),

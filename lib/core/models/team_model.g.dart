@@ -116,6 +116,8 @@ TeamSettings _$TeamSettingsFromJson(Map<String, dynamic> json) => TeamSettings(
           (json['defaultProjectPermissions'] as List<dynamic>)
               .map((e) => e as String)
               .toList(),
+      requireApprovalForTasks: json['requireApprovalForTasks'] as bool,
+      enableNotifications: json['enableNotifications'] as bool,
       timeZone: json['timeZone'] as String,
       workingHours:
           WorkingHours.fromJson(json['workingHours'] as Map<String, dynamic>),
@@ -132,6 +134,8 @@ Map<String, dynamic> _$TeamSettingsToJson(TeamSettings instance) =>
       'allowExternalCollaborators': instance.allowExternalCollaborators,
       'requireTwoFactor': instance.requireTwoFactor,
       'defaultProjectPermissions': instance.defaultProjectPermissions,
+      'requireApprovalForTasks': instance.requireApprovalForTasks,
+      'enableNotifications': instance.enableNotifications,
       'timeZone': instance.timeZone,
       'workingHours': instance.workingHours,
       'fileStorageSettings': instance.fileStorageSettings,

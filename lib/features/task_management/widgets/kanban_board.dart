@@ -148,6 +148,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       status: widget.project.status,
       createdAt: widget.project.createdAt,
       dueDate: widget.project.dueDate,
+      ownerId: widget.project.ownerId,
       teamMemberIds: widget.project.teamMemberIds,
       phases: updatedPhases,
       metadata: widget.project.metadata,

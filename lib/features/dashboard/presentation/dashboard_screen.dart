@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../core/models/project_model.dart';
-import '../../../core/widgets/database_status_widget.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../project_creation/providers/project_provider.dart';
@@ -159,9 +158,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            // Database status widget for testing
-            const DatabaseStatusWidget(),
           ],
         ),
       ),

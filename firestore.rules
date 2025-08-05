@@ -1,0 +1,112 @@
+// Firestore Security Rules for ProjectFlow AI
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow users to read basic profile info of other users (for team features)
+      allow read: if request.auth != null && 
+        resource.data.keys().hasAny(['displayName', 'email', 'photoUrl', 'role']);
+    }
+    
+    // Projects collection - project owners and team members can access
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null && (
+        // Project owner
+        resource.data.ownerId == request.auth.uid ||
+        // Team member
+        request.auth.uid in resource.data.teamMemberIds
+      );
+      
+      // Allow creation if user is authenticated and is the owner
+      allow create: if request.auth != null && 
+        request.resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Teams collection - team members can access
+    match /teams/{teamId} {
+      allow read, write: if request.auth != null && (
+        // Team owner
+        resource.data.ownerId == request.auth.uid ||
+        // Team member
+        request.auth.uid in resource.data.get('members', []).map(m => m.userId)
+      );
+      
+      // Allow creation if user is authenticated and is the owner
+      allow create: if request.auth != null && 
+        request.resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Team invitations - visible to inviter and invitee
+    match /team_invitations/{invitationId} {
+      allow read, write: if request.auth != null && (
+        resource.data.invitedById == request.auth.uid ||
+        resource.data.email == request.auth.token.email
+      );
+      
+      allow create: if request.auth != null && 
+        request.resource.data.invitedById == request.auth.uid;
+    }
+    
+    // Tasks subcollection under projects
+    match /projects/{projectId}/tasks/{taskId} {
+      allow read, write: if request.auth != null && (
+        // Check parent project access
+        get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid ||
+        request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.teamMemberIds
+      );
+    }
+    
+    // Project phases subcollection
+    match /projects/{projectId}/phases/{phaseId} {
+      allow read, write: if request.auth != null && (
+        // Check parent project access
+        get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid ||
+        request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.teamMemberIds
+      );
+    }
+    
+    // Notifications - users can read their own notifications
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      
+      allow create: if request.auth != null;
+    }
+    
+    // Documents/Files - project team members can access
+    match /documents/{documentId} {
+      allow read, write: if request.auth != null && (
+        resource.data.ownerId == request.auth.uid ||
+        request.auth.uid in resource.data.get('sharedWith', [])
+      );
+      
+      allow create: if request.auth != null && 
+        request.resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Analytics and usage data (optional)
+    match /analytics/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // System configuration (admin only)
+    match /system/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}
+
+// Helper functions
+function isTeamMember(teamId, userId) {
+  return userId in get(/databases/$(database)/documents/teams/$(teamId)).data.get('members', []).map(m => m.userId);
+}
+
+function isProjectTeamMember(projectId, userId) {
+  return userId in get(/databases/$(database)/documents/projects/$(projectId)).data.teamMemberIds;
+}

@@ -434,7 +434,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         SizedBox(height: 8.h),
         Row(
           children: [
-            Expanded(child: _buildTaskStatCard('Review', reviewTasks, AppColors.statusInProgress.withValues(alpha: 0.7))),
+            Expanded(child: _buildTaskStatCard('Review', reviewTasks, AppColors.statusReview)),
             SizedBox(width: 12.w),
             Expanded(child: _buildTaskStatCard('Completed', completedTasks, AppColors.statusCompleted)),
           ],
@@ -822,7 +822,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             ],
           ),
           backgroundColor: CustomNeumorphicTheme.primaryPurple,
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 2),
         ),
       );
 
@@ -838,7 +838,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           SnackBar(
             content: Text('Project deleted successfully'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 1),
           ),
         );
         
@@ -852,7 +852,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           SnackBar(
             content: Text('Failed to delete project: $e'),
             backgroundColor: CustomNeumorphicTheme.errorRed,
-            duration: Duration(seconds: 3),
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -888,69 +888,64 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         final hasContext = projectContext?.hasContent ?? false;
         final itemCount = projectContext?.totalItems ?? 0;
         
-        return NeumorphicButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProjectContextScreen(
-                projectId: project.id,
-                projectTitle: project.title,
-              ),
+        return SizedBox(
+          width: 56.w,
+          height: 56.h,
+          child: NeumorphicButton(
+            onPressed: () => context.push(
+              '/project-context/${project.id}?title=${Uri.encodeComponent(project.title)}',
             ),
-          ),
-          borderRadius: BorderRadius.circular(8.r),
-          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 6.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                children: [
-                  Icon(
-                    Icons.library_books_outlined,
-                    color: hasContext 
-                        ? CustomNeumorphicTheme.primaryPurple 
-                        : CustomNeumorphicTheme.lightText,
-                    size: 16.sp,
-                  ),
-                  if (hasContext && itemCount > 0)
-                    Positioned(
-                      right: -2,
-                      top: -2,
-                      child: Container(
-                        padding: EdgeInsets.all(2.w),
-                        decoration: BoxDecoration(
-                          color: CustomNeumorphicTheme.primaryPurple,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: BoxConstraints(
-                          minWidth: 14.w,
-                          minHeight: 14.w,
-                        ),
-                        child: Text(
-                          itemCount > 9 ? '9+' : itemCount.toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 8.sp,
-                            fontWeight: FontWeight.w700,
+            borderRadius: BorderRadius.circular(8.r),
+            padding: EdgeInsets.zero,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  children: [
+                    Icon(
+                      Icons.library_books_outlined,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      size: 16.sp,
+                    ),
+                    if (hasContext && itemCount > 0)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: EdgeInsets.all(2.w),
+                          decoration: BoxDecoration(
+                            color: CustomNeumorphicTheme.primaryPurple,
+                            shape: BoxShape.circle,
                           ),
-                          textAlign: TextAlign.center,
+                          constraints: BoxConstraints(
+                            minWidth: 14.w,
+                            minHeight: 14.w,
+                          ),
+                          child: Text(
+                            itemCount > 9 ? '9+' : itemCount.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                'Context',
-                style: TextStyle(
-                  fontSize: 10.sp,
-                  color: hasContext 
-                      ? CustomNeumorphicTheme.primaryPurple 
-                      : CustomNeumorphicTheme.lightText,
-                  fontWeight: FontWeight.w500,
+                  ],
                 ),
-              ),
-            ],
+                SizedBox(height: 2.h),
+                Text(
+                  'Context',
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -984,14 +979,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         ),
       ),
       error: (_, __) => NeumorphicButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProjectContextScreen(
-              projectId: project.id,
-              projectTitle: project.title,
-            ),
-          ),
+        onPressed: () => context.push(
+          '/project-context/${project.id}?title=${Uri.encodeComponent(project.title)}',
         ),
         borderRadius: BorderRadius.circular(8.r),
         padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 6.w),
@@ -1195,28 +1184,33 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           ),
           SizedBox(width: 8.w),
           // Edit options button with label
-          NeumorphicButton(
-            onPressed: () => _showProjectOptionsMenu(selectedProject),
-            borderRadius: BorderRadius.circular(8.r),
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.edit_outlined,
-                  size: 16.sp,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  'Edit',
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                    fontWeight: FontWeight.w500,
+          SizedBox(
+            width: 56.w,
+            height: 56.h,
+            child: NeumorphicButton(
+              onPressed: () => _showProjectOptionsMenu(selectedProject),
+              borderRadius: BorderRadius.circular(8.r),
+              padding: EdgeInsets.zero,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.edit_outlined,
+                    size: 16.sp,
+                    color: CustomNeumorphicTheme.primaryPurple,
                   ),
-                ),
-              ],
+                  SizedBox(height: 2.h),
+                  Text(
+                    'Edit',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

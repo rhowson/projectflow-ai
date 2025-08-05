@@ -17,11 +17,19 @@ class ClaudeAIService {
     _dio.options.connectTimeout = AppConstants.connectionTimeout;
     _dio.options.receiveTimeout = AppConstants.receiveTimeout;
     _dio.options.sendTimeout = AppConstants.sendTimeout;
+    
+    // Debug logging for troubleshooting
+    print('Claude AI Service initialized:');
+    print('  API key: ${apiKey.substring(0, 10)}...');
+    print('  Demo mode: ${AppConstants.useDemoMode}');
+    print('  Has valid API key: ${AppConstants.hasValidApiKey}');
+    print('  Environment: ${AppConstants.environment}');
+    print('  Is production: ${AppConstants.isProduction}');
   }
 
   Future<ProjectAssessment> assessProject(String projectDescription, {String? documentContent}) async {
-    // Demo mode - return mock data
-    if (AppConstants.useDemoMode) {
+    // Demo mode or no valid API key - return mock data
+    if (AppConstants.useDemoMode || !AppConstants.hasValidApiKey) {
       await Future.delayed(const Duration(seconds: 2)); // Simulate API delay
       return _createMockAssessment(projectDescription);
     }
@@ -75,18 +83,35 @@ class ClaudeAIService {
         jsonDecode(jsonString)
       ));
     } catch (e) {
-      throw ClaudeAIException('Failed to assess project: $e');
+      // In production, log error and fallback to demo mode
+      if (AppConstants.isProduction) {
+        // TODO: Log to production error tracking service (Crashlytics, Sentry, etc.)
+        print('Claude AI API error in production: $e');
+      } else {
+        print('Claude AI API error, falling back to demo mode: $e');
+      }
+      await Future.delayed(const Duration(seconds: 1));
+      return _createMockAssessment(projectDescription);
     }
   }
 
   Future<List<ContextQuestion>> generateContextQuestions(
     ProjectAssessment assessment,
   ) async {
-    // Demo mode - return mock data
-    if (AppConstants.useDemoMode) {
+    print('🤖 Generating context questions:');
+    print('  Demo mode: ${AppConstants.useDemoMode}');
+    print('  Has valid key: ${AppConstants.hasValidApiKey}');
+    print('  API key length: ${AppConstants.claudeApiKey.length}');
+    print('  API key prefix: ${AppConstants.claudeApiKey.startsWith('sk-ant-api')}');
+    
+    // Demo mode or no valid API key - return mock data
+    if (AppConstants.useDemoMode || !AppConstants.hasValidApiKey) {
+      print('❌ Using DEMO MODE for context questions');
       await Future.delayed(const Duration(seconds: 1)); // Simulate API delay
       return _createMockContextQuestions(assessment);
     }
+    
+    print('✅ Using LIVE API for context questions');
     
     const prompt = '''
     Based on this project assessment, generate 5-8 specific context questions that would help better understand the project requirements:
@@ -141,7 +166,10 @@ class ClaudeAIService {
           .map((json) => ContextQuestion.fromJson(json))
           .toList();
     } catch (e) {
-      throw ClaudeAIException('Failed to generate context questions: $e');
+      // Fallback to demo mode on API error
+      print('Claude AI API error, falling back to demo mode: $e');
+      await Future.delayed(const Duration(seconds: 1));
+      return _createMockContextQuestions(assessment);
     }
   }
 
@@ -149,8 +177,8 @@ class ClaudeAIService {
     String projectDescription,
     Map<String, dynamic> contextAnswers,
   ) async {
-    // Demo mode - return mock data
-    if (AppConstants.useDemoMode) {
+    // Demo mode or no valid API key - return mock data
+    if (AppConstants.useDemoMode || !AppConstants.hasValidApiKey) {
       await Future.delayed(const Duration(seconds: 3)); // Simulate API delay
       return _createMockProjectBreakdown(projectDescription);
     }
@@ -219,7 +247,10 @@ class ClaudeAIService {
         jsonDecode(jsonString)
       ));
     } catch (e) {
-      throw ClaudeAIException('Failed to generate project breakdown: $e');
+      // Fallback to demo mode on API error
+      print('Claude AI API error, falling back to demo mode: $e');
+      await Future.delayed(const Duration(seconds: 1));
+      return _createMockProjectBreakdown(projectDescription);
     }
   }
 

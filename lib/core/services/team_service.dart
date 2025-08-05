@@ -542,6 +542,33 @@ class TeamService {
             .toList());
   }
 
+  /// Gets team members with their user data
+  Future<List<TeamMemberWithUser>> getTeamMembersWithUserData(String teamId) async {
+    try {
+      final team = await getTeamById(teamId);
+      if (team == null) {
+        throw TeamServiceException('Team not found');
+      }
+      
+      final List<TeamMemberWithUser> membersWithUserData = [];
+      
+      for (final member in team.members) {
+        final user = await _userService.getUserById(member.userId);
+        if (user != null) {
+          membersWithUserData.add(TeamMemberWithUser(
+            member: member,
+            user: user,
+          ));
+        }
+      }
+      
+      return membersWithUserData;
+    } catch (e) {
+      if (e is TeamServiceException) rethrow;
+      throw TeamServiceException('Failed to get team members with user data: $e');
+    }
+  }
+
   /// Private helper methods
 
   Future<TeamInvitation?> _getInvitationById(String invitationId) async {

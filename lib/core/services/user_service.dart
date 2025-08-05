@@ -79,13 +79,18 @@ class UserService {
   /// Creates a new user profile
   Future<AppUser> createUser(AppUser user) async {
     try {
+      print('DEBUG: UserService - Attempting to create user with ID: ${user.id}');
+      print('DEBUG: UserService - User data: ${user.toJson()}');
+      
       await _firestore
           .collection(_usersCollection)
           .doc(user.id)
           .set(user.toJson());
       
+      print('DEBUG: UserService - User created successfully in Firestore');
       return user;
     } catch (e) {
+      print('DEBUG: UserService - Failed to create user: $e');
       throw UserServiceException('Failed to create user: $e');
     }
   }

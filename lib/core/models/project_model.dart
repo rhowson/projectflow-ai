@@ -91,17 +91,35 @@ class ProjectMetadata {
   final ProjectType type;
   final Priority priority;
   final double estimatedHours;
+  final String? teamId; // ID of the team this project belongs to
   final Map<String, dynamic> customFields;
 
   const ProjectMetadata({
     required this.type,
     required this.priority,
     required this.estimatedHours,
+    this.teamId,
     required this.customFields,
   });
 
   factory ProjectMetadata.fromJson(Map<String, dynamic> json) => _$ProjectMetadataFromJson(json);
   Map<String, dynamic> toJson() => _$ProjectMetadataToJson(this);
+  
+  ProjectMetadata copyWith({
+    ProjectType? type,
+    Priority? priority,
+    double? estimatedHours,
+    String? teamId,
+    Map<String, dynamic>? customFields,
+  }) {
+    return ProjectMetadata(
+      type: type ?? this.type,
+      priority: priority ?? this.priority,
+      estimatedHours: estimatedHours ?? this.estimatedHours,
+      teamId: teamId ?? this.teamId,
+      customFields: customFields ?? this.customFields,
+    );
+  }
 }
 
 enum ProjectType { web, mobile, desktop, backend, fullStack, other }
@@ -162,6 +180,38 @@ class Task {
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
   Map<String, dynamic> toJson() => _$TaskToJson(this);
+  
+  Task copyWith({
+    String? id,
+    String? title,
+    String? description,
+    TaskStatus? status,
+    Priority? priority,
+    String? assignedToId,
+    DateTime? createdAt,
+    DateTime? dueDate,
+    List<String>? attachmentIds,
+    List<String>? dependencyIds,
+    double? estimatedHours,
+    double? actualHours,
+    List<TaskComment>? comments,
+  }) {
+    return Task(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      assignedToId: assignedToId ?? this.assignedToId,
+      createdAt: createdAt ?? this.createdAt,
+      dueDate: dueDate ?? this.dueDate,
+      attachmentIds: attachmentIds ?? this.attachmentIds,
+      dependencyIds: dependencyIds ?? this.dependencyIds,
+      estimatedHours: estimatedHours ?? this.estimatedHours,
+      actualHours: actualHours ?? this.actualHours,
+      comments: comments ?? this.comments,
+    );
+  }
 }
 
 enum TaskStatus { todo, inProgress, review, completed, blocked }

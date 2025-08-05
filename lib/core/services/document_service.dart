@@ -2,10 +2,15 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
+import 'package:firebase_storage/firebase_storage.dart';
+import '../models/project_context_model.dart';
 
 class DocumentService {
   static const int maxFileSizeBytes = 5 * 1024 * 1024; // 5MB limit
   static const List<String> allowedExtensions = ['pdf', 'doc', 'docx', 'txt'];
+  static const String _storageBucket = 'gs://projectflow-1e82a.firebasestorage.app';
+  
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   
   Future<DocumentUploadResult?> pickAndValidateDocument() async {
     try {
@@ -88,6 +93,95 @@ class DocumentService {
     return '[Word document content extraction not implemented yet. Please provide project details in the text field above.]';
   }
   
+  /// Upload document to Firebase Storage and return ProjectDocument
+  Future<ProjectDocument> uploadDocumentToFirebase({
+    required DocumentUploadResult document,
+    required String projectId,
+    required String uploadedBy,
+    DocumentType type = DocumentType.other,
+    String? description,
+  }) async {
+    try {
+      // Generate unique document ID
+      final documentId = '${DateTime.now().millisecondsSinceEpoch}_${document.fileName}';
+      
+      // Create storage path: projects/{projectId}/documents/{documentId}
+      final storagePath = 'projects/$projectId/documents/$documentId';
+      final storageRef = _storage.ref().child(storagePath);
+      
+      // Upload file bytes to Firebase Storage
+      if (document.originalBytes == null) {
+        throw DocumentException('Document bytes not available for upload');
+      }
+      
+      // Set metadata
+      final metadata = SettableMetadata(
+        contentType: _getMimeType(document.fileExtension),
+        customMetadata: {
+          'originalFileName': document.fileName,
+          'projectId': projectId,
+          'uploadedBy': uploadedBy,
+          'documentType': type.name,
+          'uploadedAt': DateTime.now().toIso8601String(),
+        },
+      );
+      
+      // Upload to Firebase Storage
+      final uploadTask = storageRef.putData(document.originalBytes!, metadata);
+      final snapshot = await uploadTask;
+      
+      // Get download URL
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      
+      // Create ProjectDocument model
+      final projectDocument = ProjectDocument(
+        id: documentId,
+        name: document.fileName,
+        path: downloadUrl, // Use download URL as path
+        mimeType: _getMimeType(document.fileExtension),
+        sizeInBytes: document.fileSize,
+        uploadedAt: DateTime.now(),
+        uploadedBy: uploadedBy,
+        type: type,
+        description: description,
+      );
+      
+      print('Document uploaded successfully: $storagePath');
+      return projectDocument;
+      
+    } catch (e) {
+      print('Error uploading document to Firebase Storage: $e');
+      throw DocumentException('Failed to upload document: $e');
+    }
+  }
+  
+  /// Delete document from Firebase Storage
+  Future<void> deleteDocumentFromFirebase(String storagePath) async {
+    try {
+      await _storage.ref().child(storagePath).delete();
+      print('Document deleted from Firebase Storage: $storagePath');
+    } catch (e) {
+      print('Error deleting document from Firebase Storage: $e');
+      throw DocumentException('Failed to delete document: $e');
+    }
+  }
+  
+  /// Get MIME type for file extension
+  String _getMimeType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'txt':
+        return 'text/plain';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   void cleanupDocument(DocumentUploadResult document) {
     // Clear sensitive data from memory
     document.originalBytes?.fillRange(0, document.originalBytes!.length, 0);

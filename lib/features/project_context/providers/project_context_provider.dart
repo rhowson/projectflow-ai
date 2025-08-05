@@ -1,80 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../core/models/project_context_model.dart';
+import '../../../core/services/firebase_service.dart';
+import '../../project_creation/providers/project_provider.dart';
 
 final projectContextNotifierProvider = StateNotifierProvider.family<ProjectContextNotifier, AsyncValue<ProjectContext?>, String>(
-  (ref, projectId) => ProjectContextNotifier(projectId),
+  (ref, projectId) => ProjectContextNotifier(projectId, ref.read(firebaseServiceProvider)),
 );
 
 class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> {
   final String projectId;
+  final FirebaseService _firebaseService;
   
-  ProjectContextNotifier(this.projectId) : super(const AsyncValue.loading()) {
+  ProjectContextNotifier(this.projectId, this._firebaseService) : super(const AsyncValue.loading()) {
     _loadProjectContext();
   }
 
-  void _loadProjectContext() {
-    // Mock data for demonstration - in real app, this would load from database
-    final mockQuestions = [
-      ContextQuestion(
-        id: '1',
-        question: 'What is the primary goal of this project?',
-        answer: 'Create a modern project management app with AI assistance for breaking down complex projects into manageable tasks.',
-        type: ContextQuestionType.projectScope,
-        answeredAt: DateTime.now().subtract(const Duration(days: 2)),
-        isRequired: true,
-      ),
-      ContextQuestion(
-        id: '2',
-        question: 'What technology stack should be used?',
-        answer: 'Flutter for mobile/web frontend, Firebase for backend services, Claude AI for intelligent project analysis.',
-        type: ContextQuestionType.technicalRequirements,
-        answeredAt: DateTime.now().subtract(const Duration(days: 2)),
-        isRequired: true,
-      ),
-      ContextQuestion(
-        id: '3',
-        question: 'What is the target timeline for completion?',
-        answer: '3 months for MVP, 6 months for full version with all features.',
-        type: ContextQuestionType.timeline,
-        answeredAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ];
-
-    final mockDocuments = [
-      ProjectDocument(
-        id: '1',
-        name: 'Project Requirements.pdf',
-        path: '/documents/requirements.pdf',
-        mimeType: 'application/pdf',
-        sizeInBytes: 245760, // 240KB
-        uploadedAt: DateTime.now().subtract(const Duration(days: 1)),
-        uploadedBy: 'current_user',
-        type: DocumentType.requirement,
-        description: 'Detailed project requirements and specifications',
-      ),
-      ProjectDocument(
-        id: '2',
-        name: 'UI Mockups.figma',
-        path: '/documents/ui_mockups.figma',
-        mimeType: 'application/figma',
-        sizeInBytes: 1048576, // 1MB
-        uploadedAt: DateTime.now().subtract(const Duration(hours: 12)),
-        uploadedBy: 'designer_user',
-        type: DocumentType.design,
-        description: 'User interface mockups and design system',
-      ),
-    ];
-
-    final context = ProjectContext(
-      projectId: projectId,
-      contextQuestions: mockQuestions,
-      documents: mockDocuments,
-      lastUpdated: DateTime.now(),
-      summary: 'AI-powered project management app with Flutter frontend and Firebase backend. 3-month timeline with focus on intelligent task breakdown.',
-    );
-
-    state = AsyncValue.data(context);
+  Future<void> _loadProjectContext() async {
+    try {
+      state = const AsyncValue.loading();
+      
+      // Try to load from Firebase first
+      final existingContext = await _firebaseService.loadProjectContext(projectId);
+      
+      if (existingContext != null) {
+        state = AsyncValue.data(existingContext);
+        return;
+      }
+      
+      // If no context exists, create empty context
+      final emptyContext = ProjectContext(
+        projectId: projectId,
+        contextQuestions: [],
+        documents: [],
+        lastUpdated: DateTime.now(),
+        summary: null,
+      );
+      
+      state = AsyncValue.data(emptyContext);
+    } catch (error, stackTrace) {
+      print('Error loading project context: $error');
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 
   Future<void> addDocument(PlatformFile file, DocumentType type, String? description) async {
@@ -104,7 +71,7 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
       );
 
       // Save to database
-      // await _saveProjectContext(updatedContext);
+      await _firebaseService.saveProjectContext(updatedContext);
 
       state = AsyncValue.data(updatedContext);
     } catch (error, stackTrace) {
@@ -130,7 +97,7 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
 
       // Save to database and remove file from storage
       // await _removeDocumentFromStorage(documentId);
-      // await _saveProjectContext(updatedContext);
+      await _firebaseService.saveProjectContext(updatedContext);
 
       state = AsyncValue.data(updatedContext);
     } catch (error, stackTrace) {
@@ -168,7 +135,7 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
       );
 
       // Save to database
-      // await _saveProjectContext(updatedContext);
+      await _firebaseService.saveProjectContext(updatedContext);
 
       state = AsyncValue.data(updatedContext);
     } catch (error, stackTrace) {
@@ -203,7 +170,7 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
       );
 
       // Save to database
-      // await _saveProjectContext(updatedContext);
+      await _firebaseService.saveProjectContext(updatedContext);
 
       state = AsyncValue.data(updatedContext);
     } catch (error, stackTrace) {
@@ -234,7 +201,7 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
       );
 
       // Save to database
-      // await _saveProjectContext(updatedContext);
+      await _firebaseService.saveProjectContext(updatedContext);
 
       state = AsyncValue.data(updatedContext);
     } catch (error, stackTrace) {
@@ -269,7 +236,7 @@ class ProjectContextNotifier extends StateNotifier<AsyncValue<ProjectContext?>> 
       );
 
       // Save to database
-      // await _saveProjectContext(updatedContext);
+      await _firebaseService.saveProjectContext(updatedContext);
 
       state = AsyncValue.data(updatedContext);
     } catch (error, stackTrace) {

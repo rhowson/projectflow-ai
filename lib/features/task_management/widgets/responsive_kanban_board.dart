@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/project_model.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
+import '../../../shared/widgets/task_assignment_dialog.dart';
 import '../../project_creation/providers/project_provider.dart';
 
 class ResponsiveKanbanBoard extends ConsumerStatefulWidget {
@@ -722,6 +723,24 @@ class ResponsiveTaskCard extends StatelessWidget {
                   color: CustomNeumorphicTheme.lightText,
                 ),
               ),
+              // Assignment indicator
+              if (task.assignedToId != null) ...[
+                SizedBox(width: 8.w),
+                Icon(
+                  Icons.person,
+                  size: isTablet ? 12.sp : 14.sp,
+                  color: CustomNeumorphicTheme.primaryPurple,
+                ),
+                SizedBox(width: 2.w),
+                Text(
+                  'Assigned',
+                  style: TextStyle(
+                    fontSize: isTablet ? 9.sp : 11.sp,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ],
           ),
         ],
@@ -730,6 +749,192 @@ class ResponsiveTaskCard extends StatelessWidget {
   }
 
   void _showTaskOptionsDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: CustomNeumorphicTheme.baseColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.r),
+            topRight: Radius.circular(20.r),
+          ),
+        ),
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: CustomNeumorphicTheme.lightText.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            
+            Text(
+              'Task Options',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            
+            // Task info
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.cardColor,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.task_alt,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    size: 16.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      task.title,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: CustomNeumorphicTheme.darkText,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 20.h),
+            
+            // Options
+            _buildOptionItem(
+              context,
+              icon: Icons.person_add,
+              title: 'Assign Task',
+              subtitle: task.assignedToId != null 
+                  ? 'Currently assigned' 
+                  : 'Not assigned',
+              onTap: () {
+                Navigator.pop(context);
+                _showAssignmentDialog(context);
+              },
+            ),
+            
+            SizedBox(height: 12.h),
+            
+            _buildOptionItem(
+              context,
+              icon: Icons.folder_open,
+              title: 'Move to Phase',
+              subtitle: 'Change task phase',
+              onTap: () {
+                Navigator.pop(context);
+                _showPhaseDialog(context);
+              },
+            ),
+            
+            SizedBox(height: 20.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: CustomNeumorphicTheme.cardColor,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: CustomNeumorphicTheme.primaryPurple,
+              size: 20.sp,
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: CustomNeumorphicTheme.lightText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: CustomNeumorphicTheme.lightText,
+              size: 14.sp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAssignmentDialog(BuildContext context) {
+    // Find the current phase for this task
+    String? currentPhaseId;
+    for (final phase in project.phases) {
+      if (phase.tasks.any((t) => t.id == task.id)) {
+        currentPhaseId = phase.id;
+        break;
+      }
+    }
+    
+    if (currentPhaseId != null) {
+      showDialog(
+        context: context,
+        builder: (context) => TaskAssignmentDialog(
+          projectId: project.id,
+          phaseId: currentPhaseId!,
+          task: task,
+        ),
+      );
+    }
+  }
+
+  void _showPhaseDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -920,6 +1125,24 @@ class MobileTaskCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11.sp,
                       color: CustomNeumorphicTheme.lightText,
+                    ),
+                  ),
+                ],
+                // Assignment indicator
+                if (task.assignedToId != null) ...[
+                  SizedBox(width: 8.w),
+                  Icon(
+                    Icons.person,
+                    size: 14.sp,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                  ),
+                  SizedBox(width: 2.w),
+                  Text(
+                    'Assigned',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
