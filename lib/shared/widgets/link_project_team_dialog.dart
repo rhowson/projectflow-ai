@@ -49,8 +49,7 @@ class _LinkProjectTeamDialogState extends ConsumerState<LinkProjectTeamDialog> {
         
         final teamsAsync = ref.watch(userTeamsProvider(user.id));
 
-        return teamsAsync.when(
-          data: (teams) => Dialog(
+        return Dialog(
       backgroundColor: CustomNeumorphicTheme.baseColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.r),
@@ -246,15 +245,15 @@ class _LinkProjectTeamDialogState extends ConsumerState<LinkProjectTeamDialog> {
         ),
       ),
     );
-  },
-  loading: () => Dialog(
+      },
+      loading: () => Dialog(
         backgroundColor: CustomNeumorphicTheme.baseColor,
         child: Container(
           padding: EdgeInsets.all(24.w),
           child: const Center(child: CircularProgressIndicator()),
         ),
       ),
-  error: (error, stack) => Dialog(
+      error: (error, stack) => Dialog(
         backgroundColor: CustomNeumorphicTheme.baseColor,
         child: Container(
           padding: EdgeInsets.all(24.w),

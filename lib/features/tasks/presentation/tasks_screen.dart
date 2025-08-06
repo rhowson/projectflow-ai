@@ -90,10 +90,6 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                       
                       SizedBox(height: 24.h),
                       
-                      // Task Overview Section - Dashboard style
-                      _buildTaskOverviewSection(selectedProject),
-                      
-                      SizedBox(height: 24.h),
                       
                       // Phase Filter Section - Dashboard style  
                       if (selectedProject.phases.isNotEmpty)
@@ -405,82 +401,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     );
   }
 
-  Widget _buildTaskOverviewSection(Project selectedProject) {
-    final filteredTasks = _getFilteredTasks(selectedProject);
-    final todoTasks = filteredTasks.where((t) => t.status == TaskStatus.todo).length;
-    final inProgressTasks = filteredTasks.where((t) => t.status == TaskStatus.inProgress).length;
-    final completedTasks = filteredTasks.where((t) => t.status == TaskStatus.completed).length;
-    final reviewTasks = filteredTasks.where((t) => t.status == TaskStatus.review).length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header
-        Padding(
-          padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
-          child: Text(
-            'Task Overview',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-        ),
-        // Stats Grid
-        Row(
-          children: [
-            Expanded(child: _buildTaskStatCard('To Do', todoTasks, AppColors.statusTodo)),
-            SizedBox(width: 12.w),
-            Expanded(child: _buildTaskStatCard('In Progress', inProgressTasks, AppColors.statusInProgress)),
-          ],
-        ),
-        SizedBox(height: 8.h),
-        Row(
-          children: [
-            Expanded(child: _buildTaskStatCard('Review', reviewTasks, AppColors.statusReview)),
-            SizedBox(width: 12.w),
-            Expanded(child: _buildTaskStatCard('Completed', completedTasks, AppColors.statusCompleted)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTaskStatCard(String label, int count, Color color) {
-    return NeumorphicCard(
-      padding: EdgeInsets.all(12.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 6.w,
-                height: 6.w,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              Text(
-                '$count',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: CustomNeumorphicTheme.darkText,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: CustomNeumorphicTheme.lightText,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTaskBoardSection(Project selectedProject) {
     return Column(

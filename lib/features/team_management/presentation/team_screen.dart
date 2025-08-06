@@ -6,8 +6,11 @@ import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/models/team_model.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/models/project_role_model.dart';
 import '../providers/team_provider.dart';
+import '../providers/project_role_provider.dart';
 import '../../user_management/providers/user_provider.dart';
+import '../../project_creation/providers/project_provider.dart';
 
 class TeamScreen extends ConsumerStatefulWidget {
   const TeamScreen({super.key});
@@ -88,7 +91,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
               children: [
                 _buildTeamMembersTab(),
                 _buildCommunicationTab(),
-                _buildProjectTeamsTab(),
+                _buildProjectRolesTab(),
               ],
             ),
           ),
@@ -108,7 +111,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           children: [
             _buildTabItem('Members', Icons.group, 0),
             _buildTabItem('Chat', Icons.chat_bubble_outline, 1),
-            _buildTabItem('Projects', Icons.work_outline, 2),
+            _buildTabItem('Roles', Icons.admin_panel_settings, 2),
           ],
         ),
       ),
@@ -711,252 +714,8 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildProjectTeamsTab() {
-    final currentUser = ref.watch(currentUserProvider);
-    
-    return currentUser.when(
-      data: (user) {
-        if (user == null) {
-          return const Center(child: Text('Please sign in to view teams'));
-        }
-        
-        final userTeams = ref.watch(userTeamsProvider(user.id));
-        
-        return userTeams.when(
-          data: (teams) {
-            if (teams.isEmpty) {
-              return _buildEmptyTeamState();
-            }
-            
-            return SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Your Teams',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: CustomNeumorphicTheme.darkText,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${teams.length} teams',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: CustomNeumorphicTheme.lightText,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16.h),
-                  
-                  ...teams.map((team) => _buildTeamCard(team)),
-                ],
-              ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Text('Error loading teams: $error'),
-          ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('Error: $error'),
-      ),
-    );
-  }
 
-  Widget _buildTeamCard(Team team) {
-    Color statusColor;
-    switch (team.status) {
-      case TeamStatus.active:
-        statusColor = AppColors.statusInProgress;
-        break;
-      case TeamStatus.archived:
-        statusColor = AppColors.statusTodo;
-        break;
-      default:
-        statusColor = CustomNeumorphicTheme.lightText;
-    }
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      child: NeumorphicCard(
-        onTap: () => _viewTeamDetails(team),
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    team.name,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: CustomNeumorphicTheme.darkText,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    team.status.displayName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              team.description,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: CustomNeumorphicTheme.lightText,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: 12.h),
-            
-            Row(
-              children: [
-                Icon(
-                  Icons.group,
-                  size: 16.sp,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-                SizedBox(width: 6.w),
-                Text(
-                  '${team.activeMemberCount} members',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  'Created ${_formatDate(team.createdAt)}',
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProjectTeamCard(Map<String, dynamic> project) {
-    Color statusColor;
-    switch (project['status']) {
-      case 'Active':
-        statusColor = AppColors.statusInProgress;
-        break;
-      case 'Planning':
-        statusColor = AppColors.statusTodo;
-        break;
-      case 'Completed':
-        statusColor = AppColors.statusCompleted;
-        break;
-      default:
-        statusColor = CustomNeumorphicTheme.lightText;
-    }
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      child: NeumorphicCard(
-        onTap: () => _viewProjectTeam(project['name']),
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    project['name'],
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: CustomNeumorphicTheme.darkText,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    project['status'],
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-            
-            Row(
-              children: [
-                Icon(
-                  Icons.group,
-                  size: 16.sp,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-                SizedBox(width: 6.w),
-                Text(
-                  '${project['members']} members',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${(project['progress'] * 100).round()}% complete',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: CustomNeumorphicTheme.lightText,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            
-            NeumorphicProgressBar(
-              progress: project['progress'],
-              height: 4.h,
-              progressColor: statusColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showTeamActions(BuildContext context) {
     showModalBottomSheet(
@@ -1108,12 +867,6 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
     );
   }
 
-  void _viewProjectTeam(String projectName) {
-    // TODO: Implement project team view
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Viewing team for: $projectName')),
-    );
-  }
 
   void _inviteTeamMember() {
     showDialog(
@@ -1314,6 +1067,508 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           child: const Text('Create Team'),
         ),
       ],
+    );
+  }
+
+  Widget _buildProjectRolesTab() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with AI Generate button
+          Row(
+            children: [
+              Text(
+                'Project Roles',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w700,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              const Spacer(),
+              NeumorphicButton(
+                onPressed: _generateProjectRoles,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                borderRadius: BorderRadius.circular(12.r),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.auto_awesome,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      size: 16.sp,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'Generate with AI',
+                      style: TextStyle(
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'AI can generate project-specific roles based on your active project',
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+          ),
+          SizedBox(height: 20.h),
+
+          // AI Generation Results
+          Consumer(
+            builder: (context, ref, child) {
+              final aiRolesState = ref.watch(aIRoleGenerationNotifierProvider);
+              
+              return aiRolesState.when(
+                data: (suggestions) {
+                  if (suggestions == null) {
+                    return _buildEmptyRolesState();
+                  }
+                  return _buildAISuggestions(suggestions);
+                },
+                loading: () => _buildGeneratingRolesState(),
+                error: (error, stack) => _buildErrorState(error),
+              );
+            },
+          ),
+
+          SizedBox(height: 20.h),
+
+          // Existing Project Roles (if any)
+          Consumer(
+            builder: (context, ref, child) {
+              // Get active project first
+              final projectsAsync = ref.watch(projectNotifierProvider);
+              
+              return projectsAsync.when(
+                data: (projects) {
+                  if (projects.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  final activeProject = projects.first; // Use first project as active
+                  final rolesAsync = ref.watch(projectRoleNotifierProvider(activeProject.id));
+                  
+                  return rolesAsync.when(
+                    data: (roles) {
+                      if (roles.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return _buildExistingRoles(roles, activeProject.id);
+                    },
+                    loading: () => const CircularProgressIndicator(),
+                    error: (error, stack) => Text('Error loading roles: $error'),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (error, stack) => const SizedBox.shrink(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyRolesState() {
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: 40.h),
+          Icon(
+            Icons.admin_panel_settings_outlined,
+            size: 64.sp,
+            color: CustomNeumorphicTheme.lightText,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'No Project Roles Yet',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: CustomNeumorphicTheme.darkText,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Generate AI-powered roles for your active project',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeneratingRolesState() {
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: 40.h),
+          const CircularProgressIndicator(),
+          SizedBox(height: 16.h),
+          Text(
+            'AI is analyzing your project...',
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: CustomNeumorphicTheme.primaryPurple,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Generating tailored roles based on project requirements',
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(dynamic error) {
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: 40.h),
+          Icon(
+            Icons.error_outline,
+            size: 64.sp,
+            color: CustomNeumorphicTheme.errorRed,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Failed to Generate Roles',
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              color: CustomNeumorphicTheme.darkText,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            error.toString(),
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16.h),
+          NeumorphicButton(
+            onPressed: _generateProjectRoles,
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            borderRadius: BorderRadius.circular(12.r),
+            child: Text(
+              'Try Again',
+              style: TextStyle(
+                color: CustomNeumorphicTheme.primaryPurple,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAISuggestions(List<AIRoleSuggestion> suggestions) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'AI Generated Roles',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+            const Spacer(),
+            NeumorphicButton(
+              onPressed: () => _createRolesFromSuggestions(suggestions),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              borderRadius: BorderRadius.circular(8.r),
+              child: Text(
+                'Create All Roles',
+                style: TextStyle(
+                  color: CustomNeumorphicTheme.primaryPurple,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        ...suggestions.map((suggestion) => _buildRoleSuggestionCard(suggestion)),
+      ],
+    );
+  }
+
+  Widget _buildRoleSuggestionCard(AIRoleSuggestion suggestion) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      child: NeumorphicCard(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 12.w,
+                  height: 12.w,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(suggestion.suggestedColor.replaceFirst('#', '0xFF'))),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    suggestion.name,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+                Text(
+                  'Priority ${suggestion.priority}',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              suggestion.description,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: CustomNeumorphicTheme.lightText,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Skills: ${suggestion.requiredSkills.join(", ")}',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: CustomNeumorphicTheme.primaryPurple,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (suggestion.timeCommitment != null) ...[
+              SizedBox(height: 4.h),
+              Text(
+                'Time: ${suggestion.timeCommitment!.toStringAsFixed(0)} hrs/week',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+              ),
+            ],
+            SizedBox(height: 8.h),
+            Text(
+              suggestion.reasoning,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: CustomNeumorphicTheme.lightText,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExistingRoles(List<ProjectRole> roles, String projectId) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Active Project Roles',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: CustomNeumorphicTheme.darkText,
+          ),
+        ),
+        SizedBox(height: 12.h),
+        ...roles.map((role) => _buildExistingRoleCard(role, projectId)),
+      ],
+    );
+  }
+
+  Widget _buildExistingRoleCard(ProjectRole role, String projectId) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      child: NeumorphicCard(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 12.w,
+                  height: 12.w,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(role.color.replaceFirst('#', '0xFF'))),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    role.name,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                ),
+                if (role.isAIGenerated)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    decoration: BoxDecoration(
+                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                    child: Text(
+                      'AI',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                SizedBox(width: 8.w),
+                GestureDetector(
+                  onTap: () => _assignUserToRole(role),
+                  child: Container(
+                    padding: EdgeInsets.all(6.w),
+                    decoration: BoxDecoration(
+                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Icon(
+                      Icons.person_add,
+                      size: 14.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              role.description,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: CustomNeumorphicTheme.lightText,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Skills: ${role.requiredSkills.join(", ")}',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: CustomNeumorphicTheme.primaryPurple,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _generateProjectRoles() async {
+    try {
+      await ref.read(aIRoleGenerationNotifierProvider.notifier).generateRolesForActiveProject();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate roles: $error'),
+            backgroundColor: CustomNeumorphicTheme.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  void _createRolesFromSuggestions(List<AIRoleSuggestion> suggestions) async {
+    try {
+      final projectsAsync = ref.read(projectNotifierProvider);
+      final projects = await projectsAsync.when(
+        data: (data) async => data,
+        loading: () => throw Exception('Projects are still loading'),
+        error: (error, stack) => throw error,
+      );
+      
+      if (projects.isEmpty) {
+        throw Exception('No active project found');
+      }
+      
+      final activeProject = projects.first;
+      await ref.read(projectRoleNotifierProvider(activeProject.id).notifier)
+          .createRolesFromSuggestions(suggestions);
+      
+      // Clear the suggestions after creating roles
+      ref.read(aIRoleGenerationNotifierProvider.notifier).clearSuggestions();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${suggestions.length} roles created successfully!'),
+            backgroundColor: CustomNeumorphicTheme.primaryPurple,
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create roles: $error'),
+            backgroundColor: CustomNeumorphicTheme.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  void _assignUserToRole(ProjectRole role) {
+    // TODO: Implement user assignment dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('User assignment for ${role.name} - Coming soon!')),
     );
   }
 }
