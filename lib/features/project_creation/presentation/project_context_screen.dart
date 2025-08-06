@@ -150,6 +150,9 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
 
   Widget _buildProgressIndicator(int totalQuestions) {
     final progress = totalQuestions > 0 ? (_currentQuestionIndex + 1) / totalQuestions : 0.0;
+    final answeredCount = _answers.values.where((answer) => 
+      answer != null && (answer is! String || answer.toString().trim().isNotEmpty)
+    ).length;
     
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -166,13 +169,33 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
                   color: CustomNeumorphicTheme.darkText,
                 ),
               ),
-              Text(
-                '${(progress * 100).round()}%',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: CustomNeumorphicTheme.primaryPurple,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Text(
+                      '$answeredCount answered',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '${(progress * 100).round()}%',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -384,98 +407,153 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
 
     return Container(
       padding: EdgeInsets.all(20.w),
-      child: Row(
+      child: Column(
         children: [
-          if (!isFirstQuestion)
-            Expanded(
-              child: NeumorphicButton(
+          // Skip option
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
                 onPressed: () {
-                  // Hide keyboard first
                   context.dismissKeyboard();
-                  _pageController.previousPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
+                  _skipQuestion();
                 },
-                borderRadius: BorderRadius.circular(12),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.arrow_back,
-                      color: CustomNeumorphicTheme.primaryPurple,
-                      size: 16.sp,
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      'Previous',
-                      style: TextStyle(
-                        color: CustomNeumorphicTheme.primaryPurple,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                icon: Icon(
+                  Icons.skip_next,
+                  color: CustomNeumorphicTheme.lightText,
+                  size: 16.sp,
+                ),
+                label: Text(
+                  'Skip this question',
+                  style: TextStyle(
+                    color: CustomNeumorphicTheme.lightText,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                 ),
               ),
-            ),
+            ],
+          ),
+          SizedBox(height: 12.h),
           
-          if (!isFirstQuestion) SizedBox(width: 16.w),
-          
-          Expanded(
-            child: NeumorphicButton(
-              onPressed: hasAnswer ? () {
-                // Hide keyboard first
-                context.dismissKeyboard();
-                if (isLastQuestion) {
-                  _createProject();
-                } else {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              } : null,
-              isSelected: hasAnswer,
-              selectedColor: CustomNeumorphicTheme.primaryPurple,
-              borderRadius: BorderRadius.circular(12),
-              padding: EdgeInsets.symmetric(vertical: 12.h),
-              child: _isGeneratingProject
-                  ? SizedBox(
-                      height: 20.h,
-                      width: 20.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Row(
+          // Navigation buttons
+          Row(
+            children: [
+              if (!isFirstQuestion)
+                Expanded(
+                  child: NeumorphicButton(
+                    onPressed: () {
+                      // Hide keyboard first
+                      context.dismissKeyboard();
+                      _pageController.previousPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        Icon(
+                          Icons.arrow_back,
+                          color: CustomNeumorphicTheme.primaryPurple,
+                          size: 16.sp,
+                        ),
+                        SizedBox(width: 8.w),
                         Text(
-                          isLastQuestion ? 'Create Project' : 'Next',
+                          'Previous',
                           style: TextStyle(
-                            color: hasAnswer ? Colors.white : CustomNeumorphicTheme.lightText,
+                            color: CustomNeumorphicTheme.primaryPurple,
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if (!isLastQuestion) ...[
-                          SizedBox(width: 8.w),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: hasAnswer ? Colors.white : CustomNeumorphicTheme.lightText,
-                            size: 16.sp,
-                          ),
-                        ],
                       ],
                     ),
-            ),
+                  ),
+                ),
+              
+              if (!isFirstQuestion) SizedBox(width: 16.w),
+              
+              Expanded(
+                child: NeumorphicButton(
+                  onPressed: () {
+                    // Hide keyboard first
+                    context.dismissKeyboard();
+                    if (isLastQuestion) {
+                      _createProject();
+                    } else {
+                      _pageController.nextPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                  isSelected: hasAnswer,
+                  selectedColor: CustomNeumorphicTheme.primaryPurple,
+                  borderRadius: BorderRadius.circular(12),
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  child: _isGeneratingProject
+                      ? SizedBox(
+                          height: 20.h,
+                          width: 20.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              isLastQuestion ? 'Create Project' : (hasAnswer ? 'Next' : 'Next (Unanswered)'),
+                              style: TextStyle(
+                                color: hasAnswer ? Colors.white : CustomNeumorphicTheme.primaryPurple,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (!isLastQuestion) ...[
+                              SizedBox(width: 8.w),
+                              Icon(
+                                Icons.arrow_forward,
+                                color: hasAnswer ? Colors.white : CustomNeumorphicTheme.primaryPurple,
+                                size: 16.sp,
+                              ),
+                            ],
+                          ],
+                        ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  void _skipQuestion() {
+    final currentQuestion = ref.read(contextQuestionsProvider).value?.questions[_currentQuestionIndex];
+    if (currentQuestion != null) {
+      // Mark question as skipped by removing any existing answer
+      setState(() {
+        _answers.remove(currentQuestion.id);
+      });
+      
+      // Move to next question or create project if last question
+      if (_currentQuestionIndex == ref.read(contextQuestionsProvider).value!.questions.length - 1) {
+        _createProject();
+      } else {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
   }
 
   Future<void> _createProject() async {
@@ -489,10 +567,16 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
       final questions = contextData?.questions ?? [];
       
       // Create a properly structured answers map with question text as keys
+      // Only include answered questions (skip unanswered ones)
       final structuredAnswers = <String, dynamic>{};
       for (final entry in _answers.entries) {
         final questionId = entry.key;
         final answer = entry.value;
+        
+        // Skip empty or null answers
+        if (answer == null || (answer is String && answer.trim().isEmpty)) {
+          continue;
+        }
         
         // Find the question text by ID
         final question = questions.firstWhere(
@@ -503,36 +587,26 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
         structuredAnswers[question.question] = answer;
       }
       
-      final projectId = await ref.read(projectNotifierProvider.notifier).createProjectWithContext(
-        widget.projectDescription,
-        structuredAnswers,
-        document: widget.documentUploadResult, // Pass the document upload result
-        documentContent: widget.documentContent,
-      );
+      // Extract title for the progress screen
+      final projectTitle = widget.projectDescription.length > 50 
+          ? '${widget.projectDescription.substring(0, 47)}...'
+          : widget.projectDescription;
 
       if (mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Project created successfully! Loading tasks...'),
-            backgroundColor: CustomNeumorphicTheme.primaryPurple,
-            duration: Duration(seconds: 1),
-          ),
-        );
-        
-        // Small delay to ensure the project is saved and state is updated
-        await Future.delayed(const Duration(milliseconds: 500));
-        
-        if (mounted) {
-          // Navigate to tasks screen with the newly created project
-          context.go('/tasks/$projectId');
-        }
+        // Navigate to progress screen where the actual generation happens
+        context.go('/project-generation-progress', extra: {
+          'projectDescription': widget.projectDescription,
+          'contextAnswers': structuredAnswers,
+          'documentUploadResult': widget.documentUploadResult,
+          'documentContent': widget.documentContent,
+          'projectTitle': projectTitle,
+        });
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create project: $error'),
+            content: Text('Failed to prepare project: $error'),
             backgroundColor: CustomNeumorphicTheme.errorRed,
           ),
         );

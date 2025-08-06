@@ -10,16 +10,45 @@ import '../../project_creation/providers/project_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
-  final String? projectId;
-  
-  const DashboardScreen({super.key, this.projectId});
+  const DashboardScreen({super.key});
 
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> with WidgetsBindingObserver {
   bool _showAllProjects = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Refresh projects when dashboard screen is first loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(projectNotifierProvider.notifier).loadProjects();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh projects when app comes back to foreground
+      ref.read(projectNotifierProvider.notifier).loadProjects();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh projects when returning to dashboard (e.g., from project creation)
+    ref.read(projectNotifierProvider.notifier).loadProjects();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,15 +85,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             return _buildEmptyState(context);
           }
           
-          if (widget.projectId != null) {
-            final project = projects.firstWhere(
-              (p) => p.id == widget.projectId,
-              orElse: () => projects.first,
-            );
-            return _buildProjectDashboard(context, project, ref);
-          }
-          
-          return _buildProjectsList(context, projects, ref);
+          return RefreshIndicator(
+            onRefresh: () async {
+              await ref.read(projectNotifierProvider.notifier).loadProjects();
+            },
+            child: _buildProjectsList(context, projects, ref),
+          );
         },
         loading: () => const Center(
           child: LoadingIndicator(message: 'Loading projects...'),

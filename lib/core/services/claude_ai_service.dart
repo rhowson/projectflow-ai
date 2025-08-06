@@ -504,7 +504,45 @@ class ClaudeAIService {
 
   // ENHANCED MULTI-STEP PROJECT GENERATION METHODS
 
-  /// Step 1: Analyze project with full context including documents
+  /// Step 1: Analyze project with full context including documents (Public method for progress tracking)
+  Future<ProjectAnalysis> analyzeProjectWithFullContext(
+    String projectDescription,
+    Map<String, dynamic> contextAnswers,
+    String? documentContent,
+  ) async {
+    return _analyzeProjectWithFullContext(projectDescription, contextAnswers, documentContent);
+  }
+
+  /// Step 2: Generate phase structure (Public method for progress tracking)
+  Future<List<PhaseStructure>> generatePhaseStructure(
+    String projectDescription,
+    Map<String, dynamic> contextAnswers,
+    String? documentContent,
+    ProjectAnalysis analysis,
+  ) async {
+    return _generatePhaseStructure(projectDescription, contextAnswers, documentContent, analysis);
+  }
+
+  /// Step 3: Generate detailed tasks for a phase (Public method for progress tracking)
+  Future<ProjectPhaseBreakdown> generatePhaseWithDetailedTasks(
+    PhaseStructure phaseStructure,
+    String projectDescription,
+    Map<String, dynamic> contextAnswers,
+    String? documentContent,
+    ProjectAnalysis analysis,
+    List<ProjectPhaseBreakdown> previousPhases,
+  ) async {
+    return _generatePhaseWithDetailedTasks(
+      phaseStructure,
+      projectDescription,
+      contextAnswers,
+      documentContent,
+      analysis,
+      previousPhases,
+    );
+  }
+
+  /// Private implementation: Step 1: Analyze project with full context including documents
   Future<ProjectAnalysis> _analyzeProjectWithFullContext(
     String projectDescription,
     Map<String, dynamic> contextAnswers,

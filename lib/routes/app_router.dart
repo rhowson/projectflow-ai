@@ -5,6 +5,7 @@ import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
 import '../features/project_creation/presentation/project_context_screen.dart';
+import '../features/project_creation/presentation/project_generation_wrapper_screen.dart';
 import '../features/project_context/presentation/project_context_screen.dart' as project_context;
 import '../features/team_management/presentation/team_details_screen.dart';
 import '../features/tasks/presentation/tasks_screen.dart';
@@ -71,14 +72,7 @@ class AppRouter {
             name: 'dashboard',
             builder: (context, state) => const DashboardScreen(),
           ),
-          GoRoute(
-            path: '/dashboard/:projectId',
-            name: 'project-dashboard',
-            builder: (context, state) {
-              final projectId = state.pathParameters['projectId'];
-              return DashboardScreen(projectId: projectId);
-            },
-          ),
+          
           
           // Create project route
           GoRoute(
@@ -146,6 +140,23 @@ class AppRouter {
             projectDescription: projectDescription,
             documentContent: documentContent,
             documentUploadResult: documentUploadResult,
+          );
+        },
+      ),
+      
+      // Project generation progress screen
+      GoRoute(
+        path: '/project-generation-progress',
+        name: 'project-generation-progress',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) {
+            // Fallback to dashboard if no data provided
+            return const DashboardScreen();
+          }
+          
+          return ProjectGenerationWrapperScreen(
+            generationData: extra,
           );
         },
       ),

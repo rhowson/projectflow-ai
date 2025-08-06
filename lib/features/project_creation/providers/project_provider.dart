@@ -53,6 +53,23 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     }
   }
 
+  Future<void> loadProject(String projectId) async {
+    try {
+      // If we already have projects loaded, check if this project exists
+      final currentState = state.value ?? [];
+      final existingProject = currentState.firstWhere(
+        (p) => p.id == projectId,
+        orElse: () => throw Exception('Project not found'),
+      );
+      
+      // Project already exists in our state, no need to reload
+      return;
+    } catch (e) {
+      // Project not found in current state, load all projects
+      await loadProjects();
+    }
+  }
+
   Future<String> createProjectWithContext(
     String description, 
     Map<String, dynamic> contextAnswers, {
