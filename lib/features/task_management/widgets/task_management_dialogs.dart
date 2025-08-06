@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/project_model.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../project_creation/providers/project_provider.dart';
 
 class TaskManagementDialogs {
@@ -57,10 +59,10 @@ class TaskManagementDialogs {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -253,60 +255,12 @@ class _AddEditTaskDialogState extends ConsumerState<AddEditTaskDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                // Status selection
-                Text(
-                  'Status',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: TaskStatus.values.map((status) {
-                    final isSelected = _selectedStatus == status;
-                    return FilterChip(
-                      label: Text(_getStatusLabel(status)),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedStatus = status;
-                          });
-                        }
-                      },
-                      backgroundColor: _getStatusColor(status).withOpacity(0.1),
-                      selectedColor: _getStatusColor(status).withOpacity(0.3),
-                      checkmarkColor: _getStatusColor(status),
-                    );
-                  }).toList(),
-                ),
+                // Status dropdown
+                _buildStatusDropdown(),
                 const SizedBox(height: 16),
 
-                // Priority selection
-                Text(
-                  'Priority',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: Priority.values.map((priority) {
-                    final isSelected = _selectedPriority == priority;
-                    return FilterChip(
-                      label: Text(_getPriorityLabel(priority)),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedPriority = priority;
-                          });
-                        }
-                      },
-                      backgroundColor: _getPriorityColor(priority).withOpacity(0.1),
-                      selectedColor: _getPriorityColor(priority).withOpacity(0.3),
-                      checkmarkColor: _getPriorityColor(priority),
-                    );
-                  }).toList(),
-                ),
+                // Priority dropdown
+                _buildPriorityDropdown(),
               ],
             ),
           ),
@@ -381,6 +335,129 @@ class _AddEditTaskDialogState extends ConsumerState<AddEditTaskDialog> {
     }
   }
 
+  Widget _buildStatusDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Status',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: CustomNeumorphicTheme.darkText,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 8.h),
+        NeumorphicContainer(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+          borderRadius: BorderRadius.circular(12.r),
+          color: CustomNeumorphicTheme.baseColor,
+          child: DropdownButtonFormField<TaskStatus>(
+            value: _selectedStatus,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+            ),
+            items: TaskStatus.values.map((status) {
+              return DropdownMenuItem<TaskStatus>(
+                value: status,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 12.w,
+                      height: 12.w,
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(status),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      _getStatusLabel(status),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: (TaskStatus? value) {
+              if (value != null) {
+                setState(() {
+                  _selectedStatus = value;
+                });
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriorityDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Priority',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: CustomNeumorphicTheme.darkText,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 8.h),
+        NeumorphicContainer(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+          borderRadius: BorderRadius.circular(12.r),
+          color: CustomNeumorphicTheme.baseColor,
+          child: DropdownButtonFormField<Priority>(
+            value: _selectedPriority,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+            ),
+            items: Priority.values.map((priority) {
+              return DropdownMenuItem<Priority>(
+                value: priority,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8.w,
+                      height: 8.w,
+                      decoration: BoxDecoration(
+                        color: _getPriorityColor(priority),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      _getPriorityLabel(priority),
+                      style: TextStyle(fontSize: 14.sp),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: (Priority? value) {
+              if (value != null) {
+                setState(() {
+                  _selectedPriority = value;
+                });
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   String _getStatusLabel(TaskStatus status) {
     switch (status) {
       case TaskStatus.todo:
@@ -436,6 +513,7 @@ class _AddEditTaskDialogState extends ConsumerState<AddEditTaskDialog> {
         return AppColors.priorityUrgent;
     }
   }
+
 }
 
 class MoveTaskDialog extends StatefulWidget {

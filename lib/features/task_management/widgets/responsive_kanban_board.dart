@@ -5,6 +5,7 @@ import '../../../core/models/project_model.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/widgets/task_assignment_dialog.dart';
+import '../../../shared/widgets/task_edit_dialog.dart';
 import '../../project_creation/providers/project_provider.dart';
 
 class ResponsiveKanbanBoard extends ConsumerStatefulWidget {
@@ -53,7 +54,7 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
         boxShadow: [
           // Single clean shadow for the main container
           BoxShadow(
-            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.4),
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.4),
             offset: const Offset(2, 3),
             blurRadius: 6,
             spreadRadius: 0,
@@ -76,7 +77,7 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
                     decoration: BoxDecoration(
                       color: _currentPage == index 
                           ? CustomNeumorphicTheme.primaryPurple
-                          : CustomNeumorphicTheme.lightText.withOpacity(0.3),
+                          : CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                   );
@@ -130,7 +131,7 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
                   color: isActive ? statusData['color'] as Color : Colors.transparent,
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: isActive ? Colors.transparent : (statusData['color'] as Color).withOpacity(0.3),
+                    color: isActive ? Colors.transparent : (statusData['color'] as Color).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -180,7 +181,7 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.3),
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.3),
             offset: const Offset(2, 3),
             blurRadius: 4,
             spreadRadius: 0,
@@ -248,13 +249,13 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
                         Icon(
                           Icons.inbox_outlined,
                           size: 48,
-                          color: color.withOpacity(0.5),
+                          color: color.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'No tasks',
                           style: TextStyle(
-                            color: color.withOpacity(0.7),
+                            color: color.withValues(alpha: 0.7),
                             fontSize: 14,
                           ),
                         ),
@@ -482,7 +483,7 @@ class _ResponsiveKanbanColumnState extends State<ResponsiveKanbanColumn> {
             : null,
         boxShadow: [
           BoxShadow(
-            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.3),
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.3),
             offset: const Offset(2, 3),
             blurRadius: 4,
             spreadRadius: 0,
@@ -575,13 +576,13 @@ class _ResponsiveKanbanColumnState extends State<ResponsiveKanbanColumn> {
                                 Icon(
                                   Icons.inbox_outlined,
                                   size: widget.isTablet ? 24 : 32,
-                                  color: widget.color.withOpacity(0.5),
+                                  color: widget.color.withValues(alpha: 0.5),
                                 ),
                                 SizedBox(height: widget.isTablet ? 4 : 8),
                                 Text(
                                   'No tasks',
                                   style: TextStyle(
-                                    color: widget.color.withOpacity(0.7),
+                                    color: widget.color.withValues(alpha: 0.7),
                                     fontSize: widget.isTablet ? 10 : 12,
                                   ),
                                 ),
@@ -772,7 +773,7 @@ class ResponsiveTaskCard extends StatelessWidget {
                 width: 40.w,
                 height: 4.h,
                 decoration: BoxDecoration(
-                  color: CustomNeumorphicTheme.lightText.withOpacity(0.3),
+                  color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
@@ -823,6 +824,19 @@ class ResponsiveTaskCard extends StatelessWidget {
             SizedBox(height: 20.h),
             
             // Options
+            _buildOptionItem(
+              context,
+              icon: Icons.edit,
+              title: 'Edit Task',
+              subtitle: 'Modify task details',
+              onTap: () {
+                Navigator.pop(context);
+                _showEditDialog(context);
+              },
+            ),
+            
+            SizedBox(height: 12.h),
+            
             _buildOptionItem(
               context,
               icon: Icons.person_add,
@@ -913,6 +927,29 @@ class ResponsiveTaskCard extends StatelessWidget {
     );
   }
 
+  void _showEditDialog(BuildContext context) {
+    // Find the current phase for this task
+    String? currentPhaseId;
+    for (final phase in project.phases) {
+      if (phase.tasks.any((t) => t.id == task.id)) {
+        currentPhaseId = phase.id;
+        break;
+      }
+    }
+    
+    if (currentPhaseId != null) {
+      showDialog(
+        context: context,
+        builder: (context) => TaskEditDialog(
+          task: task,
+          project: project,
+          phaseId: currentPhaseId!,
+          isCreating: false,
+        ),
+      );
+    }
+  }
+
   void _showAssignmentDialog(BuildContext context) {
     // Find the current phase for this task
     String? currentPhaseId;
@@ -983,7 +1020,7 @@ class ResponsiveTaskCard extends StatelessWidget {
                           width: 16,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: CustomNeumorphicTheme.primaryPurple.withOpacity(
+                            color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 
                               isCurrentPhase ? 1.0 : 0.3
                             ),
                             borderRadius: BorderRadius.circular(8),
@@ -1078,7 +1115,7 @@ class MobileTaskCard extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(4.w),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -1163,6 +1200,29 @@ class MobileTaskCard extends StatelessWidget {
     );
   }
 
+  void _showEditDialog(BuildContext context) {
+    // Find the current phase for this task
+    String? currentPhaseId;
+    for (final phase in project.phases) {
+      if (phase.tasks.any((t) => t.id == task.id)) {
+        currentPhaseId = phase.id;
+        break;
+      }
+    }
+    
+    if (currentPhaseId != null) {
+      showDialog(
+        context: context,
+        builder: (context) => TaskEditDialog(
+          task: task,
+          project: project,
+          phaseId: currentPhaseId!,
+          isCreating: false,
+        ),
+      );
+    }
+  }
+
   void _showStatusChangeDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -1210,6 +1270,46 @@ class MobileTaskCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Quick Actions Section
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showEditDialog(context);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                                decoration: BoxDecoration(
+                                  color: CustomNeumorphicTheme.primaryPurple,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.edit,
+                                      color: Colors.white,
+                                      size: 16.sp,
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    Text(
+                                      'Edit Task',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
                       Text(
                         'Change Status:',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -1250,7 +1350,7 @@ class MobileTaskCard extends StatelessWidget {
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-          color: color.withOpacity(isCurrentStatus ? 1.0 : 0.3),
+          color: color.withValues(alpha: isCurrentStatus ? 1.0 : 0.3),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -1278,7 +1378,7 @@ class MobileTaskCard extends StatelessWidget {
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-          color: CustomNeumorphicTheme.primaryPurple.withOpacity(isCurrentPhase ? 1.0 : 0.3),
+          color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: isCurrentPhase ? 1.0 : 0.3),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
