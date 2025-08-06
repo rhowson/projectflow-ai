@@ -50,7 +50,7 @@ class SimpleProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildUserProfileCard(BuildContext context, WidgetRef ref, UserDisplayInfo? userDisplayInfo, AsyncValue currentUser) {
-    return NeumorphicCard(
+    return NeumorphicFlatContainer(
       padding: EdgeInsets.all(24.w),
       child: Column(
         children: [
@@ -202,7 +202,7 @@ class SimpleProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildAuthenticationCard(BuildContext context, WidgetRef ref, bool isBiometricEnabled, AsyncValue<bool> biometricAvailability) {
-    return NeumorphicCard(
+    return NeumorphicFlatContainer(
       padding: EdgeInsets.all(24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,7 +332,7 @@ class SimpleProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildSettingsCard(BuildContext context, WidgetRef ref) {
-    return NeumorphicCard(
+    return NeumorphicFlatContainer(
       padding: EdgeInsets.all(24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
