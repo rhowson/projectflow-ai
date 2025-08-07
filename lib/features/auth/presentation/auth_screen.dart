@@ -337,7 +337,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
         border: borderColor != null ? Border.all(color: borderColor, width: 1) : null,
         boxShadow: [
           BoxShadow(
-            color: CustomNeumorphicTheme.darkShadow.withOpacity(0.1),
+            color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 0.1),
             offset: Offset(0, 2),
             blurRadius: 4,
             spreadRadius: 0,
@@ -381,10 +381,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
       decoration: BoxDecoration(
         color: CustomNeumorphicTheme.baseColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.3), width: 1),
+        border: Border.all(color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.3), width: 1),
         boxShadow: [
           BoxShadow(
-            color: CustomNeumorphicTheme.darkShadow.withOpacity(0.1),
+            color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 0.1),
             offset: Offset(0, 2),
             blurRadius: 4,
             spreadRadius: 0,
@@ -491,7 +491,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with TickerProviderStat
             borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
-                color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.3),
+                color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.3),
                 offset: Offset(0, 4),
                 blurRadius: 8,
                 spreadRadius: 0,

@@ -5,7 +5,6 @@ import '../theme/custom_neumorphic_theme.dart';
 import '../theme/app_colors.dart';
 import '../../core/models/project_model.dart';
 import '../../core/models/team_model.dart';
-import '../../core/services/team_service.dart';
 import '../../features/project_creation/providers/project_provider.dart';
 import '../../features/team_management/providers/team_provider.dart';
 
@@ -70,7 +69,7 @@ class _TaskAssignmentDialogState extends ConsumerState<TaskAssignmentDialog> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
@@ -274,10 +273,10 @@ class _TaskAssignmentDialogState extends ConsumerState<TaskAssignmentDialog> {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.1),
+        color: AppColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
-          color: AppColors.warning.withOpacity(0.3),
+          color: AppColors.warning.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -389,7 +388,7 @@ class _TeamMemberTile extends StatelessWidget {
       child: NeumorphicButton(
         onPressed: onTap,
         isSelected: isSelected,
-        selectedColor: AppColors.primary.withOpacity(0.1),
+        selectedColor: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12.r),
         padding: EdgeInsets.all(12.w),
         child: Row(
@@ -398,8 +397,8 @@ class _TeamMemberTile extends StatelessWidget {
             CircleAvatar(
               radius: 18.r,
               backgroundColor: member == null 
-                  ? AppColors.warning.withOpacity(0.2)
-                  : AppColors.primary.withOpacity(0.2),
+                  ? AppColors.warning.withValues(alpha: 0.2)
+                  : AppColors.primary.withValues(alpha: 0.2),
               backgroundImage: member?.user.photoUrl?.isNotEmpty == true 
                   ? NetworkImage(member!.user.photoUrl!) 
                   : null,
@@ -453,7 +452,7 @@ class _TeamMemberTile extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                           decoration: BoxDecoration(
-                            color: _getRoleColor(member!.member.role).withOpacity(0.1),
+                            color: _getRoleColor(member!.member.role).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Text(

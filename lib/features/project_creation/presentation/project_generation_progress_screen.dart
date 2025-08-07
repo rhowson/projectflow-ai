@@ -432,7 +432,7 @@ class _ProjectGenerationProgressScreenState extends ConsumerState<ProjectGenerat
       indicatorColor = CustomNeumorphicTheme.primaryPurple;
       textColor = CustomNeumorphicTheme.primaryPurple;
     } else {
-      indicatorColor = CustomNeumorphicTheme.lightText.withOpacity(0.3);
+      indicatorColor = CustomNeumorphicTheme.lightText.withValues(alpha: 0.3);
       textColor = CustomNeumorphicTheme.lightText;
     }
 
@@ -447,7 +447,7 @@ class _ProjectGenerationProgressScreenState extends ConsumerState<ProjectGenerat
             color: indicatorColor,
             boxShadow: isCurrent ? [
               BoxShadow(
-                color: indicatorColor.withOpacity(0.3),
+                color: indicatorColor.withValues(alpha: 0.3),
                 blurRadius: 8.r,
                 spreadRadius: 2.r,
               ),
@@ -491,7 +491,7 @@ class _ProjectGenerationProgressScreenState extends ConsumerState<ProjectGenerat
       decoration: BoxDecoration(
         color: isActive 
             ? CustomNeumorphicTheme.primaryPurple
-            : CustomNeumorphicTheme.lightText.withOpacity(0.3),
+            : CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(1.r),
       ),
     );
@@ -536,7 +536,7 @@ class _ProjectGenerationProgressScreenState extends ConsumerState<ProjectGenerat
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.3),
+                    color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.3),
                     blurRadius: 15.r,
                     spreadRadius: 2.r,
                   ),
@@ -598,14 +598,14 @@ class _ProjectGenerationProgressScreenState extends ConsumerState<ProjectGenerat
                         gradient: LinearGradient(
                           colors: [
                             CustomNeumorphicTheme.successGreen,
-                            CustomNeumorphicTheme.successGreen.withOpacity(0.8),
+                            CustomNeumorphicTheme.successGreen.withValues(alpha: 0.8),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: CustomNeumorphicTheme.successGreen.withOpacity(0.3),
+                            color: CustomNeumorphicTheme.successGreen.withValues(alpha: 0.3),
                             blurRadius: 15.r,
                             spreadRadius: 2.r,
                           ),

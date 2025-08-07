@@ -209,15 +209,15 @@ class _InteractiveNavItemState extends State<_InteractiveNavItem>
               onTapUp: _handleTapUp,
               onTapCancel: _handleTapCancel,
               borderRadius: BorderRadius.circular(12.r),
-              splashColor: CustomNeumorphicTheme.primaryPurple.withOpacity(0.2),
-              highlightColor: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+              splashColor: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.2),
+              highlightColor: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12.r),
                   color: widget.isActive 
-                      ? CustomNeumorphicTheme.primaryPurple.withOpacity(0.1)
+                      ? CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1)
                       : Colors.transparent,
                 ),
                 child: Column(

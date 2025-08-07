@@ -66,7 +66,7 @@ class AppTheme {
             letterSpacing: 0.5,
           ),
         ).copyWith(
-          overlayColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+          overlayColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.1)),
         ),
       ),
       
@@ -85,7 +85,7 @@ class AppTheme {
             letterSpacing: 0.5,
           ),
         ).copyWith(
-          overlayColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.1)),
+          overlayColor: WidgetStateProperty.all(AppColors.primary.withValues(alpha: 0.1)),
         ),
       ),
       
@@ -324,7 +324,7 @@ class AppTheme {
             letterSpacing: 0.5,
           ),
         ).copyWith(
-          overlayColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+          overlayColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.1)),
         ),
       ),
       
@@ -343,7 +343,7 @@ class AppTheme {
             letterSpacing: 0.5,
           ),
         ).copyWith(
-          overlayColor: WidgetStateProperty.all(AppColors.primaryLight.withOpacity(0.1)),
+          overlayColor: WidgetStateProperty.all(AppColors.primaryLight.withValues(alpha: 0.1)),
         ),
       ),
       

@@ -254,7 +254,7 @@ class _EnhancedProfileScreenState extends ConsumerState<EnhancedProfileScreen>
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: CustomNeumorphicTheme.darkShadow.withOpacity(0.3),
+                      color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 0.3),
                       offset: const Offset(2, 2),
                       blurRadius: 4,
                     ),

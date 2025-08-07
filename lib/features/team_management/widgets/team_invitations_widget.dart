@@ -51,7 +51,7 @@ class _InvitationCardState extends ConsumerState<_InvitationCard> {
               Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Icon(
@@ -93,10 +93,10 @@ class _InvitationCardState extends ConsumerState<_InvitationCard> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.05),
+                color: AppColors.info.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8.r),
                 border: Border.all(
-                  color: AppColors.info.withOpacity(0.2),
+                  color: AppColors.info.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -308,10 +308,10 @@ class _RoleChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),

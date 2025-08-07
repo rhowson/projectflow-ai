@@ -64,7 +64,7 @@ class UserStatisticsSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
@@ -150,7 +150,7 @@ class UserStatisticsSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
@@ -234,7 +234,7 @@ class UserStatisticsSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.1),
+                    color: AppColors.accent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
@@ -354,7 +354,7 @@ class UserStatisticsSection extends ConsumerWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: _getSecurityScoreColor(securityScore).withOpacity(0.1),
+                  color: _getSecurityScoreColor(securityScore).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
@@ -410,7 +410,7 @@ class UserStatisticsSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.1),
+                    color: Colors.purple.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
@@ -430,7 +430,7 @@ class UserStatisticsSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.1),
+                    color: Colors.purple.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Text(
@@ -521,7 +521,7 @@ class UserStatisticsSection extends ConsumerWidget {
               child: Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -552,7 +552,7 @@ class UserStatisticsSection extends ConsumerWidget {
         Icon(
           icon,
           size: 14.sp,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         ),
         SizedBox(width: 4.w),
         Expanded(
@@ -562,7 +562,7 @@ class UserStatisticsSection extends ConsumerWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
               Text(
@@ -588,13 +588,13 @@ class UserStatisticsSection extends ConsumerWidget {
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: enabled 
-            ? AppColors.success.withOpacity(0.1)
-            : AppColors.error.withOpacity(0.1),
+            ? AppColors.success.withValues(alpha: 0.1)
+            : AppColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: enabled 
-              ? AppColors.success.withOpacity(0.3)
-              : AppColors.error.withOpacity(0.3),
+              ? AppColors.success.withValues(alpha: 0.3)
+              : AppColors.error.withValues(alpha: 0.3),
         ),
       ),
       child: Row(

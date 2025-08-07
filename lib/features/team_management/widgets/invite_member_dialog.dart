@@ -173,10 +173,10 @@ class _InviteMemberDialogState extends ConsumerState<InviteMemberDialog> {
                 Container(
                   padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
-                    color: AppColors.info.withOpacity(0.1),
+                    color: AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(
-                      color: AppColors.info.withOpacity(0.3),
+                      color: AppColors.info.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -319,7 +319,7 @@ class _RoleOption extends StatelessWidget {
       child: NeumorphicButton(
         onPressed: onSelected,
         isSelected: isSelected,
-        selectedColor: color.withOpacity(0.1),
+        selectedColor: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
         padding: EdgeInsets.all(12.w),
         child: Row(

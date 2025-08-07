@@ -43,9 +43,9 @@ class _DatabaseStatusWidgetState extends ConsumerState<DatabaseStatusWidget> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _statusColor.withOpacity(0.1),
+                color: _statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _statusColor.withOpacity(0.3)),
+                border: Border.all(color: _statusColor.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -455,7 +455,7 @@ class _RippleAnimationState extends State<RippleAnimation>
           painter: RipplePainter(
             center: widget.center,
             radius: _radiusAnimation.value,
-            color: widget.color.withOpacity(_opacityAnimation.value),
+            color: widget.color.withValues(alpha: _opacityAnimation.value),
           ),
         );
       },
@@ -540,7 +540,7 @@ class _PulsingDotState extends State<PulsingDot>
           width: widget.size,
           height: widget.size,
           decoration: BoxDecoration(
-            color: widget.color.withOpacity(_animation.value),
+            color: widget.color.withValues(alpha: _animation.value),
             shape: BoxShape.circle,
           ),
         );

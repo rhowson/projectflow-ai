@@ -131,7 +131,7 @@ class TeamMembershipSection extends ConsumerWidget {
         Container(
           padding: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Icon(
@@ -152,7 +152,7 @@ class TeamMembershipSection extends ConsumerWidget {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Text(
@@ -185,7 +185,7 @@ class TeamMembershipSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.info.withOpacity(0.1),
+                    color: AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
@@ -208,7 +208,7 @@ class TeamMembershipSection extends ConsumerWidget {
                       Text(
                         'Invited as ${_getRoleDisplayName(invitation.role)}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -217,7 +217,7 @@ class TeamMembershipSection extends ConsumerWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(invitation.status).withOpacity(0.1),
+                    color: _getStatusColor(invitation.status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Text(
@@ -296,7 +296,7 @@ class TeamMembershipSection extends ConsumerWidget {
                   width: 40.w,
                   height: 40.h,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: team.logoUrl != null
@@ -386,7 +386,7 @@ class TeamMembershipSection extends ConsumerWidget {
               Text(
                 team.description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -422,13 +422,13 @@ class TeamMembershipSection extends ConsumerWidget {
         Icon(
           icon,
           size: 14.sp,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         ),
         SizedBox(width: 4.w),
         Text(
           text,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -448,20 +448,20 @@ class TeamMembershipSection extends ConsumerWidget {
           Icon(
             Icons.group_outlined,
             size: 48.sp,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           SizedBox(height: 16.h),
           Text(
             'No Teams Yet',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
           SizedBox(height: 8.h),
           Text(
             'Join or create a team to start collaborating',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             textAlign: TextAlign.center,
           ),

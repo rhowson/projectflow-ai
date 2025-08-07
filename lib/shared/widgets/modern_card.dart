@@ -162,7 +162,7 @@ class _ModernCardState extends State<ModernCard>
             boxShadow: widget.showShadow
                 ? [
                     BoxShadow(
-                      color: widget.gradientColors!.first.withOpacity(0.3),
+                      color: widget.gradientColors!.first.withValues(alpha: 0.3),
                       offset: const Offset(0, 4),
                       blurRadius: 12 + _elevationAnimation.value,
                       spreadRadius: 0,
@@ -242,7 +242,7 @@ class ProjectCard extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

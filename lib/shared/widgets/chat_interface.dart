@@ -155,7 +155,7 @@ class _ModernChatInterfaceState extends State<ModernChatInterface> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
+                          color: AppColors.primary.withValues(alpha: 0.3),
                           offset: const Offset(0, 2),
                           blurRadius: 8,
                         ),
@@ -415,7 +415,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
                         width: 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: AppColors.textSecondary.withOpacity(opacity),
+                          color: AppColors.textSecondary.withValues(alpha: opacity),
                           shape: BoxShape.circle,
                         ),
                       ),

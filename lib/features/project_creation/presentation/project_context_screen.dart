@@ -174,7 +174,7 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                     decoration: BoxDecoration(
-                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+                      color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Text(

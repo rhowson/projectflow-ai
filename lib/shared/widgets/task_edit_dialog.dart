@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import '../../core/models/project_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/custom_neumorphic_theme.dart';
@@ -84,7 +85,7 @@ class _TaskEditDialogState extends ConsumerState<TaskEditDialog> {
       insetPadding: EdgeInsets.all(16.w),
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
           maxWidth: MediaQuery.of(context).size.width * 0.9,
         ),
         decoration: BoxDecoration(
@@ -99,101 +100,168 @@ class _TaskEditDialogState extends ConsumerState<TaskEditDialog> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.all(20.w),
-              decoration: BoxDecoration(
-                color: CustomNeumorphicTheme.baseColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.r),
-                  topRight: Radius.circular(20.r),
-                ),
-              ),
-              child: Row(
-                children: [
-                  NeumorphicContainer(
-                    padding: EdgeInsets.all(8.w),
-                    borderRadius: BorderRadius.circular(12.r),
-                    color: CustomNeumorphicTheme.primaryPurple,
-                    child: Icon(
-                      isEditing ? Icons.edit : Icons.add_task,
-                      color: Colors.white,
-                      size: 20.sp,
-                    ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.all(20.w),
+                decoration: BoxDecoration(
+                  color: CustomNeumorphicTheme.baseColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.r),
+                    topRight: Radius.circular(20.r),
                   ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      isEditing ? 'Edit Task' : 'Add New Task',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
+                ),
+                child: Row(
+                  children: [
+                    NeumorphicContainer(
+                      padding: EdgeInsets.all(8.w),
+                      borderRadius: BorderRadius.circular(12.r),
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      child: Icon(
+                        isEditing ? Icons.edit : Icons.add_task,
+                        color: Colors.white,
+                        size: 20.sp,
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isEditing ? 'Edit Task' : 'Create New Task',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            isEditing ? 'Update task details' : 'Add a new task to project',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: CustomNeumorphicTheme.lightText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            
-            // Scrollable Content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(20.w),
-                child: Form(
-                  key: _formKey,
+              
+              // Scrollable Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(20.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Task Title
-                      _buildTextFormField(
-                        controller: _titleController,
-                        label: 'Task Title *',
-                        hint: 'Enter task title',
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Task title is required';
-                          }
-                          return null;
-                        },
+                      _buildEditSection(
+                        'Title',
+                        icon: Icons.task_alt,
+                        child: _buildTextFormField(
+                          controller: _titleController,
+                          hint: 'Enter task title',
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Task title is required';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
                       SizedBox(height: 16.h),
 
                       // Task Description
-                      _buildTextFormField(
-                        controller: _descriptionController,
-                        label: 'Description',
-                        hint: 'Enter task description (optional)',
-                        maxLines: 3,
+                      _buildEditSection(
+                        'Description',
+                        icon: Icons.description,
+                        child: _buildTextFormField(
+                          controller: _descriptionController,
+                          hint: 'Enter task description (optional)',
+                          minLines: 6,
+                          maxLines: 10,
+                        ),
                       ),
                       SizedBox(height: 16.h),
 
                       // Phase Selection - only show for creating new tasks
                       if (!isEditing) ...[
-                        _buildPhaseDropdown(),
+                        _buildEditSection(
+                          'Phase',
+                          icon: Icons.folder,
+                          child: _buildPhaseDropdown(),
+                        ),
                         SizedBox(height: 16.h),
                       ],
 
                       // Status and Priority Row
                       Row(
                         children: [
-                          Expanded(child: _buildStatusDropdown()),
+                          Expanded(
+                            child: _buildEditCard(
+                              'Status',
+                              child: _buildStatusDropdown(),
+                            ),
+                          ),
                           SizedBox(width: 12.w),
-                          Expanded(child: _buildPriorityDropdown()),
+                          Expanded(
+                            child: _buildEditCard(
+                              'Priority',
+                              child: _buildPriorityDropdown(),
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(height: 16.h),
 
-                      // Hours and Due Date Row
+                      // Time and Assignment Row
                       Row(
                         children: [
-                          Expanded(child: _buildEstimatedHoursField()),
+                          Expanded(
+                            child: _buildEditCard(
+                              'Estimated Hours',
+                              child: _buildTextFormField(
+                                controller: _estimatedHoursController,
+                                hint: '0',
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value != null && value.isNotEmpty) {
+                                    final hours = double.tryParse(value);
+                                    if (hours == null || hours < 0) {
+                                      return 'Enter valid hours';
+                                    }
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ),
                           SizedBox(width: 12.w),
                           Expanded(
-                            child: isEditing 
-                                ? _buildActualHoursField() 
-                                : _buildDueDateField(),
+                            child: _buildEditCard(
+                              isEditing ? 'Actual Hours' : 'Due Date',
+                              child: isEditing 
+                                  ? _buildTextFormField(
+                                      controller: _actualHoursController,
+                                      hint: '0',
+                                      keyboardType: TextInputType.number,
+                                      validator: (value) {
+                                        if (value != null && value.isNotEmpty) {
+                                          final hours = double.tryParse(value);
+                                          if (hours == null || hours < 0) {
+                                            return 'Enter valid hours';
+                                          }
+                                        }
+                                        return null;
+                                      },
+                                    )
+                                  : _buildDueDateField(),
+                            ),
                           ),
                         ],
                       ),
@@ -201,7 +269,11 @@ class _TaskEditDialogState extends ConsumerState<TaskEditDialog> {
                       // Due Date Field - Only show separately when editing
                       if (isEditing) ...[
                         SizedBox(height: 16.h),
-                        _buildDueDateField(),
+                        _buildEditSection(
+                          'Due Date',
+                          icon: Icons.calendar_today,
+                          child: _buildDueDateField(),
+                        ),
                       ],
                       
                       SizedBox(height: 16.h), // Bottom padding for scroll
@@ -209,431 +281,437 @@ class _TaskEditDialogState extends ConsumerState<TaskEditDialog> {
                   ),
                 ),
               ),
-            ),
-            
-            // Footer Actions
-            Container(
-              padding: EdgeInsets.all(20.w),
-              decoration: BoxDecoration(
-                color: CustomNeumorphicTheme.baseColor,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20.r),
-                  bottomRight: Radius.circular(20.r),
-                ),
-                border: Border(
-                  top: BorderSide(
-                    color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.1),
-                    width: 1,
+              
+              // Footer Actions
+              Container(
+                padding: EdgeInsets.all(20.w),
+                decoration: BoxDecoration(
+                  color: CustomNeumorphicTheme.baseColor,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20.r),
+                    bottomRight: Radius.circular(20.r),
                   ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  NeumorphicButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    borderRadius: BorderRadius.circular(12.r),
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                    child: Text(
-                      'Cancel',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: CustomNeumorphicTheme.lightText,
-                      ),
+                  border: Border(
+                    top: BorderSide(
+                      color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.1),
+                      width: 1,
                     ),
                   ),
-                  SizedBox(width: 12.w),
-                  NeumorphicButton(
-                    onPressed: _saveTask,
-                    isSelected: true,
-                    selectedColor: CustomNeumorphicTheme.primaryPurple,
-                    borderRadius: BorderRadius.circular(12.r),
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                    child: Text(
-                      isEditing ? 'Update Task' : 'Add Task',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    NeumorphicButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      child: Text(
+                        'Cancel',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: CustomNeumorphicTheme.lightText,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    NeumorphicButton(
+                      onPressed: _saveTask,
+                      isSelected: true,
+                      selectedColor: CustomNeumorphicTheme.primaryPurple,
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isEditing ? Icons.save : Icons.add,
+                            color: Colors.white,
+                            size: 16.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            isEditing ? 'Save Changes' : 'Create Task',
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    String? Function(String?)? validator,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: hint,
-              border: InputBorder.none,
-              hintStyle: TextStyle(
-                color: CustomNeumorphicTheme.lightText,
-                fontSize: 14.sp,
+  // Helper method to build edit sections that match the view layout
+  Widget _buildEditSection(String label, {required IconData icon, required Widget child}) {
+    return NeumorphicCard(
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 16.sp,
+                color: CustomNeumorphicTheme.primaryPurple,
               ),
-            ),
-            maxLines: maxLines,
-            style: TextStyle(fontSize: 14.sp),
-            validator: validator,
+              SizedBox(width: 8.w),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: CustomNeumorphicTheme.lightText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+          SizedBox(height: 8.h),
+          child,
+        ],
+      ),
     );
   }
 
-  Widget _buildPhaseDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Phase *',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: DropdownButtonFormField<String>(
-            value: _selectedPhaseId,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Select phase',
+  // Helper method to build edit cards that match the view layout
+  Widget _buildEditCard(String label, {required Widget child}) {
+    return NeumorphicCard(
+      padding: EdgeInsets.all(12.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: CustomNeumorphicTheme.lightText,
+              fontWeight: FontWeight.w600,
             ),
-            items: widget.project.phases.map((phase) {
-              return DropdownMenuItem<String>(
-                value: phase.id,
-                child: Text(
-                  phase.name,
-                  style: TextStyle(fontSize: 14.sp),
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedPhaseId = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a phase';
-              }
-              return null;
-            },
           ),
+          SizedBox(height: 6.h),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    String? hint,
+    int? maxLines,
+    int? minLines,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines ?? 1,
+      minLines: minLines,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: CustomNeumorphicTheme.darkText,
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.6),
         ),
-      ],
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        isDense: true,
+      ),
     );
   }
 
   Widget _buildStatusDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Status',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: DropdownButtonFormField<TaskStatus>(
-            value: _selectedStatus,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-            ),
-            items: TaskStatus.values.map((status) {
-              return DropdownMenuItem<TaskStatus>(
-                value: status,
-                child: Text(
-                  _getStatusDisplayName(status),
-                  style: TextStyle(fontSize: 14.sp),
+    return DropdownButtonFormField<TaskStatus>(
+      value: _selectedStatus,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        isDense: true,
+      ),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: _getStatusColor(_selectedStatus),
+        fontWeight: FontWeight.w600,
+      ),
+      items: TaskStatus.values.map((status) {
+        return DropdownMenuItem(
+          value: status,
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(4.w),
+                decoration: BoxDecoration(
+                  color: _getStatusColor(status).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6.r),
                 ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedStatus = value ?? TaskStatus.todo;
-              });
-            },
+                child: Icon(
+                  _getStatusIcon(status),
+                  size: 12.sp,
+                  color: _getStatusColor(status),
+                ),
+              ),
+              SizedBox(width: 6.w),
+              Text(_getStatusText(status)),
+            ],
           ),
-        ),
-      ],
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _selectedStatus = value;
+          });
+        }
+      },
     );
   }
 
   Widget _buildPriorityDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Priority',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: DropdownButtonFormField<Priority>(
-            value: _selectedPriority,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-            ),
-            items: Priority.values.map((priority) {
-              return DropdownMenuItem<Priority>(
-                value: priority,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8.w,
-                      height: 8.w,
-                      decoration: BoxDecoration(
-                        color: _getPriorityColor(priority),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      _getPriorityDisplayName(priority),
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                  ],
+    return DropdownButtonFormField<Priority>(
+      value: _selectedPriority,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        isDense: true,
+      ),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: _getPriorityColor(_selectedPriority),
+        fontWeight: FontWeight.w600,
+      ),
+      items: Priority.values.map((priority) {
+        return DropdownMenuItem(
+          value: priority,
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(4.w),
+                decoration: BoxDecoration(
+                  color: _getPriorityColor(priority).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6.r),
                 ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedPriority = value ?? Priority.medium;
-              });
-            },
+                child: Icon(
+                  _getPriorityIcon(priority),
+                  size: 12.sp,
+                  color: _getPriorityColor(priority),
+                ),
+              ),
+              SizedBox(width: 6.w),
+              Text(_getPriorityText(priority)),
+            ],
           ),
-        ),
-      ],
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _selectedPriority = value;
+          });
+        }
+      },
     );
   }
 
-  Widget _buildEstimatedHoursField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Estimated Hours',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
+  Widget _buildPhaseDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedPhaseId,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        isDense: true,
+      ),
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: CustomNeumorphicTheme.darkText,
+      ),
+      items: widget.project.phases.map((phase) {
+        return DropdownMenuItem(
+          value: phase.id,
+          child: Row(
+            children: [
+              Container(
+                width: 4.w,
+                height: 16.h,
+                decoration: BoxDecoration(
+                  color: _getPhaseStatusColor(phase.status),
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  phase.name,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: TextFormField(
-            controller: _estimatedHoursController,
-            decoration: InputDecoration(
-              hintText: '0',
-              border: InputBorder.none,
-              suffixText: 'hrs',
-            ),
-            keyboardType: TextInputType.number,
-            style: TextStyle(fontSize: 14.sp),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActualHoursField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Actual Hours',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: TextFormField(
-            controller: _actualHoursController,
-            decoration: InputDecoration(
-              hintText: '0',
-              border: InputBorder.none,
-              suffixText: 'hrs',
-            ),
-            keyboardType: TextInputType.number,
-            style: TextStyle(fontSize: 14.sp),
-          ),
-        ),
-      ],
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedPhaseId = value;
+        });
+      },
+      validator: (value) {
+        if (value == null) {
+          return 'Please select a phase';
+        }
+        return null;
+      },
     );
   }
 
   Widget _buildDueDateField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Due Date',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: CustomNeumorphicTheme.darkText,
+    return InkWell(
+      onTap: _selectDueDate,
+      child: Row(
+        children: [
+          Icon(
+            Icons.calendar_today,
+            size: 14.sp,
+            color: _selectedDueDate != null 
+                ? _getDueDateColor(_selectedDueDate!) 
+                : CustomNeumorphicTheme.lightText,
           ),
-        ),
-        SizedBox(height: 8.h),
-        NeumorphicContainer(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-          borderRadius: BorderRadius.circular(12.r),
-          color: CustomNeumorphicTheme.baseColor,
-          child: GestureDetector(
-            onTap: _selectDueDate,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _selectedDueDate != null
-                        ? '${_selectedDueDate!.day}/${_selectedDueDate!.month}/${_selectedDueDate!.year}'
-                        : 'Select date',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: _selectedDueDate != null
-                          ? CustomNeumorphicTheme.darkText
-                          : CustomNeumorphicTheme.lightText,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.calendar_today,
-                  size: 16.sp,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-              ],
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Text(
+              _selectedDueDate != null 
+                  ? DateFormat('MMM dd, yyyy').format(_selectedDueDate!)
+                  : 'Select due date',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: _selectedDueDate != null
+                    ? CustomNeumorphicTheme.darkText
+                    : CustomNeumorphicTheme.lightText.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-        ),
-      ],
+          if (_selectedDueDate != null)
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedDueDate = null;
+                });
+              },
+              child: Icon(
+                Icons.clear,
+                size: 12.sp,
+                color: CustomNeumorphicTheme.lightText,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   Future<void> _selectDueDate() async {
-    final DateTime? picked = await showDatePicker(
+    final selectedDate = await showDatePicker(
       context: context,
-      initialDate: _selectedDueDate ?? DateTime.now(),
+      initialDate: _selectedDueDate ?? DateTime.now().add(const Duration(days: 7)),
       firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null && picked != _selectedDueDate) {
+
+    if (selectedDate != null) {
       setState(() {
-        _selectedDueDate = picked;
+        _selectedDueDate = selectedDate;
       });
     }
   }
 
+  void _saveTask() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-  void _saveTask() {
-    if (_formKey.currentState!.validate()) {
-      final estimatedHours = double.tryParse(_estimatedHoursController.text) ?? 0.0;
-      final actualHours = double.tryParse(_actualHoursController.text) ?? 0.0;
-      
+    final estimatedHours = double.tryParse(_estimatedHoursController.text) ?? 0.0;
+    final actualHours = double.tryParse(_actualHoursController.text) ?? 0.0;
+
+    final updatedTask = Task(
+      id: widget.isCreating ? DateTime.now().millisecondsSinceEpoch.toString() : widget.task.id,
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      status: _selectedStatus,
+      priority: _selectedPriority,
+      assignedToId: widget.task.assignedToId,
+      createdAt: widget.task.createdAt,
+      dueDate: _selectedDueDate,
+      attachmentIds: widget.task.attachmentIds,
+      dependencyIds: widget.task.dependencyIds,
+      estimatedHours: estimatedHours,
+      actualHours: actualHours,
+      comments: widget.task.comments,
+    );
+
+    try {
       if (widget.isCreating) {
-        // Create new task
-        final newTask = Task(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          status: _selectedStatus,
-          priority: _selectedPriority,
-          assignedToId: null,
-          createdAt: DateTime.now(),
-          dueDate: _selectedDueDate,
-          attachmentIds: [],
-          dependencyIds: [],
-          estimatedHours: estimatedHours,
-          actualHours: 0.0,
-          comments: [],
+        await ref.read(projectNotifierProvider.notifier).addTaskToPhase(
+          widget.project.id,
+          _selectedPhaseId!,
+          updatedTask,
         );
-        
-        if (_selectedPhaseId != null) {
-          ref.read(projectNotifierProvider.notifier).addTaskToPhase(
-            widget.project.id,
-            _selectedPhaseId!,
-            newTask,
-          );
-        }
       } else {
-        // Update existing task
-        final updatedTask = Task(
-          id: widget.task.id,
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          status: _selectedStatus,
-          priority: _selectedPriority,
-          assignedToId: widget.task.assignedToId,
-          createdAt: widget.task.createdAt,
-          dueDate: _selectedDueDate,
-          attachmentIds: widget.task.attachmentIds,
-          dependencyIds: widget.task.dependencyIds,
-          estimatedHours: estimatedHours,
-          actualHours: actualHours,
-          comments: widget.task.comments,
-        );
-        
-        ref.read(projectNotifierProvider.notifier).updateTask(
+        await ref.read(projectNotifierProvider.notifier).updateTask(
           widget.project.id,
           widget.phaseId,
           updatedTask,
         );
       }
-      
-      Navigator.of(context).pop();
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to ${widget.isCreating ? 'create' : 'update'} task: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
-  String _getStatusDisplayName(TaskStatus status) {
+  // Helper methods for colors and icons (matching TaskDetailsDialog)
+  Color _getStatusColor(TaskStatus status) {
+    switch (status) {
+      case TaskStatus.todo:
+        return AppColors.statusTodo;
+      case TaskStatus.inProgress:
+        return AppColors.statusInProgress;
+      case TaskStatus.review:
+        return AppColors.statusReview;
+      case TaskStatus.completed:
+        return AppColors.statusCompleted;
+      case TaskStatus.blocked:
+        return AppColors.error;
+    }
+  }
+
+  IconData _getStatusIcon(TaskStatus status) {
+    switch (status) {
+      case TaskStatus.todo:
+        return Icons.radio_button_unchecked;
+      case TaskStatus.inProgress:
+        return Icons.play_circle;
+      case TaskStatus.review:
+        return Icons.rate_review;
+      case TaskStatus.completed:
+        return Icons.check_circle;
+      case TaskStatus.blocked:
+        return Icons.block;
+    }
+  }
+
+  String _getStatusText(TaskStatus status) {
     switch (status) {
       case TaskStatus.todo:
         return 'To Do';
@@ -648,7 +726,33 @@ class _TaskEditDialogState extends ConsumerState<TaskEditDialog> {
     }
   }
 
-  String _getPriorityDisplayName(Priority priority) {
+  Color _getPriorityColor(Priority priority) {
+    switch (priority) {
+      case Priority.low:
+        return AppColors.priorityLow;
+      case Priority.medium:
+        return AppColors.priorityMedium;
+      case Priority.high:
+        return AppColors.priorityHigh;
+      case Priority.urgent:
+        return AppColors.priorityUrgent;
+    }
+  }
+
+  IconData _getPriorityIcon(Priority priority) {
+    switch (priority) {
+      case Priority.low:
+        return Icons.keyboard_arrow_down;
+      case Priority.medium:
+        return Icons.remove;
+      case Priority.high:
+        return Icons.keyboard_arrow_up;
+      case Priority.urgent:
+        return Icons.priority_high;
+    }
+  }
+
+  String _getPriorityText(Priority priority) {
     switch (priority) {
       case Priority.low:
         return 'Low';
@@ -661,18 +765,29 @@ class _TaskEditDialogState extends ConsumerState<TaskEditDialog> {
     }
   }
 
+  Color _getDueDateColor(DateTime dueDate) {
+    final now = DateTime.now();
+    final difference = dueDate.difference(now).inDays;
+    
+    if (difference < 0) {
+      return AppColors.error; // Overdue
+    } else if (difference <= 3) {
+      return AppColors.warning; // Due soon
+    } else {
+      return CustomNeumorphicTheme.successGreen; // On track
+    }
+  }
 
-
-  Color _getPriorityColor(Priority priority) {
-    switch (priority) {
-      case Priority.low:
-        return AppColors.priorityLow;
-      case Priority.medium:
-        return AppColors.priorityMedium;
-      case Priority.high:
-        return AppColors.priorityHigh;
-      case Priority.urgent:
-        return AppColors.priorityUrgent;
+  Color _getPhaseStatusColor(PhaseStatus status) {
+    switch (status) {
+      case PhaseStatus.notStarted:
+        return CustomNeumorphicTheme.lightText;
+      case PhaseStatus.inProgress:
+        return CustomNeumorphicTheme.primaryPurple;
+      case PhaseStatus.completed:
+        return CustomNeumorphicTheme.successGreen;
+      case PhaseStatus.onHold:
+        return Colors.orange;
     }
   }
 }

@@ -190,7 +190,7 @@ class NeumorphicContainer extends StatelessWidget {
                   ? [
                       // Pressed state with sharp inset shadows
                       BoxShadow(
-                        color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.5),
+                        color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.5),
                         offset: const Offset(2, 2),
                         blurRadius: 3,
                         spreadRadius: 0,
@@ -200,21 +200,21 @@ class NeumorphicContainer extends StatelessWidget {
                       ? [
                           // Sharp bottom-right shadow for defined edge
                           BoxShadow(
-                            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.6),
+                            color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.6),
                             offset: const Offset(4, 5),
                             blurRadius: 8,
                             spreadRadius: 0,
                           ),
                           // Secondary softer shadow for depth
                           BoxShadow(
-                            color: CustomNeumorphicTheme.darkShadow.withOpacity(0.3),
+                            color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 0.3),
                             offset: const Offset(6, 7),
                             blurRadius: 12,
                             spreadRadius: 0,
                           ),
                           // Subtle top-left highlight
                           BoxShadow(
-                            color: CustomNeumorphicTheme.lightShadow.withOpacity(0.8),
+                            color: CustomNeumorphicTheme.lightShadow.withValues(alpha: 0.8),
                             offset: const Offset(-1, -1),
                             blurRadius: 4,
                             spreadRadius: 0,
@@ -274,26 +274,26 @@ class NeumorphicEmbossedContainer extends StatelessWidget {
               boxShadow: [
                 // Embossed effect - inset shadows (dark on top-left, light on bottom-right)
                 BoxShadow(
-                  color: CustomNeumorphicTheme.darkShadow.withOpacity(0.6),
+                  color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 0.6),
                   offset: const Offset(-2, -2),
                   blurRadius: 4,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.8),
+                  color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.8),
                   offset: const Offset(-4, -4),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
                 // Light shadow on bottom-right for embossed effect
                 BoxShadow(
-                  color: CustomNeumorphicTheme.lightShadow.withOpacity(0.9),
+                  color: CustomNeumorphicTheme.lightShadow.withValues(alpha: 0.9),
                   offset: const Offset(2, 2),
                   blurRadius: 4,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CustomNeumorphicTheme.lightShadow.withOpacity(0.7),
+                  color: CustomNeumorphicTheme.lightShadow.withValues(alpha: 0.7),
                   offset: const Offset(4, 4),
                   blurRadius: 8,
                   spreadRadius: 0,
@@ -469,39 +469,39 @@ class NeumorphicSharpEmbossedContainer extends StatelessWidget {
               boxShadow: [
                 // Ultra-sharp embossed effect - maximum definition inset shadows
                 BoxShadow(
-                  color: CustomNeumorphicTheme.darkShadow.withOpacity(1.0),
+                  color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 1.0),
                   offset: const Offset(-4, -4),
                   blurRadius: 4,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(1.0),
+                  color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 1.0),
                   offset: const Offset(-8, -8),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
                 // Ultra-sharp light shadows for crisp definition
                 BoxShadow(
-                  color: CustomNeumorphicTheme.lightShadow.withOpacity(1.0),
+                  color: CustomNeumorphicTheme.lightShadow.withValues(alpha: 1.0),
                   offset: const Offset(4, 4),
                   blurRadius: 4,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CustomNeumorphicTheme.lightShadow.withOpacity(0.9),
+                  color: CustomNeumorphicTheme.lightShadow.withValues(alpha: 0.9),
                   offset: const Offset(8, 8),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
                 // Razor-sharp edge definition shadows
                 BoxShadow(
-                  color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.8),
+                  color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.8),
                   offset: const Offset(-2, -2),
                   blurRadius: 0,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CustomNeumorphicTheme.lightShadow.withOpacity(1.0),
+                  color: CustomNeumorphicTheme.lightShadow.withValues(alpha: 1.0),
                   offset: const Offset(2, 2),
                   blurRadius: 0,
                   spreadRadius: 0,
@@ -861,11 +861,11 @@ class NeumorphicProgressBar extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
-        color: backgroundColor ?? CustomNeumorphicTheme.baseColor.withOpacity(0.5),
+        color: backgroundColor ?? CustomNeumorphicTheme.baseColor.withValues(alpha: 0.5),
         boxShadow: [
           // Sharp bottom shadow for progress bar container
           BoxShadow(
-            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.4),
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.4),
             offset: const Offset(2, 3),
             blurRadius: 4,
             spreadRadius: 0,
@@ -906,7 +906,7 @@ class NeumorphicAppBar extends StatelessWidget implements PreferredSizeWidget {
         boxShadow: [
           // Sharp bottom shadow for app bar
           BoxShadow(
-            color: CustomNeumorphicTheme.bottomEdgeShadow.withOpacity(0.3),
+            color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.3),
             offset: const Offset(0, 3),
             blurRadius: 6,
             spreadRadius: 0,

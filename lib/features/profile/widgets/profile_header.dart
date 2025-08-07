@@ -19,8 +19,8 @@ class ProfileHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(0.1),
-            AppColors.primaryLight.withOpacity(0.05),
+            AppColors.primary.withValues(alpha: 0.1),
+            AppColors.primaryLight.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -40,7 +40,7 @@ class ProfileHeader extends StatelessWidget {
                 backgroundImage: user.photoUrl != null
                     ? NetworkImage(user.photoUrl!)
                     : null,
-                backgroundColor: AppColors.primary.withOpacity(0.2),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.2),
                 child: user.photoUrl == null
                     ? Text(
                         user.initials,
@@ -89,7 +89,7 @@ class ProfileHeader extends StatelessWidget {
             Text(
               user.jobTitle!,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -100,10 +100,10 @@ class ProfileHeader extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
             decoration: BoxDecoration(
-              color: _getRoleColor(user.role).withOpacity(0.1),
+              color: _getRoleColor(user.role).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
-                color: _getRoleColor(user.role).withOpacity(0.3),
+                color: _getRoleColor(user.role).withValues(alpha: 0.3),
               ),
             ),
             child: Text(
@@ -185,7 +185,7 @@ class ProfileHeader extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
       ],

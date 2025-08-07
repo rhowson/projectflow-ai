@@ -4,9 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/role_edit_dialog.dart';
 import '../../../core/models/team_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/models/project_role_model.dart';
+import '../../../core/models/project_model.dart';
 import '../providers/team_provider.dart';
 import '../providers/project_role_provider.dart';
 import '../../user_management/providers/user_provider.dart';
@@ -547,7 +549,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                   child: Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+                      color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -563,7 +565,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                   child: Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: CustomNeumorphicTheme.lightText.withOpacity(0.1),
+                      color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -1076,7 +1078,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with AI Generate button
+          // Header with Create and AI Generate buttons
           Row(
             children: [
               Text(
@@ -1089,8 +1091,33 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
               ),
               const Spacer(),
               NeumorphicButton(
+                onPressed: () => _showCreateRoleDialog(),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                borderRadius: BorderRadius.circular(12.r),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                      size: 16.sp,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      'Create',
+                      style: TextStyle(
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              NeumorphicButton(
                 onPressed: _generateProjectRoles,
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                 borderRadius: BorderRadius.circular(12.r),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1100,9 +1127,9 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                       color: CustomNeumorphicTheme.primaryPurple,
                       size: 16.sp,
                     ),
-                    SizedBox(width: 6.w),
+                    SizedBox(width: 4.w),
                     Text(
-                      'Generate with AI',
+                      'AI Generate',
                       style: TextStyle(
                         color: CustomNeumorphicTheme.primaryPurple,
                         fontSize: 12.sp,
@@ -1166,7 +1193,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                       }
                       return _buildExistingRoles(roles, activeProject.id);
                     },
-                    loading: () => const CircularProgressIndicator(),
+                    loading: () => const SizedBox.shrink(), // Fixed redundant loading indicator
                     error: (error, stack) => Text('Error loading roles: $error'),
                   );
                 },
@@ -1457,7 +1484,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                     decoration: BoxDecoration(
-                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+                      color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                     child: Text(
@@ -1469,21 +1496,58 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                       ),
                     ),
                   ),
-                SizedBox(width: 8.w),
-                GestureDetector(
-                  onTap: () => _assignUserToRole(role),
-                  child: Container(
-                    padding: EdgeInsets.all(6.w),
-                    decoration: BoxDecoration(
-                      color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6.r),
+                // Action buttons
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showEditRoleDialog(role, projectId),
+                      child: Container(
+                        padding: EdgeInsets.all(6.w),
+                        decoration: BoxDecoration(
+                          color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Icon(
+                          Icons.edit,
+                          size: 14.sp,
+                          color: CustomNeumorphicTheme.primaryPurple,
+                        ),
+                      ),
                     ),
-                    child: Icon(
-                      Icons.person_add,
-                      size: 14.sp,
-                      color: CustomNeumorphicTheme.primaryPurple,
+                    SizedBox(width: 6.w),
+                    GestureDetector(
+                      onTap: () => _assignUserToRole(role),
+                      child: Container(
+                        padding: EdgeInsets.all(6.w),
+                        decoration: BoxDecoration(
+                          color: CustomNeumorphicTheme.successGreen.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Icon(
+                          Icons.person_add,
+                          size: 14.sp,
+                          color: CustomNeumorphicTheme.successGreen,
+                        ),
+                      ),
                     ),
-                  ),
+                    SizedBox(width: 6.w),
+                    GestureDetector(
+                      onTap: () => _showRoleOptions(role, projectId),
+                      child: Container(
+                        padding: EdgeInsets.all(6.w),
+                        decoration: BoxDecoration(
+                          color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Icon(
+                          Icons.more_vert,
+                          size: 14.sp,
+                          color: CustomNeumorphicTheme.lightText,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1570,5 +1634,303 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('User assignment for ${role.name} - Coming soon!')),
     );
+  }
+
+  void _showCreateRoleDialog() async {
+    try {
+      // Get active project first
+      final projectsAsync = ref.read(projectNotifierProvider);
+      final projects = projectsAsync.when(
+        data: (data) => data,
+        loading: () => <Project>[],
+        error: (error, stack) => <Project>[],
+      );
+      
+      if (projects.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No active project found')),
+          );
+        }
+        return;
+      }
+      
+      final activeProject = projects.first;
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => RoleEditDialog(
+            projectId: activeProject.id,
+            isCreating: true,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  void _showEditRoleDialog(ProjectRole role, String projectId) {
+    showDialog(
+      context: context,
+      builder: (context) => RoleEditDialog(
+        role: role,
+        projectId: projectId,
+        isCreating: false,
+      ),
+    );
+  }
+
+  void _showRoleOptions(ProjectRole role, String projectId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => NeumorphicContainer(
+        margin: EdgeInsets.all(16.w),
+        borderRadius: BorderRadius.circular(20.r),
+        color: CustomNeumorphicTheme.cardColor,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(top: 12.h, bottom: 20.h),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Role Options',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    role.name,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.lightText,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20.h),
+            
+            ListTile(
+              leading: NeumorphicContainer(
+                padding: EdgeInsets.all(8.w),
+                borderRadius: BorderRadius.circular(10.r),
+                color: CustomNeumorphicTheme.primaryPurple,
+                child: Icon(Icons.edit, color: Colors.white, size: 20.sp),
+              ),
+              title: Text(
+                'Edit Role',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                'Modify role details and permissions',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditRoleDialog(role, projectId);
+              },
+            ),
+            
+            ListTile(
+              leading: NeumorphicContainer(
+                padding: EdgeInsets.all(8.w),
+                borderRadius: BorderRadius.circular(10.r),
+                color: CustomNeumorphicTheme.successGreen,
+                child: Icon(Icons.person_add, color: Colors.white, size: 20.sp),
+              ),
+              title: Text(
+                'Assign Users',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                'Assign team members to this role',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _assignUserToRole(role);
+              },
+            ),
+            
+            if (!role.isAIGenerated) // Only allow deletion of custom roles
+              ListTile(
+                leading: NeumorphicContainer(
+                  padding: EdgeInsets.all(8.w),
+                  borderRadius: BorderRadius.circular(10.r),
+                  color: CustomNeumorphicTheme.errorRed,
+                  child: Icon(Icons.delete_outline, color: Colors.white, size: 20.sp),
+                ),
+                title: Text(
+                  'Delete Role',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.errorRed,
+                  ),
+                ),
+                subtitle: Text(
+                  'Permanently delete this role',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteRoleConfirmation(role, projectId);
+                },
+              ),
+            
+            SizedBox(height: 20.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteRoleConfirmation(ProjectRole role, String projectId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Text(
+          'Delete Role',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: CustomNeumorphicTheme.errorRed,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete "${role.name}"?',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.errorRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: CustomNeumorphicTheme.errorRed.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'This action cannot be undone. This will permanently:',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: CustomNeumorphicTheme.errorRed,
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    '• Remove the role\n• Unassign all users from this role\n• Delete all role-specific permissions',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: CustomNeumorphicTheme.errorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: CustomNeumorphicTheme.darkText),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteRole(role, projectId);
+            },
+            child: Text(
+              'Delete',
+              style: TextStyle(color: CustomNeumorphicTheme.errorRed),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteRole(ProjectRole role, String projectId) async {
+    try {
+      await ref.read(projectRoleNotifierProvider(projectId).notifier)
+          .deleteRole(role.id);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Role "${role.name}" deleted successfully'),
+            backgroundColor: CustomNeumorphicTheme.primaryPurple,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting role: $e'),
+            backgroundColor: CustomNeumorphicTheme.errorRed,
+          ),
+        );
+      }
+    }
   }
 }

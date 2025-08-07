@@ -128,6 +128,24 @@ class ProjectRoleNotifier extends _$ProjectRoleNotifier {
     }
   }
 
+  /// Update an existing project role
+  Future<void> updateRole(ProjectRole updatedRole) async {
+    try {
+      // TODO: Update role in Firebase/backend
+      
+      // Update local state
+      final currentRoles = state.value ?? [];
+      final updatedRoles = currentRoles.map((role) {
+        return role.id == updatedRole.id ? updatedRole : role;
+      }).toList();
+      state = AsyncValue.data(updatedRoles);
+      
+    } catch (error) {
+      state = AsyncValue.error(error, StackTrace.current);
+      rethrow;
+    }
+  }
+
   /// Delete a project role
   Future<void> deleteRole(String roleId) async {
     try {

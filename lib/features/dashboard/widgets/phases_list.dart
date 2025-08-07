@@ -23,20 +23,20 @@ class PhasesList extends ConsumerWidget {
               Icon(
                 Icons.layers_outlined,
                 size: 48,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
               ),
               const SizedBox(height: 16),
               Text(
                 'No phases yet',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Phases will appear here once your project is analyzed',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -70,7 +70,7 @@ class PhasesList extends ConsumerWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
@@ -157,10 +157,10 @@ class _PhaseCardState extends ConsumerState<_PhaseCard> {
                     decoration: BoxDecoration(
                       color: widget.phase.status == PhaseStatus.completed 
                           ? AppColors.statusCompleted
-                          : _getPhaseStatusColor(widget.phase.status).withOpacity(0.1),
+                          : _getPhaseStatusColor(widget.phase.status).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: _getPhaseStatusColor(widget.phase.status).withOpacity(0.3),
+                        color: _getPhaseStatusColor(widget.phase.status).withValues(alpha: 0.3),
                         width: 2,
                       ),
                     ),
@@ -200,7 +200,7 @@ class _PhaseCardState extends ConsumerState<_PhaseCard> {
                             Text(
                               '$completedTasks/$totalTasks tasks',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -213,7 +213,7 @@ class _PhaseCardState extends ConsumerState<_PhaseCard> {
                     onPressed: () => _showAddTaskDialog(),
                     tooltip: 'Add Task',
                     style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       foregroundColor: Theme.of(context).colorScheme.primary,
                     ),
                   ),
@@ -226,7 +226,7 @@ class _PhaseCardState extends ConsumerState<_PhaseCard> {
               Text(
                 widget.phase.description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 maxLines: isExpanded ? null : 2,
                 overflow: isExpanded ? null : TextOverflow.ellipsis,
@@ -244,7 +244,7 @@ class _PhaseCardState extends ConsumerState<_PhaseCard> {
                       Text(
                         'Progress',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -275,7 +275,7 @@ class _PhaseCardState extends ConsumerState<_PhaseCard> {
                     Center(
                       child: Icon(
                         isExpanded ? Icons.expand_less : Icons.expand_more,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         size: 20.sp,
                       ),
                     ),
@@ -385,9 +385,9 @@ class _PhaseStatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
@@ -455,13 +455,13 @@ class _TaskCardState extends ConsumerState<_TaskCard>
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
               color: widget.task.status == TaskStatus.completed
-                  ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+                  ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
                   : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: widget.task.status == TaskStatus.completed
-                    ? AppColors.statusCompleted.withOpacity(0.3)
-                    : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                    ? AppColors.statusCompleted.withValues(alpha: 0.3)
+                    : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
       child: Row(
@@ -517,7 +517,7 @@ class _TaskCardState extends ConsumerState<_TaskCard>
                           ? TextDecoration.lineThrough
                           : null,
                       color: widget.task.status == TaskStatus.completed
-                          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                          ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)
                           : null,
                     ),
                   ),
@@ -526,7 +526,7 @@ class _TaskCardState extends ConsumerState<_TaskCard>
                     Text(
                       widget.task.description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 
                           widget.task.status == TaskStatus.completed ? 0.4 : 0.6
                         ),
                         decoration: widget.task.status == TaskStatus.completed
@@ -542,7 +542,7 @@ class _TaskCardState extends ConsumerState<_TaskCard>
                     Text(
                       '${widget.task.estimatedHours.toInt()}h estimated',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 
                           widget.task.status == TaskStatus.completed ? 0.4 : 0.6
                         ),
                         decoration: widget.task.status == TaskStatus.completed
@@ -561,7 +561,7 @@ class _TaskCardState extends ConsumerState<_TaskCard>
             icon: Icon(
               Icons.more_vert,
               size: 16,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             itemBuilder: (context) => [
               const PopupMenuItem<String>(

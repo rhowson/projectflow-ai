@@ -173,7 +173,7 @@ class _CustomButtonState extends State<CustomButton>
         boxShadow: widget.showShadow
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   offset: Offset(0, 4.h),
                   blurRadius: 12.r,
                   spreadRadius: 0,
@@ -204,7 +204,7 @@ class _CustomButtonState extends State<CustomButton>
         boxShadow: widget.showShadow
             ? [
                 BoxShadow(
-                  color: AppColors.secondary.withOpacity(0.3),
+                  color: AppColors.secondary.withValues(alpha: 0.3),
                   offset: const Offset(0, 4),
                   blurRadius: 12,
                   spreadRadius: 0,
@@ -300,7 +300,7 @@ class _CustomButtonState extends State<CustomButton>
         boxShadow: widget.showShadow
             ? [
                 BoxShadow(
-                  color: colors.first.withOpacity(0.3),
+                  color: colors.first.withValues(alpha: 0.3),
                   offset: const Offset(0, 4),
                   blurRadius: 12,
                   spreadRadius: 0,

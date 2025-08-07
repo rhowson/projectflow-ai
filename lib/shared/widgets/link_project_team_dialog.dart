@@ -66,7 +66,7 @@ class _LinkProjectTeamDialogState extends ConsumerState<LinkProjectTeamDialog> {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
@@ -108,7 +108,7 @@ class _LinkProjectTeamDialogState extends ConsumerState<LinkProjectTeamDialog> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
@@ -393,7 +393,7 @@ class _TeamOption extends StatelessWidget {
       child: NeumorphicButton(
         onPressed: onTap,
         isSelected: isSelected,
-        selectedColor: AppColors.primary.withOpacity(0.1),
+        selectedColor: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12.r),
         padding: EdgeInsets.all(12.w),
         child: Row(
@@ -403,8 +403,8 @@ class _TeamOption extends StatelessWidget {
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
                 color: team == null 
-                    ? AppColors.warning.withOpacity(0.1)
-                    : AppColors.primary.withOpacity(0.1),
+                    ? AppColors.warning.withValues(alpha: 0.1)
+                    : AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(

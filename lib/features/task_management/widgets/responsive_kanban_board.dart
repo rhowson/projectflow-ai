@@ -6,6 +6,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/widgets/task_assignment_dialog.dart';
 import '../../../shared/widgets/task_edit_dialog.dart';
+import '../../../shared/widgets/task_details_dialog.dart';
 import '../../project_creation/providers/project_provider.dart';
 
 class ResponsiveKanbanBoard extends ConsumerStatefulWidget {
@@ -63,27 +64,8 @@ class _ResponsiveKanbanBoardState extends ConsumerState<ResponsiveKanbanBoard> {
       ),
       child: Column(
         children: [
-          // Mobile: Page indicator for swipeable columns
+          // Mobile status tabs without page indicator
           if (isMobile) ...[
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 8.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (index) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 2.w),
-                    width: _currentPage == index ? 16.w : 8.w,
-                    height: 8.h,
-                    decoration: BoxDecoration(
-                      color: _currentPage == index 
-                          ? CustomNeumorphicTheme.primaryPurple
-                          : CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                  );
-                }),
-              ),
-            ),
             _buildMobileStatusTabs(),
           ],
           
@@ -644,7 +626,7 @@ class ResponsiveTaskCard extends StatelessWidget {
         child: Container(
           width: cardWidth,
           child: NeumorphicCard(
-            padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
+            padding: EdgeInsets.all(isTablet ? 8.w : 10.w),
             child: _buildCardContent(context),
           ),
         ),
@@ -659,9 +641,9 @@ class ResponsiveTaskCard extends StatelessWidget {
 
   Widget _buildTaskCard(BuildContext context) {
     return GestureDetector(
-      onDoubleTap: () => _showTaskOptionsDialog(context),
+      onTap: () => _showTaskDetailsDialog(context),
       child: NeumorphicCard(
-        padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
+        padding: EdgeInsets.all(isTablet ? 8.w : 10.w),
         child: _buildCardContent(context),
       ),
     );
@@ -679,7 +661,7 @@ class ResponsiveTaskCard extends StatelessWidget {
                 task.title,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: isTablet ? 12.sp : 14.sp,
+                  fontSize: isTablet ? 10.sp : 12.sp,
                   color: CustomNeumorphicTheme.darkText,
                 ),
                 maxLines: 2,
@@ -697,31 +679,31 @@ class ResponsiveTaskCard extends StatelessWidget {
           ],
         ),
         if (task.description.isNotEmpty) ...[
-          SizedBox(height: isTablet ? 6.h : 8.h),
+          SizedBox(height: isTablet ? 4.h : 6.h),
           Text(
             task.description,
             style: TextStyle(
-              fontSize: isTablet ? 10.sp : 12.sp,
+              fontSize: isTablet ? 8.sp : 10.sp,
               color: CustomNeumorphicTheme.lightText,
             ),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ],
         if (task.estimatedHours > 0) ...[
-          SizedBox(height: isTablet ? 6.h : 8.h),
+          SizedBox(height: isTablet ? 4.h : 6.h),
           Row(
             children: [
               Icon(
                 Icons.schedule,
-                size: isTablet ? 12.sp : 14.sp,
+                size: isTablet ? 10.sp : 12.sp,
                 color: CustomNeumorphicTheme.lightText,
               ),
               SizedBox(width: 4.w),
               Text(
                 '${task.estimatedHours.toInt()}h',
                 style: TextStyle(
-                  fontSize: isTablet ? 9.sp : 11.sp,
+                  fontSize: isTablet ? 8.sp : 9.sp,
                   color: CustomNeumorphicTheme.lightText,
                 ),
               ),
@@ -730,14 +712,14 @@ class ResponsiveTaskCard extends StatelessWidget {
                 SizedBox(width: 8.w),
                 Icon(
                   Icons.person,
-                  size: isTablet ? 12.sp : 14.sp,
+                  size: isTablet ? 10.sp : 12.sp,
                   color: CustomNeumorphicTheme.primaryPurple,
                 ),
                 SizedBox(width: 2.w),
                 Text(
                   'Assigned',
                   style: TextStyle(
-                    fontSize: isTablet ? 9.sp : 11.sp,
+                    fontSize: isTablet ? 8.sp : 9.sp,
                     color: CustomNeumorphicTheme.primaryPurple,
                     fontWeight: FontWeight.w600,
                   ),
@@ -747,6 +729,16 @@ class ResponsiveTaskCard extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+
+  void _showTaskDetailsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => TaskDetailsDialog(
+        task: task,
+        project: project,
+      ),
     );
   }
 
@@ -1090,9 +1082,10 @@ class MobileTaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: () => _showTaskDetailsDialog(context),
       onLongPress: () => _showStatusChangeDialog(context),
       child: NeumorphicCard(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(10.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1103,7 +1096,7 @@ class MobileTaskCard extends StatelessWidget {
                     task.title,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 14.sp,
+                      fontSize: 12.sp,
                       color: CustomNeumorphicTheme.darkText,
                     ),
                     maxLines: 2,
@@ -1120,7 +1113,7 @@ class MobileTaskCard extends StatelessWidget {
                     ),
                     child: Icon(
                       Icons.more_horiz,
-                      size: 16.sp,
+                      size: 14.sp,
                       color: color,
                     ),
                   ),
@@ -1128,18 +1121,18 @@ class MobileTaskCard extends StatelessWidget {
               ],
             ),
             if (task.description.isNotEmpty) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: 6.h),
               Text(
                 task.description,
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: 10.sp,
                   color: CustomNeumorphicTheme.lightText,
                 ),
-                maxLines: 3,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            SizedBox(height: 8.h),
+            SizedBox(height: 6.h),
             Row(
               children: [
                 Container(
@@ -1154,14 +1147,14 @@ class MobileTaskCard extends StatelessWidget {
                 if (task.estimatedHours > 0) ...[
                   Icon(
                     Icons.schedule,
-                    size: 14.sp,
+                    size: 12.sp,
                     color: CustomNeumorphicTheme.lightText,
                   ),
                   SizedBox(width: 4.w),
                   Text(
                     '${task.estimatedHours.toInt()}h',
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 9.sp,
                       color: CustomNeumorphicTheme.lightText,
                     ),
                   ),
@@ -1171,14 +1164,14 @@ class MobileTaskCard extends StatelessWidget {
                   SizedBox(width: 8.w),
                   Icon(
                     Icons.person,
-                    size: 14.sp,
+                    size: 12.sp,
                     color: CustomNeumorphicTheme.primaryPurple,
                   ),
                   SizedBox(width: 2.w),
                   Text(
                     'Assigned',
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 9.sp,
                       color: CustomNeumorphicTheme.primaryPurple,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1188,7 +1181,7 @@ class MobileTaskCard extends StatelessWidget {
                 Text(
                   'Long press to move',
                   style: TextStyle(
-                    fontSize: 10.sp,
+                    fontSize: 8.sp,
                     color: CustomNeumorphicTheme.subtleText,
                   ),
                 ),
@@ -1196,6 +1189,16 @@ class MobileTaskCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showTaskDetailsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => TaskDetailsDialog(
+        task: task,
+        project: project,
       ),
     );
   }

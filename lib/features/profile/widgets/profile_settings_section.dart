@@ -116,10 +116,10 @@ class ProfileSettingsSection extends ConsumerWidget {
               width: double.infinity,
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.05),
+                color: AppColors.error.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(
-                  color: AppColors.error.withOpacity(0.2),
+                  color: AppColors.error.withValues(alpha: 0.2),
                 ),
               ),
               child: Column(
@@ -218,7 +218,7 @@ class ProfileSettingsSection extends ConsumerWidget {
         Container(
           padding: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Icon(
@@ -244,7 +244,7 @@ class ProfileSettingsSection extends ConsumerWidget {
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ],

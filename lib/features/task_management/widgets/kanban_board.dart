@@ -48,7 +48,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                 Text(
                   '${allTasks.length} tasks',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -186,12 +186,12 @@ class _KanbanColumnState extends State<KanbanColumn> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: widget.color.withOpacity(0.05),
+        color: widget.color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _isDraggedOver 
-              ? widget.color.withOpacity(0.5)
-              : widget.color.withOpacity(0.2),
+              ? widget.color.withValues(alpha: 0.5)
+              : widget.color.withValues(alpha: 0.2),
           width: _isDraggedOver ? 2 : 1,
         ),
       ),
@@ -202,7 +202,7 @@ class _KanbanColumnState extends State<KanbanColumn> {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: widget.color.withOpacity(0.1),
+              color: widget.color.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -221,7 +221,7 @@ class _KanbanColumnState extends State<KanbanColumn> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(0.2),
+                    color: widget.color.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -269,13 +269,13 @@ class _KanbanColumnState extends State<KanbanColumn> {
                                 Icon(
                                   Icons.inbox_outlined,
                                   size: 32,
-                                  color: widget.color.withOpacity(0.5),
+                                  color: widget.color.withValues(alpha: 0.5),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'No tasks',
                                   style: TextStyle(
-                                    color: widget.color.withOpacity(0.7),
+                                    color: widget.color.withValues(alpha: 0.7),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -350,7 +350,7 @@ class TaskCard extends StatelessWidget {
                   task.description,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -376,11 +376,11 @@ class TaskCard extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -418,7 +418,7 @@ class TaskCard extends StatelessWidget {
               task.description,
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -431,14 +431,14 @@ class TaskCard extends StatelessWidget {
                 Icon(
                   Icons.schedule,
                   size: 14,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '${task.estimatedHours.toInt()}h',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],

@@ -326,7 +326,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: CustomNeumorphicTheme.darkShadow.withOpacity(0.2),
+            color: CustomNeumorphicTheme.darkShadow.withValues(alpha: 0.2),
             offset: const Offset(1, 1),
             blurRadius: 2,
             spreadRadius: 0,
@@ -488,10 +488,10 @@ I have a design team but need help with the technical planning and development p
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.1),
+        color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
-          color: CustomNeumorphicTheme.primaryPurple.withOpacity(0.3),
+          color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.3),
           width: 1,
         ),
       ),

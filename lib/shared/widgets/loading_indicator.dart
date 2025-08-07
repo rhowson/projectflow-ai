@@ -128,7 +128,7 @@ class _ModernLoadingIndicatorState extends State<ModernLoadingIndicator>
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(
+                    color: color.withValues(alpha:
                       animationValue < 0.5 ? 0.4 + animationValue : 0.9 - (animationValue - 0.5),
                     ),
                     shape: BoxShape.circle,
@@ -152,7 +152,7 @@ class _ModernLoadingIndicatorState extends State<ModernLoadingIndicator>
             width: widget.size * 0.6,
             height: widget.size * 0.6,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -182,9 +182,9 @@ class _ModernLoadingIndicatorState extends State<ModernLoadingIndicator>
             borderRadius: BorderRadius.circular(4),
             gradient: LinearGradient(
               colors: [
-                color.withOpacity(0.3),
-                color.withOpacity(0.7),
-                color.withOpacity(0.3),
+                color.withValues(alpha: 0.3),
+                color.withValues(alpha: 0.7),
+                color.withValues(alpha: 0.3),
               ],
               stops: [
                 (_controller.value - 0.3).clamp(0.0, 1.0),
@@ -246,7 +246,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             child: Center(
               child: Container(
                 padding: const EdgeInsets.all(32.0),

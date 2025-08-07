@@ -26,7 +26,7 @@ final activeProjectProvider = AutoDisposeFutureProvider<Project?>.internal(
 // ignore: unused_element
 typedef ActiveProjectRef = AutoDisposeFutureProviderRef<Project?>;
 String _$projectRoleNotifierHash() =>
-    r'8da0bd26851ddd765be28252bd05ba8a0b7549d1';
+    r'1243b50dc454916a9b8ad901a5696f99f7121647';
 
 /// Copied from Dart SDK
 class _SystemHash {
