@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/theme/custom_neumorphic_theme.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/models/project_model.dart';
+import '../../../core/models/project_context_model.dart';
 import '../../project_creation/providers/project_provider.dart';
 import '../../project_context/providers/project_context_provider.dart';
 import '../../project_context/presentation/project_context_screen.dart';
@@ -2070,6 +2071,300 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     }
   }
 
+  void _showAIContextDialog(Project project, [ProjectContext? projectContext]) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: NeumorphicContainer(
+          margin: EdgeInsets.all(16.w),
+          borderRadius: BorderRadius.circular(20.r),
+          color: CustomNeumorphicTheme.cardColor,
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    margin: EdgeInsets.only(bottom: 20.h),
+                    decoration: BoxDecoration(
+                      color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                ),
+                
+                // Header with AI icon
+                Row(
+                  children: [
+                    NeumorphicContainer(
+                      padding: EdgeInsets.all(8.w),
+                      borderRadius: BorderRadius.circular(12.r),
+                      color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                      child: Icon(
+                        Icons.psychology_outlined,
+                        size: 20.sp,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'AI Context',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                              color: CustomNeumorphicTheme.darkText,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            'Documents & Context for AI assistance',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: CustomNeumorphicTheme.lightText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                SizedBox(height: 20.h),
+                
+                // Documents Section
+                if (projectContext?.documents?.isNotEmpty == true) ...[
+                  Text(
+                    'Project Documents',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  ...projectContext!.documents!.map((document) => _buildDocumentCard(document)),
+                  SizedBox(height: 16.h),
+                ],
+                
+                // Context Questions Section
+                if (projectContext?.contextQuestions?.isNotEmpty == true) ...[
+                  Text(
+                    'Project Context',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Container(
+                    constraints: BoxConstraints(maxHeight: 200.h),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: projectContext!.contextQuestions!.map((question) => 
+                          _buildContextQuestionCard(question)
+                        ).toList(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                ],
+                
+                // Empty state
+                if (projectContext == null || 
+                    (projectContext.documents?.isEmpty == true && projectContext.contextQuestions?.isEmpty == true)) ...[
+                  Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.psychology_outlined,
+                          size: 48.sp,
+                          color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.5),
+                        ),
+                        SizedBox(height: 12.h),
+                        Text(
+                          'No AI Context Available',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomNeumorphicTheme.lightText,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Documents and context will appear here\nwhen they\'re available for AI assistance',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: CustomNeumorphicTheme.lightText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                ],
+                
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: NeumorphicButton(
+                        onPressed: () => Navigator.pop(context),
+                        borderRadius: BorderRadius.circular(12.r),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        child: Text(
+                          'Close',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomNeumorphicTheme.darkText,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    if (projectContext?.hasContent == true) ...[
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: NeumorphicButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            context.push('/project-context/${project.id}?title=${Uri.encodeComponent(project.title)}');
+                          },
+                          isSelected: true,
+                          selectedColor: CustomNeumorphicTheme.primaryPurple,
+                          borderRadius: BorderRadius.circular(12.r),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          child: Text(
+                            'View Details',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentCard(ProjectDocument document) {
+    return NeumorphicContainer(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.all(12.w),
+      borderRadius: BorderRadius.circular(10.r),
+      color: CustomNeumorphicTheme.baseColor,
+      child: Row(
+        children: [
+          Icon(
+            _getDocumentIcon(document.mimeType),
+            size: 16.sp,
+            color: CustomNeumorphicTheme.primaryPurple,
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  document.name,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'AI accessible • ${_formatFileSize(document.sizeInBytes)}',
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.check_circle_outline,
+            size: 14.sp,
+            color: CustomNeumorphicTheme.primaryPurple,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContextQuestionCard(ContextQuestion question) {
+    return NeumorphicContainer(
+      margin: EdgeInsets.only(bottom: 6.h),
+      padding: EdgeInsets.all(10.w),
+      borderRadius: BorderRadius.circular(8.r),
+      color: CustomNeumorphicTheme.baseColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            question.question,
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              color: CustomNeumorphicTheme.darkText,
+            ),
+          ),
+          if (question.answer.isNotEmpty) ...[
+            SizedBox(height: 4.h),
+            Text(
+              question.answer,
+              style: TextStyle(
+                fontSize: 10.sp,
+                color: CustomNeumorphicTheme.lightText,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  IconData _getDocumentIcon(String mimeType) {
+    if (mimeType.contains('pdf')) return Icons.picture_as_pdf_outlined;
+    if (mimeType.contains('word')) return Icons.description_outlined;
+    if (mimeType.contains('text')) return Icons.text_snippet_outlined;
+    return Icons.insert_drive_file_outlined;
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   void _updateTaskStatus(Task task, TaskStatus newStatus, Project project) {
     // Implementation for updating task status
     setState(() {
@@ -2218,11 +2513,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       data: (projectContext) {
         final hasContext = projectContext?.hasContent ?? false;
         final itemCount = projectContext?.totalItems ?? 0;
+        final hasDocuments = projectContext?.documents?.isNotEmpty ?? false;
         
         return NeumorphicButton(
-          onPressed: () => context.push(
-            '/project-context/${project.id}?title=${Uri.encodeComponent(project.title)}',
-          ),
+          onPressed: () => _showAIContextDialog(project, projectContext),
           borderRadius: BorderRadius.circular(10.r),
           padding: EdgeInsets.symmetric(vertical: 8.h),
           child: Row(
@@ -2232,11 +2526,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               Stack(
                 children: [
                   Icon(
-                    Icons.library_books_outlined,
+                    Icons.psychology_outlined,
                     size: 14.sp,
                     color: CustomNeumorphicTheme.primaryPurple,
                   ),
-                  if (hasContext && itemCount > 0)
+                  if (hasContext && (itemCount > 0 || hasDocuments))
                     Positioned(
                       right: -3,
                       top: -3,
@@ -2268,7 +2562,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               SizedBox(width: 4.w),
               Flexible(
                 child: Text(
-                  'Context',
+                  'AI Context',
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w600,

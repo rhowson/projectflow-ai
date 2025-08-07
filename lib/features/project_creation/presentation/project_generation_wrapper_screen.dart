@@ -51,6 +51,7 @@ class _ProjectGenerationWrapperScreenState extends ConsumerState<ProjectGenerati
       final contextAnswers = widget.generationData['contextAnswers'] as Map<String, dynamic>? ?? {};
       final documentUploadResult = widget.generationData['documentUploadResult'] as DocumentUploadResult?;
       final documentContent = widget.generationData['documentContent'] as String?;
+      final tempDocumentResult = widget.generationData['tempDocumentResult'] as TempDocumentResult?;
       
       // Start project creation with progress tracking
       await _createProjectWithProgress(
@@ -58,6 +59,7 @@ class _ProjectGenerationWrapperScreenState extends ConsumerState<ProjectGenerati
         contextAnswers,
         documentUploadResult,
         documentContent,
+        tempDocumentResult,
       );
       
     } catch (error) {
@@ -80,6 +82,7 @@ class _ProjectGenerationWrapperScreenState extends ConsumerState<ProjectGenerati
     Map<String, dynamic> contextAnswers,
     DocumentUploadResult? documentUploadResult,
     String? documentContent,
+    TempDocumentResult? tempDocumentResult,
   ) async {
     
     // Step 1: Analyzing (2 seconds)
@@ -120,6 +123,7 @@ class _ProjectGenerationWrapperScreenState extends ConsumerState<ProjectGenerati
       contextAnswers,
       document: documentUploadResult,
       documentContent: documentContent,
+      tempDocumentUrl: tempDocumentResult?.downloadUrl,
     );
     
     print('Project created successfully with ID: $projectId');

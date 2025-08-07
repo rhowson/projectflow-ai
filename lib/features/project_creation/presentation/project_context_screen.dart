@@ -15,12 +15,16 @@ class ProjectContextScreen extends ConsumerStatefulWidget {
   final String projectDescription;
   final String? documentContent;
   final DocumentUploadResult? documentUploadResult;
+  final TempDocumentResult? tempDocumentResult;
+  final List<DocumentContextPoint>? extractedContext;
   
   const ProjectContextScreen({
     super.key,
     required this.projectDescription,
     this.documentContent,
     this.documentUploadResult,
+    this.tempDocumentResult,
+    this.extractedContext,
   });
 
   @override
@@ -41,6 +45,7 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
       ref.read(contextQuestionsProvider.notifier).generateQuestions(
         widget.projectDescription,
         documentContent: widget.documentContent,
+        extractedContext: widget.extractedContext,
       );
     });
   }
@@ -599,6 +604,7 @@ class _ProjectContextScreenState extends ConsumerState<ProjectContextScreen> {
           'contextAnswers': structuredAnswers,
           'documentUploadResult': widget.documentUploadResult,
           'documentContent': widget.documentContent,
+          'tempDocumentResult': widget.tempDocumentResult,
           'projectTitle': projectTitle,
         });
       }

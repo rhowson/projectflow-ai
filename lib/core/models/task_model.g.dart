@@ -13,10 +13,8 @@ Task _$TaskFromJson(Map<String, dynamic> json) => Task(
       status: $enumDecode(_$TaskStatusEnumMap, json['status']),
       priority: $enumDecode(_$PriorityEnumMap, json['priority']),
       assignedToId: json['assignedToId'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      dueDate: json['dueDate'] == null
-          ? null
-          : DateTime.parse(json['dueDate'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
+      dueDate: const DateTimeConverter().fromJson(json['dueDate']),
       attachmentIds: (json['attachmentIds'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -37,8 +35,9 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'status': _$TaskStatusEnumMap[instance.status]!,
       'priority': _$PriorityEnumMap[instance.priority]!,
       'assignedToId': instance.assignedToId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'dueDate': instance.dueDate?.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+      'dueDate': _$JsonConverterToJson<dynamic, DateTime>(
+          instance.dueDate, const DateTimeConverter().toJson),
       'attachmentIds': instance.attachmentIds,
       'dependencyIds': instance.dependencyIds,
       'estimatedHours': instance.estimatedHours,
@@ -61,11 +60,17 @@ const _$PriorityEnumMap = {
   Priority.urgent: 'urgent',
 };
 
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);
+
 TaskComment _$TaskCommentFromJson(Map<String, dynamic> json) => TaskComment(
       id: json['id'] as String,
       content: json['content'] as String,
       authorId: json['authorId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
     );
 
 Map<String, dynamic> _$TaskCommentToJson(TaskComment instance) =>
@@ -73,5 +78,5 @@ Map<String, dynamic> _$TaskCommentToJson(TaskComment instance) =>
       'id': instance.id,
       'content': instance.content,
       'authorId': instance.authorId,
-      'createdAt': instance.createdAt.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
     };

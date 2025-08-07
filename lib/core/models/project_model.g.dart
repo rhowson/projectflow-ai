@@ -11,10 +11,8 @@ Project _$ProjectFromJson(Map<String, dynamic> json) => Project(
       title: json['title'] as String,
       description: json['description'] as String,
       status: $enumDecode(_$ProjectStatusEnumMap, json['status']),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      dueDate: json['dueDate'] == null
-          ? null
-          : DateTime.parse(json['dueDate'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
+      dueDate: const NullableDateTimeConverter().fromJson(json['dueDate']),
       ownerId: json['ownerId'] as String,
       teamMemberIds: (json['teamMemberIds'] as List<dynamic>)
           .map((e) => e as String)
@@ -31,8 +29,8 @@ Map<String, dynamic> _$ProjectToJson(Project instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'status': _$ProjectStatusEnumMap[instance.status]!,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'dueDate': instance.dueDate?.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+      'dueDate': const NullableDateTimeConverter().toJson(instance.dueDate),
       'ownerId': instance.ownerId,
       'teamMemberIds': instance.teamMemberIds,
       'phases': instance.phases,
@@ -55,12 +53,8 @@ ProjectPhase _$ProjectPhaseFromJson(Map<String, dynamic> json) => ProjectPhase(
           .map((e) => Task.fromJson(e as Map<String, dynamic>))
           .toList(),
       status: $enumDecode(_$PhaseStatusEnumMap, json['status']),
-      startDate: json['startDate'] == null
-          ? null
-          : DateTime.parse(json['startDate'] as String),
-      endDate: json['endDate'] == null
-          ? null
-          : DateTime.parse(json['endDate'] as String),
+      startDate: const NullableDateTimeConverter().fromJson(json['startDate']),
+      endDate: const NullableDateTimeConverter().fromJson(json['endDate']),
     );
 
 Map<String, dynamic> _$ProjectPhaseToJson(ProjectPhase instance) =>
@@ -70,8 +64,8 @@ Map<String, dynamic> _$ProjectPhaseToJson(ProjectPhase instance) =>
       'description': instance.description,
       'tasks': instance.tasks,
       'status': _$PhaseStatusEnumMap[instance.status]!,
-      'startDate': instance.startDate?.toIso8601String(),
-      'endDate': instance.endDate?.toIso8601String(),
+      'startDate': const NullableDateTimeConverter().toJson(instance.startDate),
+      'endDate': const NullableDateTimeConverter().toJson(instance.endDate),
     };
 
 const _$PhaseStatusEnumMap = {
@@ -122,10 +116,8 @@ Task _$TaskFromJson(Map<String, dynamic> json) => Task(
       status: $enumDecode(_$TaskStatusEnumMap, json['status']),
       priority: $enumDecode(_$PriorityEnumMap, json['priority']),
       assignedToId: json['assignedToId'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      dueDate: json['dueDate'] == null
-          ? null
-          : DateTime.parse(json['dueDate'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
+      dueDate: const NullableDateTimeConverter().fromJson(json['dueDate']),
       attachmentIds: (json['attachmentIds'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -146,8 +138,8 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'status': _$TaskStatusEnumMap[instance.status]!,
       'priority': _$PriorityEnumMap[instance.priority]!,
       'assignedToId': instance.assignedToId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'dueDate': instance.dueDate?.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+      'dueDate': const NullableDateTimeConverter().toJson(instance.dueDate),
       'attachmentIds': instance.attachmentIds,
       'dependencyIds': instance.dependencyIds,
       'estimatedHours': instance.estimatedHours,
@@ -167,7 +159,7 @@ TaskComment _$TaskCommentFromJson(Map<String, dynamic> json) => TaskComment(
       id: json['id'] as String,
       content: json['content'] as String,
       authorId: json['authorId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
     );
 
 Map<String, dynamic> _$TaskCommentToJson(TaskComment instance) =>
@@ -175,5 +167,5 @@ Map<String, dynamic> _$TaskCommentToJson(TaskComment instance) =>
       'id': instance.id,
       'content': instance.content,
       'authorId': instance.authorId,
-      'createdAt': instance.createdAt.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
     };

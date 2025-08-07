@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../utils/datetime_converter.dart';
 
 part 'project_role_model.g.dart';
 
@@ -34,6 +35,7 @@ class ProjectRole {
   final int priority;
   
   /// When the role was created
+  @DateTimeConverter()
   final DateTime createdAt;
   
   /// Who created the role (user ID)
@@ -113,6 +115,7 @@ class ProjectRoleAssignment {
   final String projectId;
   
   /// When the assignment was made
+  @DateTimeConverter()
   final DateTime assignedAt;
   
   /// Who made the assignment

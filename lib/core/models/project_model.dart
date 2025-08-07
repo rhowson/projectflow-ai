@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../utils/datetime_converter.dart';
 
 part 'project_model.g.dart';
 
@@ -8,7 +9,9 @@ class Project {
   final String title;
   final String description;
   final ProjectStatus status;
+  @DateTimeConverter()
   final DateTime createdAt;
+  @NullableDateTimeConverter()
   final DateTime? dueDate;
   final String ownerId; // User ID of project owner
   final List<String> teamMemberIds;
@@ -67,7 +70,9 @@ class ProjectPhase {
   final String description;
   final List<Task> tasks;
   final PhaseStatus status;
+  @NullableDateTimeConverter()
   final DateTime? startDate;
+  @NullableDateTimeConverter()
   final DateTime? endDate;
 
   const ProjectPhase({
@@ -154,7 +159,9 @@ class Task {
   final TaskStatus status;
   final Priority priority;
   final String? assignedToId;
+  @DateTimeConverter()
   final DateTime createdAt;
+  @NullableDateTimeConverter()
   final DateTime? dueDate;
   final List<String> attachmentIds;
   final List<String> dependencyIds;
@@ -221,6 +228,7 @@ class TaskComment {
   final String id;
   final String content;
   final String authorId;
+  @DateTimeConverter()
   final DateTime createdAt;
 
   const TaskComment({

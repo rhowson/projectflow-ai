@@ -26,7 +26,7 @@ final activeProjectProvider = AutoDisposeFutureProvider<Project?>.internal(
 // ignore: unused_element
 typedef ActiveProjectRef = AutoDisposeFutureProviderRef<Project?>;
 String _$projectRoleNotifierHash() =>
-    r'1243b50dc454916a9b8ad901a5696f99f7121647';
+    r'bc4baf42c91f83f374ce3387d9a7b29471684f80';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -374,7 +374,7 @@ class _ProjectRoleAssignmentNotifierProviderElement
 }
 
 String _$aIRoleGenerationNotifierHash() =>
-    r'bffae15aa2b03cb788210dae44d28e29c43dc383';
+    r'42d33e142ba047eeaee045844294b83921138e13';
 
 /// Provider for AI role generation state
 ///

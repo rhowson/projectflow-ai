@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'task_model.dart';
+import '../utils/datetime_converter.dart';
 
 part 'user_model.g.dart';
 
@@ -47,12 +48,15 @@ class AppUser {
   final String timezone;
   
   /// When the user account was created
+  @DateTimeConverter()
   final DateTime createdAt;
   
   /// When the user last logged in
+  @DateTimeConverter()
   final DateTime? lastLoginAt;
   
   /// When the user was last active
+  @DateTimeConverter()
   final DateTime? lastActiveAt;
   
   /// User's role in the system

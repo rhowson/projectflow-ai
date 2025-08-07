@@ -15,7 +15,7 @@ ProjectContext _$ProjectContextFromJson(Map<String, dynamic> json) =>
       documents: (json['documents'] as List<dynamic>)
           .map((e) => ProjectDocument.fromJson(e as Map<String, dynamic>))
           .toList(),
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      lastUpdated: const DateTimeConverter().fromJson(json['lastUpdated']),
       summary: json['summary'] as String?,
     );
 
@@ -24,7 +24,7 @@ Map<String, dynamic> _$ProjectContextToJson(ProjectContext instance) =>
       'projectId': instance.projectId,
       'contextQuestions': instance.contextQuestions,
       'documents': instance.documents,
-      'lastUpdated': instance.lastUpdated.toIso8601String(),
+      'lastUpdated': const DateTimeConverter().toJson(instance.lastUpdated),
       'summary': instance.summary,
     };
 
@@ -34,7 +34,7 @@ ContextQuestion _$ContextQuestionFromJson(Map<String, dynamic> json) =>
       question: json['question'] as String,
       answer: json['answer'] as String,
       type: $enumDecode(_$ContextQuestionTypeEnumMap, json['type']),
-      answeredAt: DateTime.parse(json['answeredAt'] as String),
+      answeredAt: const DateTimeConverter().fromJson(json['answeredAt']),
       isRequired: json['isRequired'] as bool? ?? false,
     );
 
@@ -44,7 +44,7 @@ Map<String, dynamic> _$ContextQuestionToJson(ContextQuestion instance) =>
       'question': instance.question,
       'answer': instance.answer,
       'type': _$ContextQuestionTypeEnumMap[instance.type]!,
-      'answeredAt': instance.answeredAt.toIso8601String(),
+      'answeredAt': const DateTimeConverter().toJson(instance.answeredAt),
       'isRequired': instance.isRequired,
     };
 
@@ -64,7 +64,7 @@ ProjectDocument _$ProjectDocumentFromJson(Map<String, dynamic> json) =>
       path: json['path'] as String,
       mimeType: json['mimeType'] as String,
       sizeInBytes: (json['sizeInBytes'] as num).toInt(),
-      uploadedAt: DateTime.parse(json['uploadedAt'] as String),
+      uploadedAt: const DateTimeConverter().fromJson(json['uploadedAt']),
       uploadedBy: json['uploadedBy'] as String,
       type: $enumDecode(_$DocumentTypeEnumMap, json['type']),
       description: json['description'] as String?,
@@ -77,7 +77,7 @@ Map<String, dynamic> _$ProjectDocumentToJson(ProjectDocument instance) =>
       'path': instance.path,
       'mimeType': instance.mimeType,
       'sizeInBytes': instance.sizeInBytes,
-      'uploadedAt': instance.uploadedAt.toIso8601String(),
+      'uploadedAt': const DateTimeConverter().toJson(instance.uploadedAt),
       'uploadedBy': instance.uploadedBy,
       'type': _$DocumentTypeEnumMap[instance.type]!,
       'description': instance.description,

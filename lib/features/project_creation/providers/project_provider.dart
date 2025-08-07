@@ -22,9 +22,21 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     try {
       // Wait a bit to ensure Firebase is fully initialized
       await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Test Firestore connection first
+      print('🔧 INIT: Testing Firestore connection...');
+      final isAvailable = await _firebaseService.isAvailable();
+      print('🔧 INIT: Firestore available: $isAvailable');
+      
+      if (!isAvailable) {
+        print('🔧 INIT: Firestore not available, creating sample data...');
+        await _firebaseService.createSampleData();
+        print('🔧 INIT: Sample data created, retrying...');
+      }
+      
       await loadProjects();
     } catch (e) {
-      print('Error during async initialization: $e');
+      print('🔧 INIT: Error during async initialization: $e');
       // Set to empty list if initialization fails
       state = const AsyncValue.data([]);
     }
@@ -42,12 +54,55 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
   Future<void> loadProjects() async {
     state = const AsyncValue.loading();
     try {
-      print('Loading projects from Firebase...');
+      print('🔄 Loading projects from Firebase...');
+      
+      // Check authentication status for debugging
+      final currentUserId = _currentUserId;
+      print('👤 Current user ID: $currentUserId');
+      
+      // Check auth state for debugging
+      final authState = ref.read(authStateProvider);
+      print('🔐 Auth state: ${authState.runtimeType}');
+      
+      // First test if Firestore is available
+      final isFirestoreAvailable = await _firebaseService.isAvailable();
+      print('🔥 Firestore availability: $isFirestoreAvailable');
+      
+      if (!isFirestoreAvailable) {
+        print('⚠️ Firestore not available, setting empty project list');
+        state = const AsyncValue.data([]);
+        return;
+      }
+      
+      print('📊 Getting Firestore statistics...');
+      try {
+        final stats = await _firebaseService.getStatistics();
+        print('📈 Firestore statistics: $stats');
+      } catch (e) {
+        print('⚠️ Could not get statistics: $e');
+      }
+      
+      print('📥 Attempting to load all projects...');
       final projects = await _firebaseService.loadAllProjects();
+      
+      print('✅ Raw loadAllProjects completed, received ${projects.length} projects');
+      
       state = AsyncValue.data(projects);
-      print('Successfully loaded ${projects.length} projects');
+      print('🔄 State updated with ${projects.length} projects');
+      
+      // Log project details for debugging
+      if (projects.isEmpty) {
+        print('📭 No projects found in database');
+      } else {
+        print('📋 Project details:');
+        for (final project in projects) {
+          print('  - ${project.title} (ID: ${project.id}, Status: ${project.status}, Created: ${project.createdAt})');
+        }
+      }
+      
     } catch (error, stackTrace) {
-      print('Error loading projects: $error');
+      print('❌ Error loading projects: $error');
+      print('📍 Stack trace: $stackTrace');
       // Instead of showing error state, show empty list to allow app to function
       state = const AsyncValue.data([]);
     }
@@ -75,6 +130,7 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
     Map<String, dynamic> contextAnswers, {
     DocumentUploadResult? document,
     String? documentContent,
+    String? tempDocumentUrl,
   }) async {
     print('Starting project creation with context...');
     state = const AsyncValue.loading();
@@ -83,11 +139,12 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       final claudeService = _claudeService;
       print('Got Claude service, generating project breakdown...');
       
-      // Generate complete project breakdown with context answers and document content
+      // Generate complete project breakdown with context answers and document content/URL
       final projectBreakdown = await claudeService.generateProjectBreakdown(
         description, 
         contextAnswers,
         documentContent: documentContent,
+        documentUrl: tempDocumentUrl,
       );
       print('Project breakdown generated with ${projectBreakdown.phases.length} phases');
       
@@ -149,9 +206,53 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       // Save to Firebase
       await _firebaseService.saveProject(project);
       
-      // Handle document upload to Firebase Storage if document exists
+      // Handle document codification and permanent storage if temporary document was used
       List<ProjectDocument> uploadedDocuments = [];
-      if (document != null) {
+      if (document != null && tempDocumentUrl != null) {
+        print('Codifying and moving document from temporary storage...');
+        try {
+          // Create TempDocumentResult from the existing document and URL
+          final tempDocument = TempDocumentResult(
+            tempId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+            downloadUrl: tempDocumentUrl,
+            storagePath: '', // Will be determined from URL
+            fileName: document.fileName,
+            codifiedFileName: 'codified_${DateTime.now().millisecondsSinceEpoch}_${document.fileName}',
+            content: document.content,
+            expiresAt: DateTime.now().add(const Duration(hours: 24)),
+            isSecured: true,
+          );
+          
+          final projectDocument = await _documentService.codifyAndMoveDocument(
+            tempDocument: tempDocument,
+            projectId: projectId,
+            uploadedBy: _currentUserId,
+            type: DocumentType.requirement,
+            description: 'Context document from project creation (AI accessible)',
+          );
+          uploadedDocuments = [projectDocument];
+          print('Document codified and stored: ${projectDocument.name}');
+        } catch (e) {
+          print('Warning: Failed to codify document: $e');
+          // Fallback to regular upload if codification fails
+          if (document != null) {
+            try {
+              final projectDocument = await _documentService.uploadDocumentToFirebase(
+                document: document,
+                projectId: projectId,
+                uploadedBy: _currentUserId,
+                type: DocumentType.requirement,
+                description: 'Context document uploaded during project creation',
+              );
+              uploadedDocuments = [projectDocument];
+              print('Document uploaded as fallback: ${projectDocument.name}');
+            } catch (fallbackError) {
+              print('Warning: Fallback upload also failed: $fallbackError');
+            }
+          }
+        }
+      } else if (document != null) {
+        // Regular document upload if no temp URL
         print('Uploading document to Firebase Storage...');
         try {
           final projectDocument = await _documentService.uploadDocumentToFirebase(
@@ -880,6 +981,72 @@ class ProjectNotifier extends StateNotifier<AsyncValue<List<Project>>> {
       print('Error clearing data: $error');
       state = AsyncValue.error(error, stackTrace);
       rethrow;
+    }
+  }
+
+  /// Debug method to test Firestore connection and add test project
+  Future<void> debugFirestoreConnection() async {
+    try {
+      print('🐛 DEBUG: Starting Firestore connection test...');
+      
+      // Test basic connection
+      final isAvailable = await _firebaseService.isAvailable();
+      print('🐛 DEBUG: Firestore available: $isAvailable');
+      
+      if (!isAvailable) {
+        print('🐛 DEBUG: Firestore not available, aborting test');
+        return;
+      }
+      
+      // Test getting statistics
+      try {
+        final stats = await _firebaseService.getStatistics();
+        print('🐛 DEBUG: Current statistics: $stats');
+      } catch (e) {
+        print('🐛 DEBUG: Statistics error: $e');
+      }
+      
+      // Create a simple test project
+      print('🐛 DEBUG: Creating test project...');
+      final testProject = Project(
+        id: 'test_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Debug Test Project',
+        description: 'This is a test project created for debugging',
+        status: ProjectStatus.inProgress,
+        createdAt: DateTime.now(),
+        ownerId: _currentUserId.isEmpty ? 'debug_user' : _currentUserId,
+        teamMemberIds: [],
+        phases: [],
+        metadata: ProjectMetadata(
+          type: ProjectType.mobile,
+          priority: Priority.medium,
+          estimatedHours: 40.0,
+          teamId: null,
+          customFields: {
+            'debug': true,
+            'createdBy': 'debug_method',
+          },
+        ),
+      );
+      
+      // Save test project
+      await _firebaseService.saveProject(testProject);
+      print('🐛 DEBUG: Test project saved successfully');
+      
+      // Try to load all projects
+      final projects = await _firebaseService.loadAllProjects();
+      print('🐛 DEBUG: Loaded ${projects.length} projects after adding test project');
+      
+      // Update state
+      state = AsyncValue.data(projects);
+      
+      for (final project in projects) {
+        print('🐛 DEBUG: Project found: ${project.title} (${project.id})');
+      }
+      
+    } catch (error, stackTrace) {
+      print('🐛 DEBUG: Error in Firestore test: $error');
+      print('🐛 DEBUG: Stack trace: $stackTrace');
     }
   }
 

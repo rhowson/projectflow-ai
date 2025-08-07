@@ -34,6 +34,29 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
         _selectedTab = _tabController.index;
       });
     });
+    
+    // Load existing project roles when screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProjectRoles();
+    });
+  }
+
+  void _loadProjectRoles() {
+    try {
+      final projectsAsync = ref.read(projectNotifierProvider);
+      final projects = projectsAsync.when(
+        data: (data) => data,
+        loading: () => <Project>[],
+        error: (error, stack) => <Project>[],
+      );
+      
+      if (projects.isNotEmpty) {
+        final activeProject = projects.first;
+        ref.read(projectRoleNotifierProvider(activeProject.id).notifier).loadProjectRoles();
+      }
+    } catch (e) {
+      print('Error loading project roles: $e');
+    }
   }
 
   @override
@@ -91,9 +114,9 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
             child: TabBarView(
               controller: _tabController,
               children: [
+                _buildProjectRolesTab(),
                 _buildTeamMembersTab(),
                 _buildCommunicationTab(),
-                _buildProjectRolesTab(),
               ],
             ),
           ),
@@ -111,9 +134,9 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
         color: CustomNeumorphicTheme.baseColor,
         child: Row(
           children: [
-            _buildTabItem('Members', Icons.group, 0),
-            _buildTabItem('Chat', Icons.chat_bubble_outline, 1),
-            _buildTabItem('Roles', Icons.admin_panel_settings, 2),
+            _buildTabItem('Roles', Icons.admin_panel_settings, 0),
+            _buildTabItem('Members', Icons.group, 1),
+            _buildTabItem('Chat', Icons.chat_bubble_outline, 2),
           ],
         ),
       ),
@@ -1143,7 +1166,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           ),
           SizedBox(height: 8.h),
           Text(
-            'AI can generate project-specific roles based on your active project',
+            'AI generates context-aware roles using your project details, documentation, and requirements',
             style: TextStyle(
               fontSize: 13.sp,
               color: CustomNeumorphicTheme.lightText,
@@ -1188,16 +1211,71 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
                   
                   return rolesAsync.when(
                     data: (roles) {
+                      print('🖼️  UI: Displaying ${roles.length} roles for project ${activeProject.id}');
                       if (roles.isEmpty) {
-                        return const SizedBox.shrink();
+                        return Container(
+                          margin: EdgeInsets.only(top: 20.h),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 32.sp,
+                                  color: CustomNeumorphicTheme.lightText,
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'No existing roles found',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: CustomNeumorphicTheme.lightText,
+                                  ),
+                                ),
+                                Text(
+                                  'Use AI Generate to create project roles',
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: CustomNeumorphicTheme.lightText,
+                                  ),
+                                ),
+                                // Debug info
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'Debug: Project ${activeProject.id}',
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
                       }
                       return _buildExistingRoles(roles, activeProject.id);
                     },
-                    loading: () => const SizedBox.shrink(), // Fixed redundant loading indicator
-                    error: (error, stack) => Text('Error loading roles: $error'),
+                    loading: () => Container(
+                      margin: EdgeInsets.only(top: 20.h),
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (error, stack) => Container(
+                      margin: EdgeInsets.only(top: 20.h),
+                      child: Center(
+                        child: Text(
+                          'Error loading roles: $error',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: CustomNeumorphicTheme.errorRed,
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 },
-                loading: () => const SizedBox.shrink(),
+                loading: () => Container(
+                  margin: EdgeInsets.only(top: 20.h),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
                 error: (error, stack) => const SizedBox.shrink(),
               );
             },
@@ -1228,7 +1306,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           ),
           SizedBox(height: 8.h),
           Text(
-            'Generate AI-powered roles for your active project',
+            'Generate context-aware roles using your project documentation and requirements',
             style: TextStyle(
               fontSize: 14.sp,
               color: CustomNeumorphicTheme.lightText,
@@ -1248,7 +1326,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           const CircularProgressIndicator(),
           SizedBox(height: 16.h),
           Text(
-            'AI is analyzing your project...',
+            'AI is analyzing your project context...',
             style: TextStyle(
               fontSize: 16.sp,
               color: CustomNeumorphicTheme.primaryPurple,
@@ -1257,7 +1335,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           ),
           SizedBox(height: 8.h),
           Text(
-            'Generating tailored roles based on project requirements',
+            'Reviewing project details, documentation, and requirements to generate tailored roles',
             style: TextStyle(
               fontSize: 13.sp,
               color: CustomNeumorphicTheme.lightText,
@@ -1320,34 +1398,45 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              'AI Generated Roles',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: CustomNeumorphicTheme.darkText,
-              ),
-            ),
-            const Spacer(),
-            NeumorphicButton(
-              onPressed: () => _createRolesFromSuggestions(suggestions),
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              borderRadius: BorderRadius.circular(8.r),
-              child: Text(
-                'Create All Roles',
-                style: TextStyle(
-                  color: CustomNeumorphicTheme.primaryPurple,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        Text(
+          'AI Generated Roles',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: CustomNeumorphicTheme.darkText,
+          ),
         ),
         SizedBox(height: 12.h),
         ...suggestions.map((suggestion) => _buildRoleSuggestionCard(suggestion)),
+        
+        // Create All Roles Button
+        SizedBox(height: 16.h),
+        Center(
+          child: NeumorphicButton(
+            onPressed: () => _showSaveRolesConfirmationDialog(suggestions),
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+            borderRadius: BorderRadius.circular(12.r),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.add_circle_outline,
+                  color: CustomNeumorphicTheme.primaryPurple,
+                  size: 18.sp,
+                ),
+                SizedBox(width: 8.w),
+                Text(
+                  'Save All Roles',
+                  style: TextStyle(
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1576,6 +1665,29 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
 
   void _generateProjectRoles() async {
     try {
+      // Check for existing roles first
+      final projectsAsync = ref.read(projectNotifierProvider);
+      final projects = await projectsAsync.when(
+        data: (data) async => data,
+        loading: () => throw Exception('Projects are still loading'),
+        error: (error, stack) => throw error,
+      );
+      
+      if (projects.isEmpty) {
+        throw Exception('No active project found');
+      }
+      
+      final activeProject = projects.first;
+      final rolesProvider = ref.read(projectRoleNotifierProvider(activeProject.id));
+      final existingRoles = rolesProvider.value ?? [];
+      
+      // If existing roles are found, show confirmation dialog
+      if (existingRoles.isNotEmpty) {
+        final shouldProceed = await _showGenerateRolesConfirmDialog(existingRoles.length);
+        if (shouldProceed != true) return; // User cancelled or chose not to proceed
+      }
+      
+      // Proceed with generation
       await ref.read(aIRoleGenerationNotifierProvider.notifier).generateRolesForActiveProject();
     } catch (error) {
       if (mounted) {
@@ -1589,45 +1701,6 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
     }
   }
 
-  void _createRolesFromSuggestions(List<AIRoleSuggestion> suggestions) async {
-    try {
-      final projectsAsync = ref.read(projectNotifierProvider);
-      final projects = await projectsAsync.when(
-        data: (data) async => data,
-        loading: () => throw Exception('Projects are still loading'),
-        error: (error, stack) => throw error,
-      );
-      
-      if (projects.isEmpty) {
-        throw Exception('No active project found');
-      }
-      
-      final activeProject = projects.first;
-      await ref.read(projectRoleNotifierProvider(activeProject.id).notifier)
-          .createRolesFromSuggestions(suggestions);
-      
-      // Clear the suggestions after creating roles
-      ref.read(aIRoleGenerationNotifierProvider.notifier).clearSuggestions();
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${suggestions.length} roles created successfully!'),
-            backgroundColor: CustomNeumorphicTheme.primaryPurple,
-          ),
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to create roles: $error'),
-            backgroundColor: CustomNeumorphicTheme.errorRed,
-          ),
-        );
-      }
-    }
-  }
 
   void _assignUserToRole(ProjectRole role) {
     // TODO: Implement user assignment dialog
@@ -1928,6 +2001,533 @@ class _TeamScreenState extends ConsumerState<TeamScreen> with SingleTickerProvid
           SnackBar(
             content: Text('Error deleting role: $e'),
             backgroundColor: CustomNeumorphicTheme.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Show dialog to handle role conflicts when existing roles are present
+  Future<bool?> _showRoleConflictDialog(int existingCount, int newCount) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: const Color(0xFFE67E22), // Orange
+              size: 24.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Existing Roles Found',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your project already has $existingCount role${existingCount > 1 ? 's' : ''}. The AI has generated $newCount new role${newCount > 1 ? 's' : ''}.',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.darkText,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'How would you like to proceed?',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            
+            // Replace option
+            NeumorphicContainer(
+              padding: EdgeInsets.all(12.w),
+              borderRadius: BorderRadius.circular(12.r),
+              color: const Color(0xFFE67E22).withValues(alpha: 0.1), // Orange background
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.refresh,
+                    color: const Color(0xFFE67E22),
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Replace All Roles',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomNeumorphicTheme.darkText,
+                          ),
+                        ),
+                        Text(
+                          'Remove existing roles and use AI suggestions',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: CustomNeumorphicTheme.lightText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 12.h),
+            
+            // Add option
+            NeumorphicContainer(
+              padding: EdgeInsets.all(12.w),
+              borderRadius: BorderRadius.circular(12.r),
+              color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Add to Existing Roles',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomNeumorphicTheme.darkText,
+                          ),
+                        ),
+                        Text(
+                          'Keep existing roles and add AI suggestions',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: CustomNeumorphicTheme.lightText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null), // Cancel
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: CustomNeumorphicTheme.lightText),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Add to existing
+            child: Text(
+              'Add ($newCount)',
+              style: TextStyle(color: CustomNeumorphicTheme.primaryPurple),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true), // Replace all
+            child: Text(
+              'Replace ($existingCount → $newCount)',
+              style: TextStyle(color: const Color(0xFFE67E22)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show dialog to confirm generating new roles when existing roles are present
+  Future<bool?> _showGenerateRolesConfirmDialog(int existingRolesCount) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.info_outline,
+              color: CustomNeumorphicTheme.primaryPurple,
+              size: 24.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Generate New Roles?',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your project already has $existingRolesCount saved role${existingRolesCount > 1 ? 's' : ''}.',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.darkText,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Generating new AI roles will show suggestions that you can then choose to replace or add to your existing roles.',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.lightText,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            
+            // Info container
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'AI will analyze your project context and documentation to generate tailored role suggestions.',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Cancel
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: CustomNeumorphicTheme.lightText),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true), // Proceed
+            child: Text(
+              'Generate Roles',
+              style: TextStyle(color: CustomNeumorphicTheme.primaryPurple),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show dialog to confirm saving the generated roles to the project
+  Future<void> _showSaveRolesConfirmationDialog(List<AIRoleSuggestion> suggestions) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: CustomNeumorphicTheme.baseColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.save_outlined,
+              color: CustomNeumorphicTheme.primaryPurple,
+              size: 24.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Save Project Roles?',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: CustomNeumorphicTheme.darkText,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You are about to save ${suggestions.length} AI-generated role${suggestions.length > 1 ? 's' : ''} to your project:',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: CustomNeumorphicTheme.darkText,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            
+            // List of roles to be saved
+            Container(
+              constraints: BoxConstraints(maxHeight: 200.h),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: suggestions.map((suggestion) => Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4.h),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8.w,
+                          height: 8.w,
+                          decoration: BoxDecoration(
+                            color: Color(int.parse(suggestion.suggestedColor.replaceFirst('#', '0xFF'))),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            suggestion.name,
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: CustomNeumorphicTheme.darkText,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'P${suggestion.priority}',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: CustomNeumorphicTheme.lightText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
+                ),
+              ),
+            ),
+            
+            SizedBox(height: 16.h),
+            
+            // Info container
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'These roles will be permanently saved to your project and can be assigned to team members.',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Cancel
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: CustomNeumorphicTheme.lightText),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true), // Confirm save
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CustomNeumorphicTheme.primaryPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.save, size: 16.sp),
+                SizedBox(width: 4.w),
+                Text(
+                  'Save Roles',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _saveRolesToProject(suggestions);
+    }
+  }
+
+  /// Explicitly save the generated roles to the project with proper feedback
+  Future<void> _saveRolesToProject(List<AIRoleSuggestion> suggestions) async {
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20.w,
+                  height: 20.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text('Saving ${suggestions.length} roles to project...'),
+              ],
+            ),
+            backgroundColor: CustomNeumorphicTheme.primaryPurple,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      final projectsAsync = ref.read(projectNotifierProvider);
+      final projects = await projectsAsync.when(
+        data: (data) async => data,
+        loading: () => throw Exception('Projects are still loading'),
+        error: (error, stack) => throw error,
+      );
+      
+      if (projects.isEmpty) {
+        throw Exception('No active project found');
+      }
+      
+      final activeProject = projects.first;
+      final rolesProvider = ref.read(projectRoleNotifierProvider(activeProject.id));
+      final existingRoles = rolesProvider.value ?? [];
+      
+      print('💾 Explicitly saving ${suggestions.length} roles to project ${activeProject.title}');
+      
+      // Check if roles already exist
+      if (existingRoles.isNotEmpty) {
+        // Show dialog to choose replace vs add
+        final shouldContinue = await _showRoleConflictDialog(existingRoles.length, suggestions.length);
+        if (shouldContinue == null) return; // User cancelled
+        
+        await ref.read(projectRoleNotifierProvider(activeProject.id).notifier)
+            .createRolesFromSuggestions(suggestions, replaceExisting: shouldContinue);
+        
+        if (mounted) {
+          final message = shouldContinue 
+              ? '✅ Replaced existing roles with ${suggestions.length} new AI roles!'
+              : '✅ Added ${suggestions.length} new roles to your project!';
+          
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: CustomNeumorphicTheme.successGreen,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // No existing roles, just create them
+        await ref.read(projectRoleNotifierProvider(activeProject.id).notifier)
+            .createRolesFromSuggestions(suggestions, replaceExisting: false);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Successfully saved ${suggestions.length} roles to your project!'),
+              backgroundColor: CustomNeumorphicTheme.successGreen,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+      
+      // Clear the suggestions after creating roles
+      ref.read(aIRoleGenerationNotifierProvider.notifier).clearSuggestions();
+      
+      // Reload the project roles to ensure they're displayed
+      await ref.read(projectRoleNotifierProvider(activeProject.id).notifier).loadProjectRoles();
+      
+      print('🎉 Role saving process completed successfully');
+      
+    } catch (error) {
+      print('❌ Error saving roles to project: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Failed to save roles: $error'),
+            backgroundColor: CustomNeumorphicTheme.errorRed,
+            duration: Duration(seconds: 4),
           ),
         );
       }

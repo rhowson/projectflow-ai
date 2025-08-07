@@ -21,6 +21,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen>
   late TextEditingController _descriptionController;
   final _formKey = GlobalKey<FormState>();
   DocumentUploadResult? _uploadedDocument;
+  TempDocumentResult? _tempDocumentResult;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -566,8 +567,16 @@ I have a design team but need help with the technical planning and development p
       final result = await documentService.pickAndValidateDocument();
       
       if (result != null) {
+        // Upload to temporary storage for AI processing
+        final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
+        final tempResult = await documentService.uploadToTemporaryStorage(
+          document: result,
+          sessionId: sessionId,
+        );
+        
         setState(() {
           _uploadedDocument = result;
+          _tempDocumentResult = tempResult;
         });
         
         // Stop the pulse animation since document is now uploaded
@@ -576,7 +585,7 @@ I have a design team but need help with the technical planning and development p
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Document "${result.fileName}" uploaded successfully'),
+            content: Text('Document "${result.fileName}" uploaded to temporary storage'),
             backgroundColor: CustomNeumorphicTheme.primaryPurple,
           ),
         );
@@ -597,6 +606,7 @@ I have a design team but need help with the technical planning and development p
     
     setState(() {
       _uploadedDocument = null;
+      _tempDocumentResult = null;
     });
     
     // Restart the pulse animation since no document is uploaded
@@ -630,6 +640,7 @@ I have a design team but need help with the technical planning and development p
     setState(() {
       // Remove uploaded document if exists
       _uploadedDocument = null;
+      _tempDocumentResult = null;
     });
     
     // Restart the pulse animation since no document is uploaded
@@ -658,14 +669,30 @@ I have a design team but need help with the technical planning and development p
     context.dismissKeyboard();
     
     if (_formKey.currentState!.validate()) {
-      print('Form is valid, proceeding to context gathering...');
+      print('Form is valid, proceeding to next step...');
       
-      // Navigate to context screen with project description, document content, and document result
-      context.push('/project-context', extra: {
-        'projectDescription': _descriptionController.text.trim(),
-        'documentContent': _uploadedDocument?.content,
-        'documentUploadResult': _uploadedDocument, // Pass the full document result
-      });
+      final projectDescription = _descriptionController.text.trim();
+      
+      // If document was uploaded, first go to document context review
+      if (_uploadedDocument != null && _tempDocumentResult != null) {
+        print('Document uploaded, navigating to document context review...');
+        context.push('/document-context-review', extra: {
+          'projectDescription': projectDescription,
+          'documentContent': _uploadedDocument!.content,
+          'documentAcknowledgment': null, // Will be generated in the review screen
+          'documentUpload': _uploadedDocument,
+          'tempDocument': _tempDocumentResult,
+        });
+      } else {
+        // No document, proceed directly to context questions
+        print('No document uploaded, proceeding directly to context questions...');
+        context.push('/project-context', extra: {
+          'projectDescription': projectDescription,
+          'documentContent': null,
+          'documentUploadResult': null,
+          'tempDocumentResult': null,
+        });
+      }
     } else {
       print('Form validation failed');
     }

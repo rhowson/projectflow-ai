@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../utils/datetime_converter.dart';
 
 part 'project_context_model.g.dart';
 
@@ -7,6 +8,7 @@ class ProjectContext {
   final String projectId;
   final List<ContextQuestion> contextQuestions;
   final List<ProjectDocument> documents;
+  @DateTimeConverter()
   final DateTime lastUpdated;
   final String? summary;
 
@@ -47,6 +49,7 @@ class ContextQuestion {
   final String question;
   final String answer;
   final ContextQuestionType type;
+  @DateTimeConverter()
   final DateTime answeredAt;
   final bool isRequired;
 
@@ -79,6 +82,7 @@ class ProjectDocument {
   final String path;
   final String mimeType;
   final int sizeInBytes;
+  @DateTimeConverter()
   final DateTime uploadedAt;
   final String uploadedBy;
   final DocumentType type;

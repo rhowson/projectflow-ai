@@ -13,8 +13,8 @@ Team _$TeamFromJson(Map<String, dynamic> json) => Team(
       logoUrl: json['logoUrl'] as String?,
       organizationId: json['organizationId'] as String?,
       ownerId: json['ownerId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
+      updatedAt: const DateTimeConverter().fromJson(json['updatedAt']),
       settings: TeamSettings.fromJson(json['settings'] as Map<String, dynamic>),
       members: (json['members'] as List<dynamic>)
           .map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
@@ -34,8 +34,8 @@ Map<String, dynamic> _$TeamToJson(Team instance) => <String, dynamic>{
       'logoUrl': instance.logoUrl,
       'organizationId': instance.organizationId,
       'ownerId': instance.ownerId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+      'updatedAt': const DateTimeConverter().toJson(instance.updatedAt),
       'settings': instance.settings,
       'members': instance.members,
       'projectIds': instance.projectIds,
@@ -61,11 +61,10 @@ TeamMember _$TeamMemberFromJson(Map<String, dynamic> json) => TeamMember(
       userId: json['userId'] as String,
       role: $enumDecode(_$TeamRoleEnumMap, json['role']),
       status: $enumDecode(_$TeamMemberStatusEnumMap, json['status']),
-      addedAt: DateTime.parse(json['addedAt'] as String),
+      addedAt: const DateTimeConverter().fromJson(json['addedAt']),
       addedById: json['addedById'] as String?,
-      lastActiveAt: json['lastActiveAt'] == null
-          ? null
-          : DateTime.parse(json['lastActiveAt'] as String),
+      lastActiveAt:
+          const NullableDateTimeConverter().fromJson(json['lastActiveAt']),
       permissions: (json['permissions'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -79,9 +78,10 @@ Map<String, dynamic> _$TeamMemberToJson(TeamMember instance) =>
       'userId': instance.userId,
       'role': _$TeamRoleEnumMap[instance.role]!,
       'status': _$TeamMemberStatusEnumMap[instance.status]!,
-      'addedAt': instance.addedAt.toIso8601String(),
+      'addedAt': const DateTimeConverter().toJson(instance.addedAt),
       'addedById': instance.addedById,
-      'lastActiveAt': instance.lastActiveAt?.toIso8601String(),
+      'lastActiveAt':
+          const NullableDateTimeConverter().toJson(instance.lastActiveAt),
       'permissions': instance.permissions,
       'customTitle': instance.customTitle,
       'notificationSettings': instance.notificationSettings,
@@ -228,11 +228,10 @@ TeamInvitation _$TeamInvitationFromJson(Map<String, dynamic> json) =>
       invitedById: json['invitedById'] as String,
       role: $enumDecode(_$TeamRoleEnumMap, json['role']),
       status: $enumDecode(_$InvitationStatusEnumMap, json['status']),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-      respondedAt: json['respondedAt'] == null
-          ? null
-          : DateTime.parse(json['respondedAt'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
+      expiresAt: const DateTimeConverter().fromJson(json['expiresAt']),
+      respondedAt:
+          const NullableDateTimeConverter().fromJson(json['respondedAt']),
       message: json['message'] as String?,
       customTitle: json['customTitle'] as String?,
     );
@@ -245,9 +244,10 @@ Map<String, dynamic> _$TeamInvitationToJson(TeamInvitation instance) =>
       'invitedById': instance.invitedById,
       'role': _$TeamRoleEnumMap[instance.role]!,
       'status': _$InvitationStatusEnumMap[instance.status]!,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'expiresAt': instance.expiresAt.toIso8601String(),
-      'respondedAt': instance.respondedAt?.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+      'expiresAt': const DateTimeConverter().toJson(instance.expiresAt),
+      'respondedAt':
+          const NullableDateTimeConverter().toJson(instance.respondedAt),
       'message': instance.message,
       'customTitle': instance.customTitle,
     };

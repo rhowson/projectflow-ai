@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'user_model.dart';
+import '../utils/datetime_converter.dart';
 
 part 'team_model.g.dart';
 
@@ -26,9 +27,11 @@ class Team {
   final String ownerId;
   
   /// When the team was created
+  @DateTimeConverter()
   final DateTime createdAt;
   
   /// When the team was last updated
+  @DateTimeConverter()
   final DateTime updatedAt;
   
   /// Team settings and configuration
@@ -185,12 +188,14 @@ class TeamMember {
   final TeamMemberStatus status;
   
   /// When the member was added to the team
+  @DateTimeConverter()
   final DateTime addedAt;
   
   /// User ID of who added this member
   final String? addedById;
   
   /// When the member was last active in team context
+  @NullableDateTimeConverter()
   final DateTime? lastActiveAt;
   
   /// Member-specific permissions overrides
@@ -601,12 +606,15 @@ class TeamInvitation {
   final InvitationStatus status;
   
   /// When the invitation was created
+  @DateTimeConverter()
   final DateTime createdAt;
   
   /// When the invitation expires
+  @DateTimeConverter()
   final DateTime expiresAt;
   
   /// When the invitation was responded to
+  @NullableDateTimeConverter()
   final DateTime? respondedAt;
   
   /// Optional personal message with the invitation

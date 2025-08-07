@@ -17,11 +17,16 @@ class ContextQuestionsNotifier extends StateNotifier<AsyncValue<ContextData>> {
   
   ContextQuestionsNotifier(this._claudeService) : super(const AsyncValue.loading());
 
-  Future<void> generateQuestions(String projectDescription, {String? documentContent}) async {
+  Future<void> generateQuestions(
+    String projectDescription, {
+    String? documentContent,
+    List<DocumentContextPoint>? extractedContext,
+  }) async {
     state = const AsyncValue.loading();
     
     try {
       print('Generating context questions for project...');
+      print('Extracted context points: ${extractedContext?.length ?? 0}');
       
       // Step 1: Assess the project
       final assessment = await _claudeService.assessProject(
@@ -30,8 +35,11 @@ class ContextQuestionsNotifier extends StateNotifier<AsyncValue<ContextData>> {
       );
       print('Project assessed: ${assessment.projectType}');
       
-      // Step 2: Generate context questions based on assessment
-      final questions = await _claudeService.generateContextQuestions(assessment);
+      // Step 2: Generate context questions based on assessment and existing context
+      final questions = await _claudeService.generateContextQuestions(
+        assessment,
+        existingContext: extractedContext,
+      );
       print('Generated ${questions.length} context questions');
       
       // Create context data with both assessment and questions

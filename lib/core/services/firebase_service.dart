@@ -21,51 +21,9 @@ class FirebaseService {
   /// Save a project to Firestore
   Future<void> saveProject(Project project) async {
     try {
+      // Use the model's built-in JSON serialization with DateTimeConverter
+      // The DateTimeConverter will automatically handle DateTime to ISO string conversion
       final projectData = project.toJson();
-      
-      // Convert DateTime objects to Firestore Timestamps
-      projectData['createdAt'] = Timestamp.fromDate(project.createdAt);
-      if (project.dueDate != null) {
-        projectData['dueDate'] = Timestamp.fromDate(project.dueDate!);
-      }
-
-      // Convert phase dates
-      final List<Map<String, dynamic>> phasesData = [];
-      for (final phase in project.phases) {
-        final phaseData = phase.toJson();
-        if (phase.startDate != null) {
-          phaseData['startDate'] = Timestamp.fromDate(phase.startDate!);
-        }
-        if (phase.endDate != null) {
-          phaseData['endDate'] = Timestamp.fromDate(phase.endDate!);
-        }
-
-        // Convert task dates
-        final List<Map<String, dynamic>> tasksData = [];
-        for (final task in phase.tasks) {
-          final taskData = task.toJson();
-          taskData['createdAt'] = Timestamp.fromDate(task.createdAt);
-          if (task.dueDate != null) {
-            taskData['dueDate'] = Timestamp.fromDate(task.dueDate!);
-          }
-
-          // Convert comment dates
-          final List<Map<String, dynamic>> commentsData = [];
-          for (final comment in task.comments) {
-            final commentData = comment.toJson();
-            commentData['createdAt'] = Timestamp.fromDate(comment.createdAt);
-            commentsData.add(commentData);
-          }
-          taskData['comments'] = commentsData;
-          tasksData.add(taskData);
-        }
-        phaseData['tasks'] = tasksData;
-        phasesData.add(phaseData);
-      }
-      projectData['phases'] = phasesData;
-
-      // Convert metadata to proper JSON
-      projectData['metadata'] = project.metadata.toJson();
 
       await _firestore
           .collection(_projectsCollection)
@@ -222,125 +180,17 @@ class FirebaseService {
 
   /// Parse project data from Firestore document
   Project _parseProjectFromFirestore(Map<String, dynamic> data) {
-    // Convert Firestore Timestamps back to DateTime
-    if (data['createdAt'] is Timestamp) {
-      data['createdAt'] = (data['createdAt'] as Timestamp).toDate();
-    } else if (data['createdAt'] is String) {
-      data['createdAt'] = DateTime.parse(data['createdAt']);
-    } else if (data['createdAt'] is! DateTime) {
-      print('Unexpected createdAt type: ${data['createdAt'].runtimeType}');
-      data['createdAt'] = DateTime.now(); // fallback
-    }
-    
-    if (data['dueDate'] != null) {
-      if (data['dueDate'] is Timestamp) {
-        data['dueDate'] = (data['dueDate'] as Timestamp).toDate();
-      } else if (data['dueDate'] is String) {
-        data['dueDate'] = DateTime.parse(data['dueDate']);
-      }
-    }
-
-    // Convert phase dates
-    if (data['phases'] != null) {
-      final List<dynamic> phasesData = data['phases'];
-      for (final phaseData in phasesData) {
-        if (phaseData['startDate'] != null) {
-          if (phaseData['startDate'] is Timestamp) {
-            phaseData['startDate'] = (phaseData['startDate'] as Timestamp).toDate();
-          } else if (phaseData['startDate'] is String) {
-            phaseData['startDate'] = DateTime.parse(phaseData['startDate']);
-          }
-        }
-        if (phaseData['endDate'] != null) {
-          if (phaseData['endDate'] is Timestamp) {
-            phaseData['endDate'] = (phaseData['endDate'] as Timestamp).toDate();
-          } else if (phaseData['endDate'] is String) {
-            phaseData['endDate'] = DateTime.parse(phaseData['endDate']);
-          }
-        }
-
-        // Convert task dates
-        if (phaseData['tasks'] != null) {
-          final List<dynamic> tasksData = phaseData['tasks'];
-          for (final taskData in tasksData) {
-            if (taskData['createdAt'] is Timestamp) {
-              taskData['createdAt'] = (taskData['createdAt'] as Timestamp).toDate();
-            } else if (taskData['createdAt'] is String) {
-              taskData['createdAt'] = DateTime.parse(taskData['createdAt']);
-            }
-            
-            if (taskData['dueDate'] != null) {
-              if (taskData['dueDate'] is Timestamp) {
-                taskData['dueDate'] = (taskData['dueDate'] as Timestamp).toDate();
-              } else if (taskData['dueDate'] is String) {
-                taskData['dueDate'] = DateTime.parse(taskData['dueDate']);
-              }
-            }
-
-            // Convert comment dates
-            if (taskData['comments'] != null) {
-              final List<dynamic> commentsData = taskData['comments'];
-              for (final commentData in commentsData) {
-                if (commentData['createdAt'] is Timestamp) {
-                  commentData['createdAt'] = (commentData['createdAt'] as Timestamp).toDate();
-                } else if (commentData['createdAt'] is String) {
-                  commentData['createdAt'] = DateTime.parse(commentData['createdAt']);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Convert all DateTime objects to ISO strings for JSON deserialization
-    _convertDateTimesToStrings(data);
-    
-    return Project.fromJson(data);
-  }
-
-  /// Convert DateTime objects to ISO strings for JSON deserialization
-  void _convertDateTimesToStrings(Map<String, dynamic> data) {
-    if (data['createdAt'] is DateTime) {
-      data['createdAt'] = (data['createdAt'] as DateTime).toIso8601String();
-    }
-    if (data['dueDate'] is DateTime) {
-      data['dueDate'] = (data['dueDate'] as DateTime).toIso8601String();
-    }
-
-    if (data['phases'] != null) {
-      final List<dynamic> phasesData = data['phases'];
-      for (final phaseData in phasesData) {
-        if (phaseData['startDate'] is DateTime) {
-          phaseData['startDate'] = (phaseData['startDate'] as DateTime).toIso8601String();
-        }
-        if (phaseData['endDate'] is DateTime) {
-          phaseData['endDate'] = (phaseData['endDate'] as DateTime).toIso8601String();
-        }
-
-        if (phaseData['tasks'] != null) {
-          final List<dynamic> tasksData = phaseData['tasks'];
-          for (final taskData in tasksData) {
-            if (taskData['createdAt'] is DateTime) {
-              taskData['createdAt'] = (taskData['createdAt'] as DateTime).toIso8601String();
-            }
-            if (taskData['dueDate'] is DateTime) {
-              taskData['dueDate'] = (taskData['dueDate'] as DateTime).toIso8601String();
-            }
-
-            if (taskData['comments'] != null) {
-              final List<dynamic> commentsData = taskData['comments'];
-              for (final commentData in commentsData) {
-                if (commentData['createdAt'] is DateTime) {
-                  commentData['createdAt'] = (commentData['createdAt'] as DateTime).toIso8601String();
-                }
-              }
-            }
-          }
-        }
-      }
+    try {
+      // The DateTimeConverter in the model will automatically handle 
+      // Timestamp conversion when fromJson is called
+      return Project.fromJson(data);
+    } catch (e) {
+      print('Error parsing project from Firestore: $e');
+      print('Project data: $data');
+      rethrow;
     }
   }
+
 
   /// Check if Firestore is available
   Future<bool> isAvailable() async {
@@ -609,28 +459,9 @@ class FirebaseService {
   /// Save project context to Firestore
   Future<void> saveProjectContext(ProjectContext projectContext) async {
     try {
+      // Use the model's built-in JSON serialization with DateTimeConverter
+      // The DateTimeConverter will automatically handle DateTime to ISO string conversion
       final contextData = projectContext.toJson();
-      
-      // Convert DateTime objects to Firestore Timestamps
-      contextData['lastUpdated'] = Timestamp.fromDate(projectContext.lastUpdated);
-      
-      // Convert context questions
-      final List<Map<String, dynamic>> questionsData = [];
-      for (final question in projectContext.contextQuestions) {
-        final questionData = question.toJson();
-        questionData['answeredAt'] = Timestamp.fromDate(question.answeredAt);
-        questionsData.add(questionData);
-      }
-      contextData['contextQuestions'] = questionsData;
-      
-      // Convert documents
-      final List<Map<String, dynamic>> documentsData = [];
-      for (final document in projectContext.documents) {
-        final documentData = document.toJson();
-        documentData['uploadedAt'] = Timestamp.fromDate(document.uploadedAt);
-        documentsData.add(documentData);
-      }
-      contextData['documents'] = documentsData;
 
       await _firestore
           .collection(_projectContextCollection)
@@ -694,50 +525,15 @@ class FirebaseService {
 
   /// Parse project context from Firestore document
   ProjectContext _parseProjectContextFromFirestore(Map<String, dynamic> data) {
-    // Parse context questions
-    final List<ContextQuestion> contextQuestions = [];
-    if (data['contextQuestions'] != null) {
-      final questionsData = data['contextQuestions'] as List;
-      for (final questionData in questionsData) {
-        final questionMap = questionData as Map<String, dynamic>;
-        
-        // Convert Firestore Timestamp to DateTime
-        if (questionMap['answeredAt'] is Timestamp) {
-          questionMap['answeredAt'] = (questionMap['answeredAt'] as Timestamp).toDate().toIso8601String();
-        }
-        
-        contextQuestions.add(ContextQuestion.fromJson(questionMap));
-      }
+    try {
+      // The DateTimeConverter in the models will automatically handle 
+      // Timestamp conversion when fromJson is called
+      return ProjectContext.fromJson(data);
+    } catch (e) {
+      print('Error parsing project context from Firestore: $e');
+      print('Project context data: $data');
+      rethrow;
     }
-
-    // Parse documents
-    final List<ProjectDocument> documents = [];
-    if (data['documents'] != null) {
-      final documentsData = data['documents'] as List;
-      for (final documentData in documentsData) {
-        final documentMap = documentData as Map<String, dynamic>;
-        
-        // Convert Firestore Timestamp to DateTime
-        if (documentMap['uploadedAt'] is Timestamp) {
-          documentMap['uploadedAt'] = (documentMap['uploadedAt'] as Timestamp).toDate().toIso8601String();
-        }
-        
-        documents.add(ProjectDocument.fromJson(documentMap));
-      }
-    }
-
-    // Convert lastUpdated
-    final lastUpdated = data['lastUpdated'] is Timestamp
-        ? (data['lastUpdated'] as Timestamp).toDate()
-        : DateTime.parse(data['lastUpdated'] as String);
-
-    return ProjectContext(
-      projectId: data['projectId'] as String,
-      contextQuestions: contextQuestions,
-      documents: documents,
-      lastUpdated: lastUpdated,
-      summary: data['summary'] as String?,
-    );
   }
 
   /// Clear all data from Firestore (for development/testing purposes)

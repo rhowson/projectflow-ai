@@ -5,6 +5,7 @@ import '../features/splash/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/project_creation/presentation/project_creation_screen.dart';
 import '../features/project_creation/presentation/project_context_screen.dart';
+import '../features/project_creation/presentation/document_context_review_screen.dart';
 import '../features/project_creation/presentation/project_generation_wrapper_screen.dart';
 import '../features/project_context/presentation/project_context_screen.dart' as project_context;
 import '../features/team_management/presentation/team_details_screen.dart';
@@ -13,6 +14,7 @@ import '../features/profile/presentation/simple_profile_screen.dart';
 import '../features/team_management/presentation/team_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
+import '../core/services/claude_ai_service.dart';
 import '../shared/widgets/main_navigation.dart';
 
 class AppRouter {
@@ -128,6 +130,27 @@ class AppRouter {
       
       // Special routes (no bottom nav)
       GoRoute(
+        path: '/document-context-review',
+        name: 'document-context-review',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final projectDescription = extra?['projectDescription'] as String? ?? '';
+          final documentContent = extra?['documentContent'] as String?;
+          final documentAcknowledgment = extra?['documentAcknowledgment'] as String?;
+          final documentUpload = extra?['documentUpload'];
+          final tempDocument = extra?['tempDocument'];
+          
+          return DocumentContextReviewScreen(
+            projectDescription: projectDescription,
+            documentContent: documentContent,
+            documentAcknowledgment: documentAcknowledgment,
+            documentUpload: documentUpload,
+            tempDocument: tempDocument,
+          );
+        },
+      ),
+      
+      GoRoute(
         path: '/project-context',
         name: 'project-context',
         builder: (context, state) {
@@ -135,11 +158,15 @@ class AppRouter {
           final projectDescription = extra?['projectDescription'] as String? ?? '';
           final documentContent = extra?['documentContent'] as String?;
           final documentUploadResult = extra?['documentUploadResult'];
+          final tempDocumentResult = extra?['tempDocumentResult'];
+          final extractedContext = extra?['extractedContext'] as List<DocumentContextPoint>?;
           
           return ProjectContextScreen(
             projectDescription: projectDescription,
             documentContent: documentContent,
             documentUploadResult: documentUploadResult,
+            tempDocumentResult: tempDocumentResult,
+            extractedContext: extractedContext,
           );
         },
       ),

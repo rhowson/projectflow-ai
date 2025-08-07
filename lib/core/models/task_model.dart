@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../utils/datetime_converter.dart';
 
 part 'task_model.g.dart';
 
@@ -10,7 +11,9 @@ class Task {
   final TaskStatus status;
   final Priority priority;
   final String? assignedToId;
+  @DateTimeConverter()
   final DateTime createdAt;
+  @DateTimeConverter()
   final DateTime? dueDate;
   final List<String> attachmentIds;
   final List<String> dependencyIds;
@@ -78,6 +81,7 @@ class TaskComment {
   final String id;
   final String content;
   final String authorId;
+  @DateTimeConverter()
   final DateTime createdAt;
 
   const TaskComment({

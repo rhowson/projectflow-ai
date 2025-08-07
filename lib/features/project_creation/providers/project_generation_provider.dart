@@ -98,6 +98,8 @@ class ProjectGenerationNotifier extends StateNotifier<AsyncValue<GenerationProgr
         description,
         contextAnswers,
         documentContent,
+        null, // documentAcknowledgment - will be null for this call
+        null, // documentContext - will be null for this call
       );
 
       _updateProgress(
@@ -114,6 +116,8 @@ class ProjectGenerationNotifier extends StateNotifier<AsyncValue<GenerationProgr
         contextAnswers,
         documentContent,
         projectAnalysis,
+        null, // documentAcknowledgment - will be null for this call
+        null, // documentContext - will be null for this call
       );
 
       _updateProgress(
@@ -144,6 +148,8 @@ class ProjectGenerationNotifier extends StateNotifier<AsyncValue<GenerationProgr
           documentContent,
           projectAnalysis,
           phases,
+          null, // documentAcknowledgment - will be null for this call
+          null, // documentContext - will be null for this call
         );
         phases.add(detailedPhase);
       }

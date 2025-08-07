@@ -20,13 +20,9 @@ AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
       bio: json['bio'] as String?,
       location: json['location'] as String?,
       timezone: json['timezone'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      lastLoginAt: json['lastLoginAt'] == null
-          ? null
-          : DateTime.parse(json['lastLoginAt'] as String),
-      lastActiveAt: json['lastActiveAt'] == null
-          ? null
-          : DateTime.parse(json['lastActiveAt'] as String),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
+      lastLoginAt: const DateTimeConverter().fromJson(json['lastLoginAt']),
+      lastActiveAt: const DateTimeConverter().fromJson(json['lastActiveAt']),
       role: $enumDecode(_$UserRoleEnumMap, json['role']),
       status: $enumDecode(_$UserStatusEnumMap, json['status']),
       preferences:
@@ -59,9 +55,11 @@ Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
       'bio': instance.bio,
       'location': instance.location,
       'timezone': instance.timezone,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'lastLoginAt': instance.lastLoginAt?.toIso8601String(),
-      'lastActiveAt': instance.lastActiveAt?.toIso8601String(),
+      'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+      'lastLoginAt': _$JsonConverterToJson<dynamic, DateTime>(
+          instance.lastLoginAt, const DateTimeConverter().toJson),
+      'lastActiveAt': _$JsonConverterToJson<dynamic, DateTime>(
+          instance.lastActiveAt, const DateTimeConverter().toJson),
       'role': _$UserRoleEnumMap[instance.role]!,
       'status': _$UserStatusEnumMap[instance.status]!,
       'preferences': instance.preferences,
@@ -91,6 +89,12 @@ const _$UserStatusEnumMap = {
   UserStatus.pending: 'pending',
   UserStatus.blocked: 'blocked',
 };
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);
 
 UserPreferences _$UserPreferencesFromJson(Map<String, dynamic> json) =>
     UserPreferences(
