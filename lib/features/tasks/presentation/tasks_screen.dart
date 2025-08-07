@@ -53,6 +53,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   Widget build(BuildContext context) {
     final projectsAsync = ref.watch(projectNotifierProvider);
     
+    
     return Scaffold(
       backgroundColor: CustomNeumorphicTheme.baseColor,
       appBar: NeumorphicAppBar(
@@ -80,6 +81,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             selectedProject = projects.first;
             selectedProjectId = selectedProject.id;
           }
+          
           
           return SingleChildScrollView(
             padding: EdgeInsets.only(top: 16.h, bottom: 16.h),
@@ -3233,7 +3235,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   }
 }
 
-class PhaseManagementDialog extends StatefulWidget {
+class PhaseManagementDialog extends ConsumerStatefulWidget {
   final Project project;
   final Function(Project) onPhasesUpdated;
 
@@ -3244,12 +3246,13 @@ class PhaseManagementDialog extends StatefulWidget {
   });
 
   @override
-  State<PhaseManagementDialog> createState() => _PhaseManagementDialogState();
+  ConsumerState<PhaseManagementDialog> createState() => _PhaseManagementDialogState();
 }
 
-class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
+class _PhaseManagementDialogState extends ConsumerState<PhaseManagementDialog> {
   late List<ProjectPhase> phases;
   final _formKey = GlobalKey<FormState>();
+  bool _hasUnsavedChanges = false;
 
   @override
   void initState() {
@@ -3390,17 +3393,23 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
                   Expanded(
                     child: NeumorphicButton(
                       onPressed: _saveChanges,
+                      isSelected: _hasUnsavedChanges,
+                      selectedColor: CustomNeumorphicTheme.primaryPurple,
                       borderRadius: BorderRadius.circular(10.r),
                       padding: EdgeInsets.symmetric(vertical: 10.h),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.save_outlined, color: CustomNeumorphicTheme.primaryPurple, size: 16.sp),
+                          Icon(
+                            _hasUnsavedChanges ? Icons.save : Icons.save_outlined, 
+                            color: _hasUnsavedChanges ? Colors.white : CustomNeumorphicTheme.primaryPurple, 
+                            size: 16.sp
+                          ),
                           SizedBox(width: 6.w),
                           Text(
-                            'Save Changes',
+                            _hasUnsavedChanges ? 'Save Changes *' : 'Save Changes',
                             style: TextStyle(
-                              color: CustomNeumorphicTheme.primaryPurple,
+                              color: _hasUnsavedChanges ? Colors.white : CustomNeumorphicTheme.primaryPurple,
                               fontSize: 13.sp,
                               fontWeight: FontWeight.w600,
                             ),
@@ -3578,19 +3587,23 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
     }
   }
 
-  void _reorderPhases(int oldIndex, int newIndex) {
+  void _reorderPhases(int oldIndex, int newIndex) async {
     setState(() {
       if (newIndex > oldIndex) {
         newIndex -= 1;
       }
       final phase = phases.removeAt(oldIndex);
       phases.insert(newIndex, phase);
+      _hasUnsavedChanges = true;
     });
+    
+    // Changes will be saved when user clicks "Save Changes" button
   }
 
   void _addNewPhase() {
     _showPhaseEditDialog();
   }
+
 
   void _editPhase(int index) {
     _showPhaseEditDialog(phase: phases[index], index: index);
@@ -3770,11 +3783,14 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: NeumorphicButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.of(context).pop();
                         setState(() {
                           phases.removeAt(index);
+                          _hasUnsavedChanges = true;
                         });
+                        
+                        // Changes will be saved when user clicks "Save Changes" button
                       },
                       isSelected: true,
                       selectedColor: CustomNeumorphicTheme.errorRed,
@@ -3924,8 +3940,15 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: NeumorphicButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (nameController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter a phase name'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
                           return;
                         }
                         
@@ -3939,6 +3962,7 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
                           endDate: phase?.endDate,
                         );
                         
+                        // Update local state
                         setState(() {
                           if (isEditing && index != null) {
                             phases[index] = newPhase;
@@ -3946,6 +3970,32 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
                             phases.add(newPhase);
                           }
                         });
+                        
+                        // Immediately save to database
+                        try {
+                          final updatedProject = widget.project.copyWith(phases: phases);
+                          await ref.read(projectNotifierProvider.notifier).updateProject(updatedProject);
+                          
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isEditing ? 'Phase updated successfully' : 'Phase added successfully'),
+                                duration: const Duration(seconds: 2),
+                                backgroundColor: CustomNeumorphicTheme.primaryPurple,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isEditing ? 'Failed to update phase' : 'Failed to add phase'),
+                                duration: const Duration(seconds: 3),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                         
                         Navigator.of(context).pop();
                       },
@@ -3972,9 +4022,38 @@ class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
     );
   }
 
-  void _saveChanges() {
-    final updatedProject = widget.project.copyWith(phases: phases);
-    widget.onPhasesUpdated(updatedProject);
+  void _saveChanges() async {
+    await _saveChangesToDatabase();
+    setState(() {
+      _hasUnsavedChanges = false;
+    });
     Navigator.of(context).pop();
+  }
+
+  Future<void> _saveChangesToDatabase() async {
+    try {
+      final updatedProject = widget.project.copyWith(phases: phases);
+      await ref.read(projectNotifierProvider.notifier).updateProject(updatedProject);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Phases saved successfully'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: CustomNeumorphicTheme.primaryPurple,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save changes'),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
