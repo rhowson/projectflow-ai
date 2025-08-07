@@ -27,6 +27,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   bool _isProjectSelectorCollapsed = false;
   bool _isEditingProjectName = false;
   late TextEditingController _projectNameController;
+  late ScrollController _phaseFilterScrollController;
+  late ScrollController _phaseCarouselScrollController;
 
   @override
   void initState() {
@@ -34,11 +36,15 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     selectedProjectId = widget.projectId;
     selectedPhaseId = widget.phaseId;
     _projectNameController = TextEditingController();
+    _phaseFilterScrollController = ScrollController();
+    _phaseCarouselScrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _projectNameController.dispose();
+    _phaseFilterScrollController.dispose();
+    _phaseCarouselScrollController.dispose();
     super.dispose();
   }
 
@@ -90,15 +96,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                       
                       SizedBox(height: 24.h),
                       
-                      
                       // Phase Filter Section - Pill Buttons
-                      if (selectedProject.phases.isNotEmpty)
+                      if (selectedProject.phases.isNotEmpty) ...[
                         _buildPhaseFilterSection(selectedProject),
-                      
-                      if (selectedProject.phases.isNotEmpty)
                         SizedBox(height: 24.h),
-                      
-                      SizedBox(height: 24.h),
+                      ],
                     ],
                   ),
                 ),
@@ -210,44 +212,46 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     );
   }
 
-  // New Dashboard-style sections
+  // New Compact Project Summary Tiles with Neumorphic Design
   Widget _buildProjectSelectionSection(List<Project> projects, Project selectedProject) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header with project switcher
+        // Section Header
         Padding(
-          padding: EdgeInsets.only(left: 4.w, bottom: 16.h),
+          padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   'Current Project',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18.sp,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              NeumorphicContainer(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                borderRadius: BorderRadius.circular(16.r),
-                color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+              // Compact Switch Button
+              NeumorphicButton(
+                onPressed: () => _showProjectSelector(projects),
+                borderRadius: BorderRadius.circular(18.r),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.swap_horiz,
-                      size: 13.sp,
+                      size: 14.sp,
                       color: CustomNeumorphicTheme.primaryPurple,
                     ),
-                    SizedBox(width: 6.w),
-                    GestureDetector(
-                      onTap: () => _showProjectSelector(projects),
-                      child: Text(
-                        'Switch',
-                        style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                          color: CustomNeumorphicTheme.primaryPurple,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      'Switch',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -256,29 +260,98 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             ],
           ),
         ),
-        // Project Card
-        NeumorphicCard(
-          padding: EdgeInsets.all(20.w),
-          child: Row(
+        
+        // Compact Project Summary Tiles Container
+        NeumorphicContainer(
+          padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
+          borderRadius: BorderRadius.circular(18.r),
+          color: CustomNeumorphicTheme.cardColor,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildEditableProjectTitle(selectedProject),
-                    SizedBox(height: 4.h),
-                    Text(
-                      '${selectedProject.phases.length} phases • ${_getTotalTasks(selectedProject)} tasks',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomNeumorphicTheme.lightText,
+              // Main Project Info - Left Aligned to Container Edge
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Project Title - Left Aligned to Tile Edge
+                  Text(
+                    selectedProject.title,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: CustomNeumorphicTheme.darkText,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  
+                  SizedBox(height: 6.h),
+                  
+                  // Project Stats Row - Left Aligned to Tile Edge
+                  Wrap(
+                    spacing: 6.w,
+                    runSpacing: 4.h,
+                    alignment: WrapAlignment.start,
+                    children: [
+                      _buildProjectStatChip(
+                        icon: Icons.view_module_outlined,
+                        label: '${selectedProject.phases.length}',
+                        sublabel: 'phases',
+                      ),
+                      _buildProjectStatChip(
+                        icon: Icons.task_alt_outlined,
+                        label: '${_getTotalTasks(selectedProject)}',
+                        sublabel: 'tasks',
+                      ),
+                      _buildProjectStatusChip(selectedProject.status),
+                    ],
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: 10.h),
+              
+              // Action Buttons Row - Compact Design
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Edit Button - Compact
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: () => _showProjectOptionsMenu(selectedProject),
+                      borderRadius: BorderRadius.circular(10.r),
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.edit_outlined,
+                            size: 14.sp,
+                            color: CustomNeumorphicTheme.primaryPurple,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'Edit',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: CustomNeumorphicTheme.primaryPurple,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  
+                  SizedBox(width: 8.w),
+                  
+                  // Context Button - Compact
+                  Expanded(
+                    child: _buildCompactContextButton(selectedProject),
+                  ),
+                ],
               ),
-              SizedBox(width: 12.w),
-              _buildProjectContextButton(selectedProject),
             ],
           ),
         ),
@@ -442,6 +515,12 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                     setState(() {
                       selectedPhaseId = null;
                     });
+                    // Smooth scroll to first chip (All Phases) with animation
+                    _phaseCarouselScrollController.animateTo(
+                      0.0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   },
                   borderRadius: BorderRadius.circular(8.r),
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -461,10 +540,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         
         // Horizontal Phase Carousel
         SizedBox(
-          height: 60.h, // Compact height profile
+          height: 68.h, // Increased height to prevent shadow clipping
           child: ListView.builder(
+            controller: _phaseCarouselScrollController,
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.only(left: 4.w, right: 16.w),
+            padding: EdgeInsets.only(left: 8.w, right: 16.w),
             itemCount: selectedProject.phases.length + 1, // +1 for "All Phases"
             itemBuilder: (context, index) {
               if (index == 0) {
@@ -510,8 +590,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       height: 44.h, // Fixed height to fit in 60.h container with shadow clearance
       margin: EdgeInsets.only(
         left: isFirst ? 0 : 8.w, // Reduced spacing between cards
-        top: 8.h, // Top margin for shadow clearance
-        bottom: 8.h, // Bottom margin for shadow clearance
+        top: 11.h, // Slightly reduced margin to optimize section spacing
+        bottom: 12.2.h, // Increased bottom margin by 10% to prevent clipping
       ),
       child: NeumorphicButton(
         onPressed: () {
@@ -780,12 +860,43 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (selectedPhaseId != null)
+              // Edit Phases Button
+              NeumorphicButton(
+                onPressed: () => _showPhaseManagementDialog(selectedProject),
+                borderRadius: BorderRadius.circular(10.r),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 12.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      'Edit',
+                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                        color: CustomNeumorphicTheme.primaryPurple,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (selectedPhaseId != null) ...[
+                SizedBox(width: 8.w),
                 NeumorphicButton(
                   onPressed: () {
                     setState(() {
                       selectedPhaseId = null;
                     });
+                    // Smooth scroll to first chip (All Phases) with animation
+                    _phaseFilterScrollController.animateTo(
+                      0.0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   },
                   borderRadius: BorderRadius.circular(12.r),
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -808,15 +919,17 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                     ],
                   ),
                 ),
+              ],
             ],
           ),
         ),
         // Horizontal Scrollable Phase Chips
         SizedBox(
-          height: 60.h, // Adequate height to prevent shadow clipping
+          height: 68.h, // Increased height to prevent shadow clipping
           child: ListView.builder(
+            controller: _phaseFilterScrollController,
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
             itemCount: selectedProject.phases.length + 1, // +1 for "All Phases"
             itemBuilder: (context, index) {
               if (index == 0) {
@@ -846,7 +959,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       : project.phases.firstWhere((p) => p.id == phaseId).tasks.length;
     
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.h), // Vertical margin for shadow clearance
+      margin: EdgeInsets.symmetric(vertical: 13.h), // Increased bottom margin by 10% to prevent clipping
       child: NeumorphicButton(
         onPressed: () {
           setState(() {
@@ -1831,6 +1944,305 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       // This would integrate with the existing project provider
     });
   }
+
+  void _showPhaseManagementDialog(Project project) {
+    showDialog(
+      context: context,
+      builder: (context) => PhaseManagementDialog(
+        project: project,
+        onPhasesUpdated: (updatedProject) => _updateProject(updatedProject),
+      ),
+    );
+  }
+
+  Future<void> _updateProject(Project updatedProject) async {
+    try {
+      await ref.read(projectNotifierProvider.notifier).updateProject(updatedProject);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+              SizedBox(width: 8.w),
+              Text('Project updated successfully'),
+            ],
+          ),
+          backgroundColor: CustomNeumorphicTheme.primaryPurple,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+          margin: EdgeInsets.all(16.w),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white, size: 20.sp),
+              SizedBox(width: 8.w),
+              Text('Failed to update project: $e'),
+            ],
+          ),
+          backgroundColor: CustomNeumorphicTheme.errorRed,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+          margin: EdgeInsets.all(16.w),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  // Compact Design Helper Methods
+
+  Widget _buildProjectStatChip({
+    required IconData icon,
+    required String label,
+    required String sublabel,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.r),
+        color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.08),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12.sp,
+            color: CustomNeumorphicTheme.primaryPurple,
+          ),
+          SizedBox(width: 4.w),
+          RichText(
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              text: label,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w700,
+                color: CustomNeumorphicTheme.primaryPurple,
+              ),
+              children: [
+                TextSpan(
+                  text: ' $sublabel',
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w500,
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectStatusChip(ProjectStatus status) {
+    final statusInfo = _getProjectStatusInfo(status);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.r),
+        color: statusInfo['color'].withValues(alpha: 0.12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6.w,
+            height: 6.w,
+            decoration: BoxDecoration(
+              color: statusInfo['color'],
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: 4.w),
+          Text(
+            statusInfo['label'],
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w600,
+              color: statusInfo['color'],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactContextButton(Project project) {
+    final contextAsync = ref.watch(projectContextNotifierProvider(project.id));
+    
+    return contextAsync.when(
+      data: (projectContext) {
+        final hasContext = projectContext?.hasContent ?? false;
+        final itemCount = projectContext?.totalItems ?? 0;
+        
+        return NeumorphicButton(
+          onPressed: () => context.push(
+            '/project-context/${project.id}?title=${Uri.encodeComponent(project.title)}',
+          ),
+          borderRadius: BorderRadius.circular(10.r),
+          padding: EdgeInsets.symmetric(vertical: 8.h),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                children: [
+                  Icon(
+                    Icons.library_books_outlined,
+                    size: 14.sp,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                  ),
+                  if (hasContext && itemCount > 0)
+                    Positioned(
+                      right: -3,
+                      top: -3,
+                      child: Container(
+                        width: 10.w,
+                        height: 10.w,
+                        decoration: BoxDecoration(
+                          color: CustomNeumorphicTheme.primaryPurple,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: CustomNeumorphicTheme.cardColor,
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            itemCount > 9 ? '9+' : itemCount.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 6.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              SizedBox(width: 4.w),
+              Flexible(
+                child: Text(
+                  'Context',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.primaryPurple,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => NeumorphicButton(
+        onPressed: null,
+        borderRadius: BorderRadius.circular(10.r),
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14.sp,
+              height: 14.sp,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  CustomNeumorphicTheme.lightText,
+                ),
+              ),
+            ),
+            SizedBox(width: 4.w),
+            Flexible(
+              child: Text(
+                'Context',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (_, __) => NeumorphicButton(
+        onPressed: () => context.push(
+          '/project-context/${project.id}?title=${Uri.encodeComponent(project.title)}',
+        ),
+        borderRadius: BorderRadius.circular(10.r),
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.library_books_outlined,
+              size: 14.sp,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+            SizedBox(width: 4.w),
+            Flexible(
+              child: Text(
+                'Context',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getProjectStatusColor(ProjectStatus status) {
+    switch (status) {
+      case ProjectStatus.planning:
+        return CustomNeumorphicTheme.primaryPurple;
+      case ProjectStatus.inProgress:
+        return CustomNeumorphicTheme.primaryPurple;
+      case ProjectStatus.completed:
+        return CustomNeumorphicTheme.successGreen;
+      case ProjectStatus.onHold:
+        return Colors.orange;
+      case ProjectStatus.cancelled:
+        return CustomNeumorphicTheme.errorRed;
+    }
+  }
+
+  Map<String, dynamic> _getProjectStatusInfo(ProjectStatus status) {
+    switch (status) {
+      case ProjectStatus.planning:
+        return {'label': 'Planning', 'color': CustomNeumorphicTheme.primaryPurple};
+      case ProjectStatus.inProgress:
+        return {'label': 'In Progress', 'color': CustomNeumorphicTheme.primaryPurple};
+      case ProjectStatus.completed:
+        return {'label': 'Completed', 'color': CustomNeumorphicTheme.successGreen};
+      case ProjectStatus.onHold:
+        return {'label': 'On Hold', 'color': Colors.orange};
+      case ProjectStatus.cancelled:
+        return {'label': 'Cancelled', 'color': CustomNeumorphicTheme.errorRed};
+    }
+  }
 }
 
 class AddTaskDialog extends StatefulWidget {
@@ -2391,5 +2803,751 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
       widget.onTaskAdded(newTask, _selectedPhaseId!);
       Navigator.of(context).pop();
     }
+  }
+}
+
+class PhaseManagementDialog extends StatefulWidget {
+  final Project project;
+  final Function(Project) onPhasesUpdated;
+
+  const PhaseManagementDialog({
+    required this.project,
+    required this.onPhasesUpdated,
+    super.key,
+  });
+
+  @override
+  State<PhaseManagementDialog> createState() => _PhaseManagementDialogState();
+}
+
+class _PhaseManagementDialogState extends State<PhaseManagementDialog> {
+  late List<ProjectPhase> phases;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    phases = List.from(widget.project.phases);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.all(16.w),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.95,
+        ),
+        decoration: BoxDecoration(
+          color: CustomNeumorphicTheme.baseColor,
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.3),
+              offset: const Offset(2, 4),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header - Cleaner Design
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.baseColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.r),
+                  topRight: Radius.circular(20.r),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(6.w),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.r),
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                    child: Icon(
+                      Icons.view_module_outlined,
+                      color: Colors.white,
+                      size: 16.sp,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: Text(
+                      'Manage Phases',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Long press to reorder',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: CustomNeumorphicTheme.lightText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  NeumorphicButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    borderRadius: BorderRadius.circular(8.r),
+                    padding: EdgeInsets.all(6.w),
+                    child: Icon(
+                      Icons.close,
+                      color: CustomNeumorphicTheme.lightText,
+                      size: 14.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Phases List
+            Flexible(
+              child: phases.isEmpty ? _buildEmptyState() : _buildPhasesList(),
+            ),
+
+            // Footer Actions - Cleaner Design
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+              decoration: BoxDecoration(
+                color: CustomNeumorphicTheme.baseColor,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20.r),
+                  bottomRight: Radius.circular(20.r),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.08),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: _addNewPhase,
+                      isSelected: true,
+                      selectedColor: CustomNeumorphicTheme.primaryPurple,
+                      borderRadius: BorderRadius.circular(10.r),
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, color: Colors.white, size: 16.sp),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Add Phase',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: _saveChanges,
+                      borderRadius: BorderRadius.circular(10.r),
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.save_outlined, color: CustomNeumorphicTheme.primaryPurple, size: 16.sp),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Save Changes',
+                            style: TextStyle(
+                              color: CustomNeumorphicTheme.primaryPurple,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: EdgeInsets.all(24.w),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20.r),
+              color: CustomNeumorphicTheme.primaryPurple.withValues(alpha: 0.1),
+            ),
+            child: Icon(
+              Icons.view_module_outlined,
+              size: 28.sp,
+              color: CustomNeumorphicTheme.primaryPurple,
+            ),
+          ),
+          SizedBox(height: 14.h),
+          Text(
+            'No Phases Yet',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: CustomNeumorphicTheme.darkText,
+              fontSize: 15.sp,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            'Add phases to organize your project tasks',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: CustomNeumorphicTheme.lightText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhasesList() {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      itemCount: phases.length,
+      onReorder: _reorderPhases,
+      buildDefaultDragHandles: false, // Disable default drag handles
+      itemBuilder: (context, index) {
+        final phase = phases[index];
+        final taskCount = phase.tasks.length;
+        
+        return ReorderableDragStartListener(
+          key: ValueKey(phase.id),
+          index: index,
+          child: Container(
+            margin: EdgeInsets.only(bottom: 8.h),
+            child: NeumorphicCard(
+              padding: EdgeInsets.all(14.w),
+              child: Row(
+                children: [
+                  // Phase Number Indicator
+                  Container(
+                    width: 32.w,
+                    height: 32.w,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.r),
+                      color: _getPhaseStatusColor(phase.status),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 14.w),
+                  
+                  // Phase Info - Takes most space
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          phase.name,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomNeumorphicTheme.darkText,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (taskCount > 0) ...[
+                          SizedBox(height: 2.h),
+                          Text(
+                            '$taskCount task${taskCount == 1 ? '' : 's'}',
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              color: CustomNeumorphicTheme.lightText,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(width: 16.w), // More generous spacing
+                  
+                  // Action Buttons - Larger and more accessible
+                  NeumorphicButton(
+                    onPressed: () => _editPhase(index),
+                    borderRadius: BorderRadius.circular(8.r),
+                    padding: EdgeInsets.all(8.w),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      size: 16.sp,
+                      color: CustomNeumorphicTheme.primaryPurple,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  NeumorphicButton(
+                    onPressed: taskCount > 0 ? null : () => _deletePhase(index),
+                    borderRadius: BorderRadius.circular(8.r),
+                    padding: EdgeInsets.all(8.w),
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 16.sp,
+                      color: taskCount > 0 
+                        ? CustomNeumorphicTheme.lightText.withValues(alpha: 0.4)
+                        : CustomNeumorphicTheme.errorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Color _getPhaseStatusColor(PhaseStatus status) {
+    switch (status) {
+      case PhaseStatus.notStarted:
+        return CustomNeumorphicTheme.lightText;
+      case PhaseStatus.inProgress:
+        return CustomNeumorphicTheme.primaryPurple;
+      case PhaseStatus.completed:
+        return CustomNeumorphicTheme.successGreen;
+      case PhaseStatus.onHold:
+        return Colors.orange;
+    }
+  }
+
+  void _reorderPhases(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final phase = phases.removeAt(oldIndex);
+      phases.insert(newIndex, phase);
+    });
+  }
+
+  void _addNewPhase() {
+    _showPhaseEditDialog();
+  }
+
+  void _editPhase(int index) {
+    _showPhaseEditDialog(phase: phases[index], index: index);
+  }
+
+  void _deletePhase(int index) {
+    final phase = phases[index];
+    final taskCount = phase.tasks.length;
+    
+    if (taskCount > 0) {
+      _showCannotDeleteDialog(phase, taskCount);
+      return;
+    }
+    
+    _showDeleteConfirmationDialog(index);
+  }
+
+  void _showCannotDeleteDialog(ProjectPhase phase, int taskCount) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: CustomNeumorphicTheme.baseColor,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.2),
+                offset: const Offset(2, 4),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              NeumorphicContainer(
+                padding: EdgeInsets.all(12.w),
+                borderRadius: BorderRadius.circular(15.r),
+                color: Colors.orange.withValues(alpha: 0.1),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange,
+                  size: 32.sp,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Cannot Delete Phase',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                'The phase "${phase.name}" has $taskCount task${taskCount == 1 ? '' : 's'} assigned to it.',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                'Please move or delete the tasks first before deleting this phase.',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20.h),
+              NeumorphicButton(
+                onPressed: () => Navigator.of(context).pop(),
+                isSelected: true,
+                selectedColor: CustomNeumorphicTheme.primaryPurple,
+                borderRadius: BorderRadius.circular(12.r),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                child: Text(
+                  'Got it',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(int index) {
+    final phase = phases[index];
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: CustomNeumorphicTheme.baseColor,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.2),
+                offset: const Offset(2, 4),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              NeumorphicContainer(
+                padding: EdgeInsets.all(12.w),
+                borderRadius: BorderRadius.circular(15.r),
+                color: CustomNeumorphicTheme.errorRed.withValues(alpha: 0.1),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: CustomNeumorphicTheme.errorRed,
+                  size: 32.sp,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Delete Phase?',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                'Are you sure you want to delete "${phase.name}"?',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                'This action cannot be undone.',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: CustomNeumorphicTheme.lightText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: CustomNeumorphicTheme.lightText,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() {
+                          phases.removeAt(index);
+                        });
+                      },
+                      isSelected: true,
+                      selectedColor: CustomNeumorphicTheme.errorRed,
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      child: Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPhaseEditDialog({ProjectPhase? phase, int? index}) {
+    final isEditing = phase != null;
+    final nameController = TextEditingController(text: phase?.name ?? '');
+    final descriptionController = TextEditingController(text: phase?.description ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(20.w),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          decoration: BoxDecoration(
+            color: CustomNeumorphicTheme.baseColor,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: CustomNeumorphicTheme.bottomEdgeShadow.withValues(alpha: 0.2),
+                offset: const Offset(2, 4),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isEditing ? 'Edit Phase' : 'Add New Phase',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              SizedBox(height: 20.h),
+              
+              // Phase Name
+              Text(
+                'Phase Name *',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              NeumorphicContainer(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                borderRadius: BorderRadius.circular(12.r),
+                color: CustomNeumorphicTheme.baseColor,
+                child: TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter phase name',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      color: CustomNeumorphicTheme.lightText,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              
+              // Phase Description
+              Text(
+                'Description (Optional)',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomNeumorphicTheme.darkText,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              NeumorphicContainer(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                borderRadius: BorderRadius.circular(12.r),
+                color: CustomNeumorphicTheme.baseColor,
+                child: TextField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Enter phase description',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      color: CustomNeumorphicTheme.lightText,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: CustomNeumorphicTheme.lightText,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: NeumorphicButton(
+                      onPressed: () {
+                        if (nameController.text.trim().isEmpty) {
+                          return;
+                        }
+                        
+                        final newPhase = ProjectPhase(
+                          id: phase?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                          name: nameController.text.trim(),
+                          description: descriptionController.text.trim(),
+                          tasks: phase?.tasks ?? [],
+                          status: phase?.status ?? PhaseStatus.notStarted,
+                          startDate: phase?.startDate,
+                          endDate: phase?.endDate,
+                        );
+                        
+                        setState(() {
+                          if (isEditing && index != null) {
+                            phases[index] = newPhase;
+                          } else {
+                            phases.add(newPhase);
+                          }
+                        });
+                        
+                        Navigator.of(context).pop();
+                      },
+                      isSelected: true,
+                      selectedColor: CustomNeumorphicTheme.primaryPurple,
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      child: Text(
+                        isEditing ? 'Update' : 'Add Phase',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _saveChanges() {
+    final updatedProject = widget.project.copyWith(phases: phases);
+    widget.onPhasesUpdated(updatedProject);
+    Navigator.of(context).pop();
   }
 }
