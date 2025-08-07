@@ -325,9 +325,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with WidgetsB
   }
 
   Widget _buildHorizontalProjectCard(BuildContext context, Project project, bool isMostRecent) {
-    final completedPhases = project.phases.where((phase) => phase.status == PhaseStatus.completed).length;
-    final totalPhases = project.phases.length;
-    final progress = totalPhases > 0 ? completedPhases / totalPhases : 0.0;
+    final totalTasks = project.phases.fold<int>(0, (sum, phase) => sum + phase.tasks.length);
+    final completedTasks = project.phases.fold<int>(0, (sum, phase) => 
+      sum + phase.tasks.where((task) => task.status == TaskStatus.completed).length);
+    final progress = totalTasks > 0 ? completedTasks / totalTasks : 0.0;
     
     return NeumorphicCard(
       onTap: () => context.go('/tasks/${project.id}'),
@@ -462,8 +463,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with WidgetsB
                       children: [
                         Flexible(
                           child: _buildStatItem(
-                            icon: Icons.view_module_outlined,
-                            label: '${project.phases.length} phases',
+                            icon: Icons.task_alt_outlined,
+                            label: '$completedTasks/$totalTasks tasks',
                             color: CustomNeumorphicTheme.primaryPurple,
                           ),
                         ),

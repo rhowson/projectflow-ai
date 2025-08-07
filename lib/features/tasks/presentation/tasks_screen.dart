@@ -232,24 +232,23 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Compact Switch Button
+              // Edit Button at Header Level - Compact Size
               NeumorphicButton(
-                onPressed: () => _showProjectSelector(projects),
-                borderRadius: BorderRadius.circular(18.r),
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                onPressed: () => _showProjectOptionsMenu(selectedProject),
+                borderRadius: BorderRadius.circular(10.r),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.swap_horiz,
-                      size: 14.sp,
+                      Icons.edit_outlined,
+                      size: 12.sp,
                       color: CustomNeumorphicTheme.primaryPurple,
                     ),
                     SizedBox(width: 4.w),
                     Text(
-                      'Switch',
-                      style: TextStyle(
-                        fontSize: 12.sp,
+                      'Edit',
+                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
                         color: CustomNeumorphicTheme.primaryPurple,
                         fontWeight: FontWeight.w600,
                       ),
@@ -315,10 +314,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  // Edit Button - Compact
+                  // Switch Button - Compact
                   Expanded(
                     child: NeumorphicButton(
-                      onPressed: () => _showProjectOptionsMenu(selectedProject),
+                      onPressed: () => _showProjectSelector(projects),
                       borderRadius: BorderRadius.circular(10.r),
                       padding: EdgeInsets.symmetric(vertical: 8.h),
                       child: Row(
@@ -326,13 +325,13 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.edit_outlined,
+                            Icons.swap_horiz,
                             size: 14.sp,
                             color: CustomNeumorphicTheme.primaryPurple,
                           ),
                           SizedBox(width: 4.w),
                           Text(
-                            'Edit',
+                            'Switch',
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
@@ -1784,107 +1783,206 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   }
 
   void _showProjectOptionsMenu(Project project) {
+    final titleController = TextEditingController(text: project.title);
+    final descriptionController = TextEditingController(text: project.description);
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => NeumorphicContainer(
-        margin: EdgeInsets.all(16.w),
-        borderRadius: BorderRadius.circular(20.r),
-        color: CustomNeumorphicTheme.cardColor,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40.w,
-              height: 4.h,
-              margin: EdgeInsets.only(top: 12.h, bottom: 20.h),
-              decoration: BoxDecoration(
-                color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Project Options',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w700,
-                      color: CustomNeumorphicTheme.darkText,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: NeumorphicContainer(
+          margin: EdgeInsets.all(16.w),
+          borderRadius: BorderRadius.circular(20.r),
+          color: CustomNeumorphicTheme.cardColor,
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    margin: EdgeInsets.only(bottom: 20.h),
+                    decoration: BoxDecoration(
+                      color: CustomNeumorphicTheme.lightText.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2.r),
                     ),
                   ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    project.title,
+                ),
+                
+                // Header
+                Text(
+                  'Edit Project',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Update project details or delete permanently',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: CustomNeumorphicTheme.lightText,
+                  ),
+                ),
+                
+                SizedBox(height: 24.h),
+                
+                // Project Title Field
+                Text(
+                  'Project Title',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: titleController,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: CustomNeumorphicTheme.lightText,
+                      color: CustomNeumorphicTheme.darkText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Enter project title',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                      ),
                     ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+                
+                SizedBox(height: 20.h),
+                
+                // Project Description Field
+                Text(
+                  'Project Description',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: CustomNeumorphicTheme.darkText,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                NeumorphicContainer(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: CustomNeumorphicTheme.baseColor,
+                  child: TextField(
+                    controller: descriptionController,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: CustomNeumorphicTheme.darkText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Enter project description (optional)',
+                      hintStyle: TextStyle(
+                        color: CustomNeumorphicTheme.lightText,
+                      ),
+                    ),
+                    maxLines: 3,
+                  ),
+                ),
+                
+                SizedBox(height: 28.h),
+                
+                // Action Buttons
+                Row(
+                  children: [
+                    // Delete Button
+                    NeumorphicButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showDeleteProjectDialog(project.id);
+                      },
+                      borderRadius: BorderRadius.circular(12.r),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            size: 16.sp,
+                            color: CustomNeumorphicTheme.errorRed,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Delete',
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: CustomNeumorphicTheme.errorRed,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(width: 12.w),
+                    
+                    // Save Button
+                    Expanded(
+                      child: NeumorphicButton(
+                        onPressed: () {
+                          final newTitle = titleController.text.trim();
+                          final newDescription = descriptionController.text.trim();
+                          
+                          if (newTitle.isNotEmpty) {
+                            Navigator.pop(context);
+                            _saveProjectDetails(project, newTitle, newDescription);
+                          }
+                        },
+                        isSelected: true,
+                        selectedColor: CustomNeumorphicTheme.primaryPurple,
+                        borderRadius: BorderRadius.circular(12.r),
+                        padding: EdgeInsets.symmetric(vertical: 10.h),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.save_outlined,
+                              size: 16.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              'Save Changes',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                SizedBox(height: 8.h),
+              ],
             ),
-            SizedBox(height: 20.h),
-            ListTile(
-              leading: NeumorphicContainer(
-                padding: EdgeInsets.all(8.w),
-                borderRadius: BorderRadius.circular(10.r),
-                color: CustomNeumorphicTheme.primaryPurple,
-                child: Icon(Icons.edit, color: Colors.white, size: 20.sp),
-              ),
-              title: Text(
-                'Edit Project Name',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                'Change the project title',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _startEditingProjectName(project);
-              },
-            ),
-            ListTile(
-              leading: NeumorphicContainer(
-                padding: EdgeInsets.all(8.w),
-                borderRadius: BorderRadius.circular(10.r),
-                color: CustomNeumorphicTheme.errorRed,
-                child: Icon(Icons.delete_outline, color: Colors.white, size: 20.sp),
-              ),
-              title: Text(
-                'Delete Project',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: CustomNeumorphicTheme.errorRed,
-                ),
-              ),
-              subtitle: Text(
-                'Permanently delete this project',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: CustomNeumorphicTheme.lightText,
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteProjectDialog(project.id);
-              },
-            ),
-            SizedBox(height: 20.h),
-          ],
+          ),
         ),
       ),
     );
@@ -1931,6 +2029,41 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to update project name: $e'),
+          backgroundColor: CustomNeumorphicTheme.errorRed,
+        ),
+      );
+    }
+  }
+
+  void _saveProjectDetails(Project project, String newTitle, String newDescription) async {
+    if (newTitle.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Project title cannot be empty'),
+          backgroundColor: CustomNeumorphicTheme.errorRed,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final updatedProject = project.copyWith(
+        title: newTitle.trim(),
+        description: newDescription.trim(),
+      );
+
+      await ref.read(projectNotifierProvider.notifier).updateProject(updatedProject);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Project updated successfully'),
+          backgroundColor: CustomNeumorphicTheme.primaryPurple,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update project: $e'),
           backgroundColor: CustomNeumorphicTheme.errorRed,
         ),
       );
